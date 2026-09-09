@@ -138,6 +138,11 @@ of the Da'an grid.
    within reach, and a radius-based or adaptive k would handle that better than
    a constant.
 
+> **POC 3 is done** — see [README_POC3.md](README_POC3.md). Searching 961
+> placements beat the hand-picked centre by 22% on chamfer, confirming that
+> location dominates. It also caught the search gaming the shape metric via
+> rotation, which is worth reading before trusting any number in this project.
+
 ## Recommendation for POC 3
 
 The algorithm is now good enough that **location choice dominates it**. POC 2

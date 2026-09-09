@@ -114,7 +114,10 @@ staircase or a spur.
 The generic straight flanks are near-perfect; the shape's information content
 sits in the cusps, and that is what the grid erodes.
 
-> **POC 2 is done** — see [README_POC2.md](README_POC2.md). It implements the
+> **POC 2 and POC 3 are done** — see [README_POC2.md](README_POC2.md) and
+> [README_POC3.md](README_POC3.md).
+>
+> **POC 2** — see [README_POC2.md](README_POC2.md). It implements the
 > recommendation below and beats POC 1 on every metric (8.80 km, detour 1.38×,
 > 4 backtracked edges, chamfer 23.9 m). Two caveats worth reading there: a
 > length-only DP cost made shape fidelity *worse*, and the arc-length

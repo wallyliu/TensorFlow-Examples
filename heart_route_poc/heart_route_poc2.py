@@ -53,6 +53,10 @@ from heart_route_poc import (
     transform_shape_to_map,
 )
 
+class NoRouteFoundError(RuntimeError):
+    """Raised when no closed walking loop exists through any candidate assignment."""
+
+
 N_POINTS = 40
 N_CANDIDATES = 10          # k nearest junctions kept per contour point
 SNAP_WEIGHT = 1.0          # metres of snap error worth one metre of detour
@@ -176,8 +180,13 @@ def compute_transition_costs(
         targets = set(candidates[j])
         step: dict[tuple[int, int], float] = {}
 
+        # Widen the cutoff until every source candidate can reach at least one
+        # target. A step where some source is a dead end for the DP is usually
+        # a cutoff that is too tight, not a genuine disconnection - but it can
+        # be genuine (a river, a rail corridor), so the retries are bounded and
+        # the caller is left to fail cleanly.
         cutoff = max(400.0, 4.0 * ideal_gap)
-        for _attempt in range(3):
+        for _attempt in range(4):
             step.clear()
             for u in candidates[i]:
                 lengths, paths = nx.single_source_dijkstra(
@@ -192,9 +201,12 @@ def compute_transition_costs(
                             graph_proj, paths[v], reference_tree
                         )
                     step[(u, v)] = cost
-            if step:
+            reached = {u for u, _ in step}
+            if len(reached) == len(candidates[i]):
                 break
-            cutoff *= 3.0  # nothing reachable; widen and retry
+            if cutoff >= 6000.0:
+                break  # far beyond any plausible detour; treat as disconnected
+            cutoff = min(cutoff * 3.0, 6000.0)
 
         transitions.append(step)
     return transitions
@@ -282,8 +294,11 @@ def viterbi_closed_loop(
         best_assignment, best_cost = assignment, cheapest
 
     if best_assignment is None:
-        msg = "no closed loop found through any candidate assignment"
-        raise RuntimeError(msg)
+        msg = (
+            "no closed loop found through any candidate assignment - the contour "
+            "is probably split by a barrier the walking network cannot cross"
+        )
+        raise NoRouteFoundError(msg)
     return best_assignment, best_cost
 
 
