@@ -44,7 +44,7 @@ HEART_WIDTH_M = 2000.0       # target width of the heart on the ground
 N_HEART_POINTS = 40          # samples along the ideal contour
 NETWORK_HALF_SIZE_M = 2000.0 # half-side of the square network box (4 km x 4 km)
 OUTPUT_PNG = Path(__file__).with_name("heart_route_poc.png")
-CACHE_XML = Path(__file__).with_name("_taipei_walk.osm")
+CACHE_DIR = Path(__file__).parent
 
 
 # ---------------------------------------------------------------------------
@@ -131,9 +131,13 @@ def download_walk_graph(
     official OSM Map API (see osm_api_fallback.py). The fallback produces the
     same kind of graph, just over a square box instead of a disc.
     """
-    if CACHE_XML.exists():
-        print(f"  using cached network file {CACHE_XML.name}")
-        graph = ox.graph_from_xml(CACHE_XML, bidirectional=True, simplify=True)
+    # Key the cache on the actual area, so changing --lat/--lon fetches a new
+    # network instead of silently reusing the previous one.
+    cache_xml = CACHE_DIR / f"_walk_{center_lat:.4f}_{center_lon:.4f}_{half_size_m:.0f}m.osm"
+
+    if cache_xml.exists():
+        print(f"  using cached network file {cache_xml.name}")
+        graph = ox.graph_from_xml(cache_xml, bidirectional=True, simplify=True)
     else:
         try:
             # dist is the half-side of a square bbox, matching the fallback.
@@ -148,9 +152,9 @@ def download_walk_graph(
             print("  falling back to the OSM Map API tiler")
             from osm_api_fallback import download_walk_xml
 
-            download_walk_xml(center_lat, center_lon, half_size_m, CACHE_XML)
+            download_walk_xml(center_lat, center_lon, half_size_m, cache_xml)
             # bidirectional=True: pedestrians ignore one-way restrictions.
-            graph = ox.graph_from_xml(CACHE_XML, bidirectional=True, simplify=True)
+            graph = ox.graph_from_xml(cache_xml, bidirectional=True, simplify=True)
 
     graph_proj = ox.project_graph(graph)
     print(f"  network: {graph_proj.number_of_nodes()} nodes, "

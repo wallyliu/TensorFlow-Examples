@@ -21,7 +21,7 @@ python heart_route_poc.py
 
 Outputs `heart_route_poc.png` (the comparison plot) and `ideal_heart.png`
 (the Step 1 sanity check). The first run downloads the street network, which
-takes a minute or two; it is cached in `_taipei_walk.osm` and reused after that.
+takes a minute or two; it is cached in `_walk_<lat>_<lon>_<size>.osm` and reused after that.
 Delete that file to force a fresh download.
 
 Useful flags:
@@ -113,6 +113,12 @@ staircase or a spur.
 
 The generic straight flanks are near-perfect; the shape's information content
 sits in the cusps, and that is what the grid erodes.
+
+> **POC 2 is done** — see [README_POC2.md](README_POC2.md). It implements the
+> recommendation below and beats POC 1 on every metric (8.80 km, detour 1.38×,
+> 4 backtracked edges, chamfer 23.9 m). Two caveats worth reading there: a
+> length-only DP cost made shape fidelity *worse*, and the arc-length
+> resampling suggested below is actively harmful on its own.
 
 ## Recommendation for POC 2
 
