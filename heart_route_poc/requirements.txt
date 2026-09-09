@@ -1,0 +1,7 @@
+# POC 1 - heart route on real streets
+# geopandas and shapely are pulled in by osmnx.
+osmnx>=2.0
+networkx>=3.0
+numpy>=1.24
+matplotlib>=3.7
+scipy>=1.10
