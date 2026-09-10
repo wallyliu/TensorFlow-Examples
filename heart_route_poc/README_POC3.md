@@ -153,6 +153,12 @@ city is also a test suite.
 4. **One city, one shape.** Nothing here has been tested against a shape whose
    cusps point differently, or a city without Taipei's dense semi-regular grid.
 
+> **POC 4 is done** — see [README_POC4.md](README_POC4.md). Both halves of the
+> recommendation below turned out to be wrong: the metric was fine and the
+> *reference* was at fault, and a turning function is unusable on a cusped shape
+> like a heart. The replacement metric correlates with chamfer at ρ ≈ 0 on real
+> routes.
+
 ## Recommendation for POC 4
 
 The geometry pipeline is now complete end to end: shape → placement → route,
