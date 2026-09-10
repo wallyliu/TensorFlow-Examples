@@ -1,5 +1,13 @@
 # POC 4 — Fixing the ruler
 
+> **Two claims on this page were later overturned by POC 5** — see
+> [README_POC5.md](README_POC5.md). A human rater found that tilt does **not**
+> reduce heart-likeness, so the rotation sensitivity this POC builds in is an
+> error and the rotation-invariant formulation it argues against is correct.
+> And the ρ = −0.007 below is a restricted-range artifact: over 50 placements
+> the two metrics correlate at +0.771. The battery, the traversal-order finding
+> and the cleft hypothesis all survive.
+
 POC 3 ended by catching its own search gaming its objective: a heart tilted 30°
 scored identically to an upright one and looked far worse. Its recommendation
 was to replace chamfer with a turning-function distance.

@@ -114,8 +114,9 @@ staircase or a spur.
 The generic straight flanks are near-perfect; the shape's information content
 sits in the cusps, and that is what the grid erodes.
 
-> **POC 2, 3 and 4 are done** — see [README_POC2.md](README_POC2.md),
-> [README_POC3.md](README_POC3.md) and [README_POC4.md](README_POC4.md).
+> **POC 2, 3, 4 and 5 are done** — see [README_POC2.md](README_POC2.md),
+> [README_POC3.md](README_POC3.md), [README_POC4.md](README_POC4.md) and
+> [README_POC5.md](README_POC5.md).
 >
 > **POC 2** — see [README_POC2.md](README_POC2.md). It implements the
 > recommendation below and beats POC 1 on every metric (8.80 km, detour 1.38×,

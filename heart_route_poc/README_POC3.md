@@ -101,6 +101,12 @@ a null result rather than quietly dropped.
 
 ## The mistake worth reading: rotation gamed the metric
 
+> **POC 5 corrected this section.** A human rater called all eight rotated
+> pairs "about the same", so the claim below that a tilted heart "stops reading
+> as a heart" was my judgement, not a fact. What survives is narrower: the
+> metric compared against a reference rotated to match, so it was structurally
+> unable to express any judgement about tilt.
+
 The first version searched ±30° of rotation alongside position. It "won"
 decisively — chamfer 17.9 m, −25% against baseline — and the result was
 **worse**, because a heart tilted 30° stops reading as a heart. Fitted head to
