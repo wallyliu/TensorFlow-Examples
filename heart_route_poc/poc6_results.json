@@ -1,0 +1,50 @@
+[
+ {
+  "shape": "heart",
+  "distance": 0.06077944801162805,
+  "route_km": 8.086007328647625,
+  "detour_ratio": 1.26631450826899,
+  "backtracked": 5,
+  "rotation": 300.0,
+  "lat": 25.058036666876543,
+  "lon": 121.53780383604064,
+  "coarse_viable": 10855,
+  "coarse_total": 11532
+ },
+ {
+  "shape": "star5",
+  "distance": 0.07850267102851473,
+  "route_km": 9.495460498746857,
+  "detour_ratio": 1.2430060948681447,
+  "backtracked": 16,
+  "rotation": 150.0,
+  "lat": 25.025476954575698,
+  "lon": 121.53224406022349,
+  "coarse_viable": 10895,
+  "coarse_total": 11532
+ },
+ {
+  "shape": "crescent",
+  "distance": 0.046875699462853554,
+  "route_km": 11.917862722351796,
+  "detour_ratio": 1.2430906356921843,
+  "backtracked": 14,
+  "rotation": 150.0,
+  "lat": 25.054366767578653,
+  "lon": 121.53190011496696,
+  "coarse_viable": 10599,
+  "coarse_total": 11532
+ },
+ {
+  "shape": "triangle",
+  "distance": 0.05389324775064856,
+  "route_km": 7.747530790223327,
+  "detour_ratio": 1.2913791130231804,
+  "backtracked": 5,
+  "rotation": 120.0,
+  "lat": 25.045200944922065,
+  "lon": 121.51813339592243,
+  "coarse_viable": 10948,
+  "coarse_total": 11532
+ }
+]

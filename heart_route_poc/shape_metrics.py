@@ -202,6 +202,47 @@ def procrustes_upright_fft(
     return best
 
 
+def shape_distance(route_xy: np.ndarray, template_xy: np.ndarray, n: int = 1024) -> float:
+    """
+    The metric POC 5's human data endorsed: ordered, translation- and
+    scale-invariant, minimised over cyclic shift, direction AND rotation.
+
+    This is classical Procrustes shape distance. POC 4 deliberately removed the
+    rotation alignment and POC 5 measured that removal to be an error - a rater
+    called eight rotated-vs-upright pairs "about the same" while the
+    rotation-sensitive form charged up to 6x for them. What POC 4 got right was
+    the ORDERED comparison, which is what distinguishes a filled-in cleft from
+    an equal bulge elsewhere, and that is kept.
+
+    Rotation alignment costs nothing here. Minimising the squared distance over
+    the angle has a closed form that turns the cross-correlation's REAL part
+    into its MAGNITUDE:
+
+        min_theta sum_i |a_i - e^{i.theta} b_{i+k}|^2
+            = sum|a|^2 + sum|b|^2 - 2 |sum_i a_i conj(b_{i+k})|
+
+    so the same single FFT that served every cyclic shift also serves every
+    rotation. Returns RMS distance in normalised units.
+    """
+    a = normalize_curve(route_xy, n)
+    b = normalize_curve(template_xy, n)
+    a_complex = a[:, 0] + 1j * a[:, 1]
+
+    energy_a = float((np.abs(a_complex) ** 2).sum())
+    spectrum_a = np.fft.fft(a_complex)
+
+    best = np.inf
+    for flipped in (False, True):
+        b_dir = b[::-1] if flipped else b
+        b_complex = b_dir[:, 0] + 1j * b_dir[:, 1]
+        energy_b = float((np.abs(b_complex) ** 2).sum())
+
+        correlation = np.fft.ifft(np.conj(spectrum_a) * np.fft.fft(b_complex))
+        residual = energy_a + energy_b - 2.0 * np.abs(correlation)
+        best = min(best, float(np.sqrt(max(residual.min(), 0.0) / n)))
+    return best
+
+
 # ---------------------------------------------------------------------------
 # Metric 4 - turning function
 # ---------------------------------------------------------------------------
