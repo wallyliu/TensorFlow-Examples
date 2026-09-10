@@ -163,6 +163,45 @@ def sampling_floor(xy: np.ndarray, n: int) -> float:
     return float(perimeter / (2 * n))
 
 
+def procrustes_upright_fft(
+    route_xy: np.ndarray,
+    template_xy: np.ndarray,
+    n: int = 1024,
+) -> float:
+    """
+    `procrustes_upright` computed in O(n log n) instead of O(n^2).
+
+    The brute-force version minimises the MEAN Euclidean distance over every
+    cyclic shift, which an FFT cannot accelerate - the square root inside the
+    sum has no convolution structure. Sum of SQUARED distances does:
+
+        sum_i |a_i - b_{i+k}|^2 = sum|a|^2 + sum|b|^2 - 2 Re(sum_i a_i conj(b_{i+k}))
+
+    and that last term is a circular cross-correlation, so every shift is
+    evaluated in one transform. The price is that this returns RMS rather than
+    mean distance - a different number, and one that weights large deviations
+    more heavily. Whether that changes any RANKING is an empirical question,
+    checked in the POC 5 write-up rather than assumed.
+    """
+    a = normalize_curve(route_xy, n)
+    b = normalize_curve(template_xy, n)
+    a_complex = a[:, 0] + 1j * a[:, 1]
+
+    energy_a = float((np.abs(a_complex) ** 2).sum())
+    spectrum_a = np.fft.fft(a_complex)
+
+    best = np.inf
+    for flipped in (False, True):
+        b_dir = b[::-1] if flipped else b
+        b_complex = b_dir[:, 0] + 1j * b_dir[:, 1]
+        energy_b = float((np.abs(b_complex) ** 2).sum())
+
+        correlation = np.fft.ifft(np.conj(spectrum_a) * np.fft.fft(b_complex))
+        residual = energy_a + energy_b - 2.0 * np.real(correlation)
+        best = min(best, float(np.sqrt(max(residual.min(), 0.0) / n)))
+    return best
+
+
 # ---------------------------------------------------------------------------
 # Metric 4 - turning function
 # ---------------------------------------------------------------------------
