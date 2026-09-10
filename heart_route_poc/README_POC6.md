@@ -142,6 +142,69 @@ for reading everything else.
 difference is a real answer rather than a failure, since the whole measurement
 depends on ties being reported honestly.
 
+## Rater 3: the metric's differences are mostly invisible
+
+![threshold](poc6c_threshold.png)
+
+The result is unusually clean. **Every gap up to 0.10 was called "about the
+same"; every gap from 0.15 up was answered correctly.** No trial fell in
+between, so the threshold is bracketed at **0.10–0.15**.
+
+| evidence | value |
+| --- | --- |
+| largest gap called "the same" | 0.1005 |
+| smallest gap answered correctly | 0.1523 |
+| catch trials (identical quality) called "the same" | 2 / 3 |
+| repeats self-consistent | 2 / 2 |
+
+Reaction time carries the same story independently: the near-identical pairs
+took 4–15 s, the obvious ones under 2 s. That rising-difficulty-rising-latency
+signature is what an engaged discrimination looks like, and it cannot be faked
+by clicking through.
+
+The one failed catch trial is informative rather than damaging. On a pair whose
+true gap was 0.0004 the rater deliberated 11.4 s and then **picked a side**.
+They guess when they cannot tell, so "about the same" is not their lazy default
+— which makes the seven tied gap trials more credible, not less.
+
+### What that means for the search
+
+The location search's own shortlists, re-measured across all four shapes:
+
+| shape | shortlist spread | vs threshold |
+| --- | ---: | --- |
+| crescent | 0.037 | entirely invisible |
+| heart | 0.069 | entirely invisible |
+| star5 | 0.134 | best-vs-worst only just visible |
+| triangle | 0.137 | best-vs-worst only just visible |
+
+**Picking the best of eight shortlisted placements instead of the worst is,
+for a heart or a crescent, a difference no one can see.** For the star and
+triangle it is borderline at the extremes and invisible for every pair in
+between.
+
+So stage 2's fine-grained ranking is mostly optimising something imperceptible.
+What earns its keep is stage 1 — the cheap filter that throws away the bad 80%,
+where the gaps are 0.2–0.8 and obvious. POC 3 measured stage 1 as "an excellent
+rejector and only a mediocre ranker" and treated the second half as a weakness.
+It turns out not to matter: **the ranking does not need to be good, because
+nobody can see it either.**
+
+Past the threshold, effort belongs to things a walker actually notices — route
+length, road safety, whether it goes past anything worth seeing — not to the
+third decimal place of a shape metric.
+
+### Limits specific to this measurement
+
+- **One rater, 12 gap trials.** A single-subject psychophysics run.
+- **The bracket is not resolved.** My target gaps jumped from 0.100 to 0.150,
+  so nothing was sampled where the threshold actually sits. That is a design
+  shortcoming; a follow-up should sample 0.10–0.15 finely.
+- **The ladder is synthetic.** Rungs were made by adding smooth noise to one
+  real route, which degrades it uniformly. Real alternative placements differ in
+  structured ways instead — a spur here, a staircase there — and those may be
+  more or less noticeable than uniform wobble at the same metric distance.
+
 ## Limits
 
 - Four shapes, one city. Nothing here says this survives a shape with a hole in
@@ -157,19 +220,24 @@ depends on ties being reported honestly.
 
 ## Recommendation for POC 7
 
-Depends on what comes back from the second rater.
+Tilt replicated, so the metric question is closed. The threshold result then
+answers the question that had been driving five POCs of metric work — **how good
+does the metric need to be?** — with: *good enough to reject the bad 80%, and no
+better.* Five POCs were spent refining a ruler whose last two decimal places
+nobody can read.
 
-**If tilt replicates** (rotated pairs called "about the same" again), the metric
-question is closed and the next bottleneck is shape *acquisition* — text-to-shape
-or image-to-shape — feeding this pipeline, which is now shape-agnostic and takes
-any ordered closed contour. The natural interface is exactly that: a contour in,
-a route out.
+That reframes what is left:
 
-**If it does not replicate**, POC 5's conclusion was one person's idiosyncrasy,
-the rotation search here has to be re-locked, and the metric needs its rotation
-term back — in which case the honest move is a third rater before touching the
-code again, not another reversal on n=1.
+1. **Stop tuning the objective.** `shape_distance` clears the bar. Fine-ranking
+   inside a shortlist optimises below the threshold of perception.
+2. **Add a second objective past the threshold.** Once a placement is
+   recognisable, rank on something a walker perceives — total distance, how much
+   of the route is on quiet streets, whether it passes a park. That is a
+   genuinely new axis, not more of the same.
+3. **Then shape acquisition** — text-to-shape or image-to-shape. The pipeline is
+   already shape-agnostic: it takes any ordered closed contour and returns a
+   route, so the interface is exactly that.
 
-Either way, the concavity cost measured here is the first result in this project
-that no metric argument can talk away: deep notches need backtracking, and no
-choice of objective function changes what the street network physically offers.
+The concavity cost stands apart from all of it, and is the one finding no metric
+argument can touch: deep notches need backtracking, because no street threads
+them. That is the street network's answer, not the objective function's.
