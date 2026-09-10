@@ -94,6 +94,54 @@ outside your Claude organisation will not be able to open it — in that case th
 page still works and shows a copyable JSON blob at the end, which they can send
 back by any route.
 
+## Rater 2 replicated rater 1 exactly
+
+| | rater 1 (POC 5) | rater 2 (POC 6) |
+| --- | --- | --- |
+| tilt pairs called "about the same" | 8 / 8 | **10 / 10** |
+| defining feature worse than equal change elsewhere | 1 / 1 (heart) | **2 / 2** (heart + star) |
+| anchors correct | 2 / 2 | 2 / 2 |
+| repeats self-consistent | 2 / 2 | 2 / 2 |
+
+Rater 2's tilt judgements took a median of 1.6 s and their anchors 0.9–1.3 s, so
+they were looking, not clicking through. **18 rotated-vs-upright pairs across
+four shapes, two independent people, every one "about the same."** POC 5's
+reversal of POC 3 and POC 4 holds.
+
+The feature result now generalises past the heart: flattening one of the star's
+notches was judged worse than an identical displacement applied a quarter-turn
+away, which is the same answer the heart's cleft gave. The ordered comparison
+POC 4 argued for keeps earning its place; the rotation sensitivity it also
+argued for stays dead.
+
+## The third rater gets a different question
+
+Asking a third person about tilt would buy almost nothing after that. The
+untested question is the one the metric is actually **used** for.
+
+Every human judgement so far has been about tilt (ties) or a destroyed feature
+(obvious). **Nobody has been asked to rank two real routes of differing
+quality** — which is the only thing the location search does with the metric.
+POC 6's shortlists spanned distances of just 0.046 to 0.17. If a person cannot
+see a gap that size, the search's fine-grained ranking is optimising something
+invisible, and effort past a recognisability threshold belongs to route length,
+safety or scenery instead.
+
+So the third task measures a **discrimination threshold**: how large a metric
+gap has to be before a person can see it. The best real heart route is degraded
+with smooth low-frequency noise at rising amplitudes, producing rungs of exactly
+known distance (0.061 clean, up to 0.365), and pairs are drawn at target gaps
+weighted heavily toward the small end — 0.009, 0.022, 0.030, 0.039, 0.056,
+0.074, 0.101, 0.152, 0.225, 0.307. Three **catch trials** pair rungs of equal
+amplitude: a rater who calls those different is guessing, which sets the floor
+for reading everything else.
+
+**Third-rater task: https://claude.ai/code/artifact/35cf7aea-5f5d-4e9c-bcba-aa11dd16e4be**
+
+15 trials, about 3 minutes. The instructions say plainly that seeing no
+difference is a real answer rather than a failure, since the whole measurement
+depends on ties being reported honestly.
+
 ## Limits
 
 - Four shapes, one city. Nothing here says this survives a shape with a hole in
