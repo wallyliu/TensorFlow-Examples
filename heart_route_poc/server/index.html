@@ -269,7 +269,12 @@
     // tilted heart and the reader marks it down for a choice nobody made. So
     // the picture can be turned by the angle the search used - with a north
     // arrow, since the rider still has to know which way they are going.
-    var theta = (state.upright ? -(result.rotation_deg || 0) : 0) * Math.PI / 180;
+        // NOTE ON THE SIGN. Screen y points DOWN (y = maxLat - lat), so applying
+    // the standard rotation matrix here turns the picture the opposite way to
+    // the same matrix in map coordinates. The angle therefore has to be
+    // negated: without this the heart came out 240 degrees from upright, which
+    // looked like "roughly turned but not really" rather than like a bug.
+    var theta = (state.upright ? -(result.upright_deg || 0) : 0) * Math.PI / 180;
     var cos = Math.cos(theta), sin = Math.sin(theta);
     function project(c) {
       var x = (c[1] - minLon) * k, y = maxLat - c[0];

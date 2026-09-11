@@ -243,6 +243,49 @@ def shape_distance(route_xy: np.ndarray, template_xy: np.ndarray, n: int = 1024)
     return best
 
 
+def alignment_angle(route_xy: np.ndarray, template_xy: np.ndarray,
+                    n: int = 1024) -> float:
+    """
+    Degrees to turn the route by so it sits the way the template does.
+
+    `shape_distance` already minimises over rotation - it just throws the angle
+    away, because for scoring only the residual matters. For DRAWING the route
+    the angle is the whole point: the search is free to place a shape at any
+    orientation, so a picture with north up shows a heart lying on its side and
+    the reader marks it down for a choice nobody made.
+
+    The angle falls out of the same transform. At the best cyclic shift k,
+
+        min_theta sum_i |a_i - e^{i.theta} b_{i+k}|^2
+
+    is minimised at theta = arg(corr[k]), which rotates the TEMPLATE onto the
+    route; turning the route the other way puts it where the template stands.
+
+    Reading it from the metric rather than from the placement parameter matters:
+    the route is not the placed template, it is a walk over streets that
+    approximates it, and its own best orientation drifts from the angle the
+    search asked for - by 15 degrees on POC 6's heart.
+    """
+    a = normalize_curve(route_xy, n)
+    b = normalize_curve(template_xy, n)
+    a_complex = a[:, 0] + 1j * a[:, 1]
+    energy_a = float((np.abs(a_complex) ** 2).sum())
+    spectrum_a = np.fft.fft(a_complex)
+
+    best_residual, best_angle = np.inf, 0.0
+    for flipped in (False, True):
+        b_dir = b[::-1] if flipped else b
+        b_complex = b_dir[:, 0] + 1j * b_dir[:, 1]
+        energy_b = float((np.abs(b_complex) ** 2).sum())
+        correlation = np.fft.ifft(np.conj(spectrum_a) * np.fft.fft(b_complex))
+        residual = energy_a + energy_b - 2.0 * np.abs(correlation)
+        k = int(np.argmin(residual))
+        if residual[k] < best_residual:
+            best_residual = float(residual[k])
+            best_angle = float(np.angle(correlation[k]))
+    return float(np.degrees(best_angle))
+
+
 # ---------------------------------------------------------------------------
 # Metric 4 - turning function
 # ---------------------------------------------------------------------------

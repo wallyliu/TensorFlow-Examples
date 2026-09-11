@@ -45,7 +45,10 @@ from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               NETWORK_HALF_SIZE_M, SEARCH_LAT, SEARCH_LON,
                               build_center_grid, build_street_index,
                               select_candidates)
+from heart_route_poc3 import place_shape                          # noqa: E402
 from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
+from shape_library import resample_by_arclength                  # noqa: E402
+from shape_metrics import alignment_angle                        # noqa: E402
 from route_export import to_gpx                                  # noqa: E402
 from shape_library import SHAPES, register                       # noqa: E402
 
@@ -188,6 +191,10 @@ def build_route(shape: str, target_km: float, mode: str,
     if best is None:
         return {"status": "no route", **verdict}
 
+    dense = resample_by_arclength(shape, 4000)
+    upright = place_shape(np.vstack([dense, dense[:1]]),
+                          best["centre_xy"], width_m, 0.0)
+
     route_id = uuid.uuid4().hex[:12]
     km = best["metrics"]["route_km"]
     description = (f"{shape} · {km:.1f} km · {mode} · "
@@ -200,13 +207,14 @@ def build_route(shape: str, target_km: float, mode: str,
     to_wgs = Transformer.from_crs(net["crs"], "EPSG:4326", always_xy=True)
     lons, lats = to_wgs.transform(best["route_xy"][:, 0], best["route_xy"][:, 1])
     return {"status": "ok", **verdict, "id": route_id,
-            # The orientation the search chose. The page can turn the drawing
-            # back upright with it: POC 6 established the metric is
-            # rotation-invariant and a rater called tilted and upright hearts
-            # equally heart-like, so the search is free to use orientation -
-            # but a reader looking at a north-up picture sees a tilted heart
-            # and marks it down for something nobody chose.
+            # Two different angles, and only the second one is any use for
+            # drawing. `rotation_deg` is what the search ASKED for.
+            # `upright_deg` is what the finished route actually turned out to
+            # be, read back out of the metric's own alignment - the route is a
+            # walk over streets approximating the template, not the template,
+            # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
+            "upright_deg": round(alignment_angle(best["route_xy"], upright), 1),
             "route_km": round(km, 1),
             "shape_distance": round(best["distance"], 3),
             "seconds": round(time.time() - t0, 1),

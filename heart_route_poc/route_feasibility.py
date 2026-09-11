@@ -114,13 +114,24 @@ def min_distance_km(shape: str, mode: str = DEFAULT_MODE) -> float:
     return n_min(shape) * cfg["street_scale_m"] * cfg["detour"] / 1000.0
 
 
-# Where inside the window to sit. POC 9 swept this across five shapes and found
-# the optimum at 0.50, 0.69, 0.75, 0.83 and 1.00 of the cap - so no single
-# fraction is right. It also found the whole sweep spans only 0.013-0.041 in
-# shape distance for every shape, far below the ~0.10 at which a person sees a
-# difference. The position is unpredictable AND immaterial: any n in the window
-# gives a perceptually identical route. 0.75 is the measured mean.
-WINDOW_FRACTION = 0.75
+# Where inside the window to sit. POC 9 swept this across five shapes, found the
+# optimum at 0.50, 0.69, 0.75, 0.83 and 1.00 of the cap, and concluded that the
+# position was unpredictable but immaterial - the whole sweep spanned only
+# 0.013-0.041 in shape distance, well under the ~0.10 at which a person sees a
+# difference. 0.75 was the measured mean.
+#
+# "Immaterial" was too strong, and the triangle is the counter-example. At 8 km
+# the 0.75 fraction gives it 16 anchors, 687 m apart against a 280 m street
+# scale, and between anchors that far apart the route is barely constrained:
+# it scored 0.127, which is ABOVE the threshold, and a user said so before any
+# measurement did. Refitting the same placement at 24 and 32 anchors gives
+# 0.094 and 0.095. The span is indeed ~0.03 - but it straddles the threshold,
+# so where in the window you sit decides whether the shape reads or not.
+#
+# 1.0 puts anchors one street scale apart, which is what the cap means. Checked
+# not to cost anything on the shape it was not chosen for: the heart at 10 km
+# runs 0.079 / 0.079 / 0.077 / 0.085 across 21, 28, 36 and 48 anchors.
+WINDOW_FRACTION = 1.0
 
 
 def contour_points(shape: str, width_m: float, mode: str = DEFAULT_MODE) -> int:

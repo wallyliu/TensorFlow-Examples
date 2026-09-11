@@ -165,7 +165,12 @@ TEMPLATE = r"""<title>台北的圖案路線</title>
     var minLon = Math.min.apply(null, lons);
     var k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
 
-    var theta = (state.upright ? -(r.rotation_deg || 0) : 0) * Math.PI / 180;
+        // NOTE ON THE SIGN. Screen y points DOWN (y = maxLat - lat), so applying
+    // the standard rotation matrix here turns the picture the opposite way to
+    // the same matrix in map coordinates. The angle therefore has to be
+    // negated: without this the heart came out 240 degrees from upright, which
+    // looked like "roughly turned but not really" rather than like a bug.
+    var theta = (state.upright ? -(r.upright_deg || 0) : 0) * Math.PI / 180;
     var cos = Math.cos(theta), sin = Math.sin(theta);
     function project(c) {
       var x = (c[1] - minLon) * k, y = maxLat - c[0];
@@ -211,7 +216,7 @@ TEMPLATE = r"""<title>台北的圖案路線</title>
       + "<dt>距離</dt><dd>" + r.route_km + " km</dd>"
       + "<dt>畫多寬</dt><dd>" + (r.width_m / 1000).toFixed(1) + " km</dd>"
       + "<dt>輪廓點</dt><dd>" + r.points + "</dd>"
-      + "<dt>擺放角度</dt><dd>" + r.rotation_deg + "°</dd>"
+      + "<dt>轉正角度</dt><dd>" + r.upright_deg + "°</dd>"
       + "<dt>形狀誤差</dt><dd>" + r.shape_distance + "</dd>";
   }
 
