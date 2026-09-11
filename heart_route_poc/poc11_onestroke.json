@@ -1,0 +1,35 @@
+{
+  "LIT": {
+    "contours": 3,
+    "links": 2,
+    "link_share": 0.056164484854368965,
+    "perimeter": 5.178487868683214,
+    "n_min": 84,
+    "width_km": 4.541866389653369,
+    "bike_km": 29.6352,
+    "walk_km": 16.8,
+    "height_km": 2.4208760080103517
+  },
+  "LOVE": {
+    "contours": 5,
+    "links": 4,
+    "link_share": 0.060892484184105936,
+    "perimeter": 5.79089718400961,
+    "n_min": 160,
+    "width_km": 7.736279643110592,
+    "bike_km": 56.448,
+    "walk_km": 32.0,
+    "height_km": 2.3906753713165068
+  },
+  "TAIPEI": {
+    "contours": 8,
+    "links": 7,
+    "link_share": 0.10021953609412441,
+    "perimeter": 6.2539742100115765,
+    "n_min": 240,
+    "width_km": 10.74516743168271,
+    "bike_km": 84.672,
+    "walk_km": 48.0,
+    "height_km": 2.6585158935379143
+  }
+}

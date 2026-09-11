@@ -3,25 +3,32 @@
 Things measured or reasoned about but not built. Kept here so they are decisions
 rather than omissions.
 
-## 1. Multi-contour shapes — blocks text-to-shape
+## 1. Multi-contour shapes — SOLVED, see `multi_contour.py`
 
-**What.** Every stage of the pipeline takes ONE closed curve: `shape_library`,
-`place_shape`, the Viterbi matcher, `shape_distance`. A shape with a hole or a
-separate part cannot be expressed.
+**What it was.** Every stage of the pipeline takes ONE closed curve:
+`shape_library`, `place_shape`, the Viterbi matcher, `shape_distance`. A shape
+with a hole or a separate part could not be expressed. POC 8 measured Chrome's
+dinosaur eye at 13×12 px — 6.4% of the shape's width, or 128 m at a 2 km target,
+comfortably above the ~50 m this street network resolves. It was not too small to
+draw; it was structurally unrepresentable. The same limit blocked text-to-shape:
+LOVE is 5 closed contours, TAIPEI is 8, and `A B D O P Q R` all have counters.
 
-**Why it matters more than it looks.** POC 8 measured Chrome's dinosaur eye at
-13×12 px — 6.4% of the shape's width, or 128 m at a 2 km target, comfortably
-above the ~50 m this street network resolves. It is not too small to draw; it is
-structurally unrepresentable.
+**The fix, and whose it was.** The user's, not the metric's: link the contours
+with the shortest connectors and ride each connector out and back. The result is
+one closed curve, and nothing downstream needs to change — not the metric, not
+the search, not the fit. The product question this item said had to be answered
+first ("two walks? a marked gap? a connecting leg?") turned out to have a fourth
+answer that made it moot.
 
-The same limit blocks the biggest unbuilt feature in the original brief:
-**text-to-shape**. The letters `A B D O P Q R` all have counters. "LOVE" cannot
-be drawn because of the O.
+**What it cost, measured** (`poc11_onestroke.py`): the connectors add 5.6% of
+perimeter for LIT, 6.1% for LOVE, 10.0% for TAIPEI, and are hairlines on the map.
 
-**What it needs.** Not just plumbing. A product decision comes first: if a shape
-is two closed loops, does the walker do two separate walks? One walk with a
-marked gap between loops? A connecting leg that is drawn differently on the map?
-The answer changes the data model before any code changes.
+**What it did not fix.** Distance. Merging is cheap; words are not. n_min tracks
+features, not contours: LIT 84, LOVE 160, TAIPEI 240, which at the bike street
+scale is 30 / 56 / 85 km and needs the word drawn 4.5 / 7.7 / 10.7 km wide. A
+word is wide and short, so its strokes end up closer together than the street
+scale can resolve. **The blocker moved from topology to distance** — which is
+item 6 below, and a different kind of problem.
 
 ## 2. Are these routes actually walkable? — the untested risk
 
@@ -61,3 +68,10 @@ existing one has done three rounds.
 `route_feasibility` assumes ~1.30. Stable across five shapes at 2 km, and
 validated in POC 9 across sizes — but it is an empirical constant from one city,
 and a different street grid would move it.
+## 6. Words are too long to ride — the new text blocker
+
+Following from item 1. Three directions, none tested: short words only (a
+feasibility gate that rejects TAIPEI before drawing it, which
+`route_feasibility` can already do); a taller font or stacked lines, to spend
+width on height instead of length; or accepting a multi-day / multi-segment
+route, which is a product decision, not an algorithmic one.
