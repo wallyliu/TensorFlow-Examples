@@ -177,7 +177,16 @@ the first one above zero. Against that, both round-two raters answered
 "neither" on both forced choices between rail and nearest-point, and the best
 rating any route has received remains "not much like it".
 
-So the rail is not established as better, and the honest summary is unchanged:
-no word has been reliably read yet. The next thing to try is not another link
-scheme but the size question — the same word drawn twice as wide — because
-until that is answered nobody knows whether links are the problem at all.
+So the rail is not established as better, and no word has been reliably read.
+
+**Size was the remaining hope and it is gone.** POC 15 fitted LIT upright at
+4.5 km and at 9.1 km, on a network widened to 14 km to hold the big one. Bigger
+is not better, it is far worse: 0.094 against **0.276**, at 92 km of riding. The
+picture says why — at 4.5 km the word sits inside Taipei's dense grid; at 9.1 km
+it runs off the edges into the hills and the river, where there is no network to
+draw with. A word is wide and short, so growing it spends everything on width
+and runs out of city sideways before gaining any height.
+
+Nothing cheap is left. Stacked lines and a taller font would attack the aspect
+ratio, which is the real constraint, but both are guesses with no measurement
+behind them, on a feature that has already failed a rater round. Parked.
