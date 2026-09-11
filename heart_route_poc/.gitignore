@@ -1,3 +1,4 @@
 # cached OSM extract - regenerated on demand, too large to track
 _walk_*.osm
+_bike_*.osm
 __pycache__/
