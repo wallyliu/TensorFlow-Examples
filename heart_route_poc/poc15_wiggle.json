@@ -1,0 +1,255 @@
+{
+  "wander_weight": 0.7,
+  "fitted_on": "trex",
+  "discrimination_threshold": 0.1,
+  "shapes": {
+    "trex": {
+      "rungs": [
+        {
+          "rung": "L1",
+          "alpha": 0.35,
+          "shape_distance": 0.0763462774108594,
+          "noise_amplitude_m": 21.936793930484328,
+          "wander_merged": 0.0,
+          "wander_noise": 0.05460774858835338,
+          "v2_merged": 0.0763462774108594,
+          "v2_noise": 0.1145717014233059,
+          "feature_size": 6.713710582369692,
+          "feature_kind": "fjord",
+          "v2_gap": 0.038225424012446496,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L2",
+          "alpha": 0.55,
+          "shape_distance": 0.11310602398306009,
+          "noise_amplitude_m": 32.789886098634724,
+          "wander_merged": 0.0,
+          "wander_noise": 0.10808226437883017,
+          "v2_merged": 0.11310602398306009,
+          "v2_noise": 0.1887636090487791,
+          "feature_size": 6.713710582369692,
+          "feature_kind": "fjord",
+          "v2_gap": 0.075657585065719,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L3",
+          "alpha": 0.75,
+          "shape_distance": 0.14626960224781663,
+          "noise_amplitude_m": 42.63191508308364,
+          "wander_merged": 0.0,
+          "wander_noise": 0.1671886866551222,
+          "v2_merged": 0.14626960224781663,
+          "v2_noise": 0.26330168290607125,
+          "feature_size": 6.713710582369692,
+          "feature_kind": "fjord",
+          "v2_gap": 0.11703208065825463,
+          "predicts": "merged"
+        },
+        {
+          "rung": "L4",
+          "alpha": 1.0,
+          "shape_distance": 0.16893140973902465,
+          "noise_amplitude_m": 49.6429558793875,
+          "wander_merged": 0.0,
+          "wander_noise": 0.2133982152289633,
+          "v2_merged": 0.16893140973902465,
+          "v2_noise": 0.3183101603994698,
+          "feature_size": 6.713710582369692,
+          "feature_kind": "fjord",
+          "v2_gap": 0.14937875066044515,
+          "predicts": "merged"
+        }
+      ],
+      "noise_wanders_more": true,
+      "gap_monotone": true
+    },
+    "heart": {
+      "rungs": [
+        {
+          "rung": "L1",
+          "alpha": 0.35,
+          "shape_distance": 0.06545075719999287,
+          "noise_amplitude_m": 40.15271819655982,
+          "wander_merged": 0.0,
+          "wander_noise": 0.03859706852676248,
+          "v2_merged": 0.06545075719999287,
+          "v2_noise": 0.0924687051686367,
+          "feature_size": 441.4338072050449,
+          "feature_kind": "spike",
+          "v2_gap": 0.027017947968643832,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L2",
+          "alpha": 0.55,
+          "shape_distance": 0.09779292200250836,
+          "noise_amplitude_m": 60.279413455853046,
+          "wander_merged": 0.0,
+          "wander_noise": 0.08259794375206919,
+          "v2_merged": 0.09779292200250836,
+          "v2_noise": 0.1556114826286809,
+          "feature_size": 441.4338072050449,
+          "feature_kind": "spike",
+          "v2_gap": 0.05781856062617255,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L3",
+          "alpha": 0.75,
+          "shape_distance": 0.1232113340484785,
+          "noise_amplitude_m": 76.54288868803405,
+          "wander_merged": 0.0,
+          "wander_noise": 0.1273501036056197,
+          "v2_merged": 0.1232113340484785,
+          "v2_noise": 0.21235640657228075,
+          "feature_size": 441.4338072050449,
+          "feature_kind": "spike",
+          "v2_gap": 0.08914507252380224,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L4",
+          "alpha": 1.0,
+          "shape_distance": 0.14268400844611032,
+          "noise_amplitude_m": 89.35463262658823,
+          "wander_merged": 0.0,
+          "wander_noise": 0.1673207736115654,
+          "v2_merged": 0.14268400844611032,
+          "v2_noise": 0.2598085499741267,
+          "feature_size": 441.4338072050449,
+          "feature_kind": "spike",
+          "v2_gap": 0.11712454152801641,
+          "predicts": "merged"
+        }
+      ],
+      "noise_wanders_more": true,
+      "gap_monotone": true
+    },
+    "star5": {
+      "rungs": [
+        {
+          "rung": "L1",
+          "alpha": 0.35,
+          "shape_distance": 0.13866759016715333,
+          "noise_amplitude_m": 75.97858176624823,
+          "wander_merged": 0.0,
+          "wander_noise": 0.15131667664996895,
+          "v2_merged": 0.13866759016715333,
+          "v2_noise": 0.2445892638225079,
+          "feature_size": 636.7349551627606,
+          "feature_kind": "spike",
+          "v2_gap": 0.10592167365535457,
+          "predicts": "merged"
+        },
+        {
+          "rung": "L2",
+          "alpha": 0.55,
+          "shape_distance": 0.21323599198355495,
+          "noise_amplitude_m": 113.19466747528395,
+          "wander_merged": 0.0,
+          "wander_noise": 0.2933424284040005,
+          "v2_merged": 0.21323599198355495,
+          "v2_noise": 0.4185756918664505,
+          "feature_size": 636.7349551627606,
+          "feature_kind": "spike",
+          "v2_gap": 0.20533969988289555,
+          "predicts": "merged"
+        },
+        {
+          "rung": "L3",
+          "alpha": 0.75,
+          "shape_distance": 0.27571067457880727,
+          "noise_amplitude_m": 147.37900419269272,
+          "wander_merged": 0.0,
+          "wander_noise": 0.44111200328718736,
+          "v2_merged": 0.27571067457880727,
+          "v2_noise": 0.5844890768799376,
+          "feature_size": 636.7349551627606,
+          "feature_kind": "spike",
+          "v2_gap": 0.3087784023011303,
+          "predicts": "merged"
+        },
+        {
+          "rung": "L4",
+          "alpha": 1.0,
+          "shape_distance": 0.31718705226345784,
+          "noise_amplitude_m": 172.02825479225385,
+          "wander_merged": 0.0,
+          "wander_noise": 0.5546999513968216,
+          "v2_merged": 0.31718705226345784,
+          "v2_noise": 0.7054770182409942,
+          "feature_size": 636.7349551627606,
+          "feature_kind": "spike",
+          "v2_gap": 0.38828996597753634,
+          "predicts": "merged"
+        }
+      ],
+      "noise_wanders_more": true,
+      "gap_monotone": true
+    },
+    "crescent": {
+      "rungs": [
+        {
+          "rung": "L1",
+          "alpha": 0.35,
+          "shape_distance": 0.04516788520554146,
+          "noise_amplitude_m": 37.74534409992202,
+          "wander_merged": 0.0,
+          "wander_noise": 0.024283928429046586,
+          "v2_merged": 0.04516788520554146,
+          "v2_noise": 0.06216663510584211,
+          "feature_size": 803.5120497242712,
+          "feature_kind": "spike",
+          "v2_gap": 0.016998749900300654,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L2",
+          "alpha": 0.55,
+          "shape_distance": 0.0719839025527644,
+          "noise_amplitude_m": 60.473003118152974,
+          "wander_merged": 0.0,
+          "wander_noise": 0.052046984284607634,
+          "v2_merged": 0.0719839025527644,
+          "v2_noise": 0.10841679155201288,
+          "feature_size": 803.5120497242712,
+          "feature_kind": "spike",
+          "v2_gap": 0.03643288899924847,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L3",
+          "alpha": 0.75,
+          "shape_distance": 0.09756348175771712,
+          "noise_amplitude_m": 81.84552477269835,
+          "wander_merged": 0.0,
+          "wander_noise": 0.08584202332755608,
+          "v2_merged": 0.09756348175771712,
+          "v2_noise": 0.15765289808689142,
+          "feature_size": 803.5120497242712,
+          "feature_kind": "spike",
+          "v2_gap": 0.060089416329174306,
+          "predicts": "tie"
+        },
+        {
+          "rung": "L4",
+          "alpha": 1.0,
+          "shape_distance": 0.11722446382984658,
+          "noise_amplitude_m": 98.24602935714802,
+          "wander_merged": 0.0,
+          "wander_noise": 0.11611126552813023,
+          "v2_merged": 0.11722446382984658,
+          "v2_noise": 0.19850234969972713,
+          "feature_size": 803.5120497242712,
+          "feature_kind": "spike",
+          "v2_gap": 0.08127788586988055,
+          "predicts": "tie"
+        }
+      ],
+      "noise_wanders_more": true,
+      "gap_monotone": true
+    }
+  }
+}

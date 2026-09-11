@@ -1,10 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
     <name>台北愛心路線</name>
     <desc>heart · 8.3 km · bike · shape distance 0.103 · 6 repeated segments</desc>
-    <time>2026-09-11T08:33:52Z</time>
+    <time>2026-09-11T14:28:25Z</time>
+    <bounds minlat="25.0516795" minlon="121.5301322" maxlat="25.0682149" maxlon="121.5490361"/>
   </metadata>
+  <rte>
+    <name>台北愛心路線</name>
+    <type>cycling</type>
+    <rtept lat="25.0606992" lon="121.5423905"></rtept>
+    <rtept lat="25.0602040" lon="121.5423866"></rtept>
+    <rtept lat="25.0601778" lon="121.5442739"></rtept>
+    <rtept lat="25.0604697" lon="121.5442824"></rtept>
+    <rtept lat="25.0604600" lon="121.5448939"></rtept>
+    <rtept lat="25.0599652" lon="121.5448820"></rtept>
+    <rtept lat="25.0599322" lon="121.5462300"></rtept>
+    <rtept lat="25.0584712" lon="121.5480907"></rtept>
+    <rtept lat="25.0589443" lon="121.5485396"></rtept>
+    <rtept lat="25.0585487" lon="121.5490361"></rtept>
+    <rtept lat="25.0577836" lon="121.5487977"></rtept>
+    <rtept lat="25.0575168" lon="121.5485494"></rtept>
+    <rtept lat="25.0575242" lon="121.5487629"></rtept>
+    <rtept lat="25.0550622" lon="121.5486292"></rtept>
+    <rtept lat="25.0538738" lon="121.5487223"></rtept>
+    <rtept lat="25.0539091" lon="121.5467662"></rtept>
+    <rtept lat="25.0519384" lon="121.5467097"></rtept>
+    <rtept lat="25.0519303" lon="121.5439679"></rtept>
+    <rtept lat="25.0516795" lon="121.5439695"></rtept>
+    <rtept lat="25.0517626" lon="121.5406140"></rtept>
+    <rtept lat="25.0520073" lon="121.5406231"></rtept>
+    <rtept lat="25.0521180" lon="121.5388240"></rtept>
+    <rtept lat="25.0525012" lon="121.5388248"></rtept>
+    <rtept lat="25.0530177" lon="121.5382928"></rtept>
+    <rtept lat="25.0525012" lon="121.5388248"></rtept>
+    <rtept lat="25.0521180" lon="121.5388240"></rtept>
+    <rtept lat="25.0521959" lon="121.5364705"></rtept>
+    <rtept lat="25.0525229" lon="121.5364607"></rtept>
+    <rtept lat="25.0525507" lon="121.5359269"></rtept>
+    <rtept lat="25.0536103" lon="121.5359486"></rtept>
+    <rtept lat="25.0535825" lon="121.5328851"></rtept>
+    <rtept lat="25.0539963" lon="121.5329261"></rtept>
+    <rtept lat="25.0540440" lon="121.5301322"></rtept>
+    <rtept lat="25.0543818" lon="121.5301389"></rtept>
+    <rtept lat="25.0543745" lon="121.5315453"></rtept>
+    <rtept lat="25.0560380" lon="121.5315507"></rtept>
+    <rtept lat="25.0571066" lon="121.5318790"></rtept>
+    <rtept lat="25.0579556" lon="121.5319070"></rtept>
+    <rtept lat="25.0579505" lon="121.5322405"></rtept>
+    <rtept lat="25.0591812" lon="121.5322397"></rtept>
+    <rtept lat="25.0591805" lon="121.5325417"></rtept>
+    <rtept lat="25.0611563" lon="121.5325568"></rtept>
+    <rtept lat="25.0611396" lon="121.5330851"></rtept>
+    <rtept lat="25.0604168" lon="121.5330745"></rtept>
+    <rtept lat="25.0603450" lon="121.5332504"></rtept>
+    <rtept lat="25.0623003" lon="121.5332904"></rtept>
+    <rtept lat="25.0623253" lon="121.5331251"></rtept>
+    <rtept lat="25.0623003" lon="121.5332904"></rtept>
+    <rtept lat="25.0655919" lon="121.5333365"></rtept>
+    <rtept lat="25.0655573" lon="121.5350463"></rtept>
+    <rtept lat="25.0657255" lon="121.5350892"></rtept>
+    <rtept lat="25.0665811" lon="121.5339117"></rtept>
+    <rtept lat="25.0676976" lon="121.5348525"></rtept>
+    <rtept lat="25.0672488" lon="121.5355302"></rtept>
+    <rtept lat="25.0672587" lon="121.5362718"></rtept>
+    <rtept lat="25.0681299" lon="121.5362909"></rtept>
+    <rtept lat="25.0680890" lon="121.5383468"></rtept>
+    <rtept lat="25.0682149" lon="121.5383468"></rtept>
+    <rtept lat="25.0680890" lon="121.5383468"></rtept>
+    <rtept lat="25.0680639" lon="121.5410064"></rtept>
+    <rtept lat="25.0675891" lon="121.5409989"></rtept>
+    <rtept lat="25.0674152" lon="121.5420218"></rtept>
+    <rtept lat="25.0659821" lon="121.5420068"></rtept>
+    <rtept lat="25.0659666" lon="121.5436750"></rtept>
+    <rtept lat="25.0625090" lon="121.5436537"></rtept>
+    <rtept lat="25.0625163" lon="121.5425272"></rtept>
+    <rtept lat="25.0621919" lon="121.5424200"></rtept>
+    <rtept lat="25.0606992" lon="121.5423905"></rtept>
+  </rte>
   <trk>
     <name>台北愛心路線</name>
     <type>cycling</type>

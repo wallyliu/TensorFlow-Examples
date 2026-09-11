@@ -1,10 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
     <name>台北五角星路線</name>
     <desc>star5 · 10.3 km · bike · shape distance 0.258 · 16 repeated segments</desc>
-    <time>2026-09-11T08:33:55Z</time>
+    <time>2026-09-11T14:28:25Z</time>
+    <bounds minlat="25.0181223" minlon="121.5229877" maxlat="25.0354646" maxlon="121.5418353"/>
   </metadata>
+  <rte>
+    <name>台北五角星路線</name>
+    <type>cycling</type>
+    <rtept lat="25.0181325" lon="121.5278914"></rtept>
+    <rtept lat="25.0195481" lon="121.5296491"></rtept>
+    <rtept lat="25.0217025" lon="121.5319476"></rtept>
+    <rtept lat="25.0220075" lon="121.5324663"></rtept>
+    <rtept lat="25.0222010" lon="121.5331726"></rtept>
+    <rtept lat="25.0226549" lon="121.5332245"></rtept>
+    <rtept lat="25.0222010" lon="121.5331726"></rtept>
+    <rtept lat="25.0222426" lon="121.5341971"></rtept>
+    <rtept lat="25.0220793" lon="121.5342534"></rtept>
+    <rtept lat="25.0220599" lon="121.5345310"></rtept>
+    <rtept lat="25.0221765" lon="121.5346486"></rtept>
+    <rtept lat="25.0221537" lon="121.5371409"></rtept>
+    <rtept lat="25.0219182" lon="121.5377348"></rtept>
+    <rtept lat="25.0213373" lon="121.5386097"></rtept>
+    <rtept lat="25.0211296" lon="121.5392503"></rtept>
+    <rtept lat="25.0207321" lon="121.5392126"></rtept>
+    <rtept lat="25.0204947" lon="121.5389262"></rtept>
+    <rtept lat="25.0203167" lon="121.5389253"></rtept>
+    <rtept lat="25.0203136" lon="121.5390689"></rtept>
+    <rtept lat="25.0193387" lon="121.5390851"></rtept>
+    <rtept lat="25.0203136" lon="121.5390689"></rtept>
+    <rtept lat="25.0203167" lon="121.5389253"></rtept>
+    <rtept lat="25.0204947" lon="121.5389262"></rtept>
+    <rtept lat="25.0207321" lon="121.5392126"></rtept>
+    <rtept lat="25.0211296" lon="121.5392503"></rtept>
+    <rtept lat="25.0213373" lon="121.5386097"></rtept>
+    <rtept lat="25.0220470" lon="121.5374813"></rtept>
+    <rtept lat="25.0223645" lon="121.5376259"></rtept>
+    <rtept lat="25.0225948" lon="121.5380534"></rtept>
+    <rtept lat="25.0230733" lon="121.5378803"></rtept>
+    <rtept lat="25.0249649" lon="121.5378957"></rtept>
+    <rtept lat="25.0249338" lon="121.5373158"></rtept>
+    <rtept lat="25.0240660" lon="121.5373061"></rtept>
+    <rtept lat="25.0249634" lon="121.5373159"></rtept>
+    <rtept lat="25.0249629" lon="121.5369338"></rtept>
+    <rtept lat="25.0256725" lon="121.5370099"></rtept>
+    <rtept lat="25.0255467" lon="121.5379126"></rtept>
+    <rtept lat="25.0258191" lon="121.5380077"></rtept>
+    <rtept lat="25.0281707" lon="121.5380314"></rtept>
+    <rtept lat="25.0281350" lon="121.5382715"></rtept>
+    <rtept lat="25.0277119" lon="121.5389586"></rtept>
+    <rtept lat="25.0273936" lon="121.5387434"></rtept>
+    <rtept lat="25.0282958" lon="121.5393999"></rtept>
+    <rtept lat="25.0282769" lon="121.5405207"></rtept>
+    <rtept lat="25.0299722" lon="121.5405334"></rtept>
+    <rtept lat="25.0299505" lon="121.5418353"></rtept>
+    <rtept lat="25.0298925" lon="121.5394031"></rtept>
+    <rtept lat="25.0294694" lon="121.5393907"></rtept>
+    <rtept lat="25.0294718" lon="121.5379853"></rtept>
+    <rtept lat="25.0287922" lon="121.5380334"></rtept>
+    <rtept lat="25.0288501" lon="121.5374718"></rtept>
+    <rtept lat="25.0258635" lon="121.5374312"></rtept>
+    <rtept lat="25.0261581" lon="121.5352330"></rtept>
+    <rtept lat="25.0274567" lon="121.5350316"></rtept>
+    <rtept lat="25.0296141" lon="121.5341373"></rtept>
+    <rtept lat="25.0307677" lon="121.5338694"></rtept>
+    <rtept lat="25.0307315" lon="121.5337430"></rtept>
+    <rtept lat="25.0333985" lon="121.5327699"></rtept>
+    <rtept lat="25.0334601" lon="121.5324131"></rtept>
+    <rtept lat="25.0354604" lon="121.5325155"></rtept>
+    <rtept lat="25.0354646" lon="121.5319563"></rtept>
+    <rtept lat="25.0353176" lon="121.5315795"></rtept>
+    <rtept lat="25.0348424" lon="121.5311655"></rtept>
+    <rtept lat="25.0337213" lon="121.5311393"></rtept>
+    <rtept lat="25.0336913" lon="121.5324162"></rtept>
+    <rtept lat="25.0334601" lon="121.5324131"></rtept>
+    <rtept lat="25.0334593" lon="121.5321163"></rtept>
+    <rtept lat="25.0329480" lon="121.5321910"></rtept>
+    <rtept lat="25.0328666" lon="121.5317975"></rtept>
+    <rtept lat="25.0323797" lon="121.5316617"></rtept>
+    <rtept lat="25.0323790" lon="121.5307120"></rtept>
+    <rtept lat="25.0321603" lon="121.5298597"></rtept>
+    <rtept lat="25.0322513" lon="121.5296939"></rtept>
+    <rtept lat="25.0312864" lon="121.5295023"></rtept>
+    <rtept lat="25.0314125" lon="121.5300317"></rtept>
+    <rtept lat="25.0297600" lon="121.5306355"></rtept>
+    <rtept lat="25.0288759" lon="121.5305792"></rtept>
+    <rtept lat="25.0289026" lon="121.5296622"></rtept>
+    <rtept lat="25.0287801" lon="121.5291782"></rtept>
+    <rtept lat="25.0290185" lon="121.5276026"></rtept>
+    <rtept lat="25.0287040" lon="121.5275383"></rtept>
+    <rtept lat="25.0288953" lon="121.5262732"></rtept>
+    <rtept lat="25.0286180" lon="121.5262195"></rtept>
+    <rtept lat="25.0287573" lon="121.5252693"></rtept>
+    <rtept lat="25.0284264" lon="121.5252094"></rtept>
+    <rtept lat="25.0285390" lon="121.5237591"></rtept>
+    <rtept lat="25.0281227" lon="121.5237156"></rtept>
+    <rtept lat="25.0281445" lon="121.5229990"></rtept>
+    <rtept lat="25.0278997" lon="121.5229877"></rtept>
+    <rtept lat="25.0277001" lon="121.5239982"></rtept>
+    <rtept lat="25.0268958" lon="121.5239335"></rtept>
+    <rtept lat="25.0265085" lon="121.5275738"></rtept>
+    <rtept lat="25.0263313" lon="121.5275581"></rtept>
+    <rtept lat="25.0265085" lon="121.5275738"></rtept>
+    <rtept lat="25.0264349" lon="121.5284982"></rtept>
+    <rtept lat="25.0253080" lon="121.5283720"></rtept>
+    <rtept lat="25.0242545" lon="121.5286171"></rtept>
+    <rtept lat="25.0223372" lon="121.5284292"></rtept>
+    <rtept lat="25.0217679" lon="121.5282252"></rtept>
+    <rtept lat="25.0212780" lon="121.5277947"></rtept>
+    <rtept lat="25.0210893" lon="121.5279988"></rtept>
+    <rtept lat="25.0209108" lon="121.5278134"></rtept>
+    <rtept lat="25.0203232" lon="121.5284562"></rtept>
+    <rtept lat="25.0200031" lon="121.5281285"></rtept>
+    <rtept lat="25.0198822" lon="121.5281533"></rtept>
+    <rtept lat="25.0194639" lon="121.5285961"></rtept>
+    <rtept lat="25.0184280" lon="121.5274006"></rtept>
+    <rtept lat="25.0181367" lon="121.5274755"></rtept>
+    <rtept lat="25.0182057" lon="121.5278112"></rtept>
+    <rtept lat="25.0181325" lon="121.5278914"></rtept>
+  </rte>
   <trk>
     <name>台北五角星路線</name>
     <type>cycling</type>

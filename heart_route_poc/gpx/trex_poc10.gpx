@@ -1,10 +1,134 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="shape-route-poc" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
     <name>台北恐龍路線 (poc10)</name>
     <desc>trex · 12.5 km · bike · shape distance 0.148 · 11 repeated segments</desc>
-    <time>2026-09-11T09:05:15Z</time>
+    <time>2026-09-11T14:28:25Z</time>
+    <bounds minlat="25.0327424" minlon="121.5329883" maxlat="25.0481851" maxlon="121.5566735"/>
   </metadata>
+  <rte>
+    <name>台北恐龍路線 (poc10)</name>
+    <type>cycling</type>
+    <rtept lat="25.0389547" lon="121.5358794"></rtept>
+    <rtept lat="25.0389716" lon="121.5348316"></rtept>
+    <rtept lat="25.0401574" lon="121.5348458"></rtept>
+    <rtept lat="25.0401614" lon="121.5345115"></rtept>
+    <rtept lat="25.0418959" lon="121.5346844"></rtept>
+    <rtept lat="25.0421061" lon="121.5331198"></rtept>
+    <rtept lat="25.0424123" lon="121.5331819"></rtept>
+    <rtept lat="25.0424825" lon="121.5330569"></rtept>
+    <rtept lat="25.0442713" lon="121.5329958"></rtept>
+    <rtept lat="25.0445226" lon="121.5331638"></rtept>
+    <rtept lat="25.0449599" lon="121.5330073"></rtept>
+    <rtept lat="25.0457560" lon="121.5329999"></rtept>
+    <rtept lat="25.0456884" lon="121.5350631"></rtept>
+    <rtept lat="25.0455134" lon="121.5354423"></rtept>
+    <rtept lat="25.0460224" lon="121.5364065"></rtept>
+    <rtept lat="25.0463191" lon="121.5381732"></rtept>
+    <rtept lat="25.0450570" lon="121.5383175"></rtept>
+    <rtept lat="25.0450045" lon="121.5394620"></rtept>
+    <rtept lat="25.0469185" lon="121.5390610"></rtept>
+    <rtept lat="25.0467631" lon="121.5380749"></rtept>
+    <rtept lat="25.0463191" lon="121.5381732"></rtept>
+    <rtept lat="25.0464877" lon="121.5392797"></rtept>
+    <rtept lat="25.0463487" lon="121.5393085"></rtept>
+    <rtept lat="25.0464120" lon="121.5396889"></rtept>
+    <rtept lat="25.0465728" lon="121.5397712"></rtept>
+    <rtept lat="25.0453306" lon="121.5400631"></rtept>
+    <rtept lat="25.0452611" lon="121.5414537"></rtept>
+    <rtept lat="25.0454474" lon="121.5421639"></rtept>
+    <rtept lat="25.0439597" lon="121.5426422"></rtept>
+    <rtept lat="25.0441111" lon="121.5416362"></rtept>
+    <rtept lat="25.0439758" lon="121.5416302"></rtept>
+    <rtept lat="25.0438482" lon="121.5422125"></rtept>
+    <rtept lat="25.0445548" lon="121.5421703"></rtept>
+    <rtept lat="25.0447360" lon="121.5432242"></rtept>
+    <rtept lat="25.0448843" lon="121.5431428"></rtept>
+    <rtept lat="25.0448520" lon="121.5428530"></rtept>
+    <rtept lat="25.0470393" lon="121.5421928"></rtept>
+    <rtept lat="25.0478235" lon="121.5449455"></rtept>
+    <rtept lat="25.0463877" lon="121.5449119"></rtept>
+    <rtept lat="25.0463667" lon="121.5467406"></rtept>
+    <rtept lat="25.0457557" lon="121.5467435"></rtept>
+    <rtept lat="25.0457452" lon="121.5460181"></rtept>
+    <rtept lat="25.0461082" lon="121.5460117"></rtept>
+    <rtept lat="25.0461034" lon="121.5467445"></rtept>
+    <rtept lat="25.0457557" lon="121.5467435"></rtept>
+    <rtept lat="25.0457452" lon="121.5460181"></rtept>
+    <rtept lat="25.0463715" lon="121.5460028"></rtept>
+    <rtept lat="25.0463667" lon="121.5467406"></rtept>
+    <rtept lat="25.0462225" lon="121.5467418"></rtept>
+    <rtept lat="25.0462155" lon="121.5486542"></rtept>
+    <rtept lat="25.0450430" lon="121.5486474"></rtept>
+    <rtept lat="25.0449874" lon="121.5492236"></rtept>
+    <rtept lat="25.0461702" lon="121.5492385"></rtept>
+    <rtept lat="25.0461525" lon="121.5525048"></rtept>
+    <rtept lat="25.0481817" lon="121.5525652"></rtept>
+    <rtept lat="25.0481659" lon="121.5536138"></rtept>
+    <rtept lat="25.0476314" lon="121.5536572"></rtept>
+    <rtept lat="25.0467357" lon="121.5543167"></rtept>
+    <rtept lat="25.0467783" lon="121.5546869"></rtept>
+    <rtept lat="25.0463044" lon="121.5547376"></rtept>
+    <rtept lat="25.0461817" lon="121.5535664"></rtept>
+    <rtept lat="25.0441950" lon="121.5537730"></rtept>
+    <rtept lat="25.0442330" lon="121.5529959"></rtept>
+    <rtept lat="25.0439362" lon="121.5538402"></rtept>
+    <rtept lat="25.0438152" lon="121.5538700"></rtept>
+    <rtept lat="25.0432571" lon="121.5555882"></rtept>
+    <rtept lat="25.0429221" lon="121.5560617"></rtept>
+    <rtept lat="25.0430229" lon="121.5562375"></rtept>
+    <rtept lat="25.0434452" lon="121.5555986"></rtept>
+    <rtept lat="25.0439878" lon="121.5556166"></rtept>
+    <rtept lat="25.0440056" lon="121.5546848"></rtept>
+    <rtept lat="25.0435840" lon="121.5546138"></rtept>
+    <rtept lat="25.0431458" lon="121.5557828"></rtept>
+    <rtept lat="25.0427863" lon="121.5561984"></rtept>
+    <rtept lat="25.0423621" lon="121.5564562"></rtept>
+    <rtept lat="25.0423581" lon="121.5566735"></rtept>
+    <rtept lat="25.0423621" lon="121.5564562"></rtept>
+    <rtept lat="25.0414308" lon="121.5565738"></rtept>
+    <rtept lat="25.0414800" lon="121.5544785"></rtept>
+    <rtept lat="25.0412488" lon="121.5545209"></rtept>
+    <rtept lat="25.0412799" lon="121.5529757"></rtept>
+    <rtept lat="25.0380624" lon="121.5529402"></rtept>
+    <rtept lat="25.0380510" lon="121.5528414"></rtept>
+    <rtept lat="25.0366129" lon="121.5529149"></rtept>
+    <rtept lat="25.0361840" lon="121.5524540"></rtept>
+    <rtept lat="25.0346677" lon="121.5524510"></rtept>
+    <rtept lat="25.0346850" lon="121.5516441"></rtept>
+    <rtept lat="25.0333834" lon="121.5516113"></rtept>
+    <rtept lat="25.0334309" lon="121.5492569"></rtept>
+    <rtept lat="25.0330969" lon="121.5492542"></rtept>
+    <rtept lat="25.0330781" lon="121.5501444"></rtept>
+    <rtept lat="25.0328675" lon="121.5501420"></rtept>
+    <rtept lat="25.0329797" lon="121.5490410"></rtept>
+    <rtept lat="25.0330687" lon="121.5490419"></rtept>
+    <rtept lat="25.0331420" lon="121.5470832"></rtept>
+    <rtept lat="25.0327424" lon="121.5470636"></rtept>
+    <rtept lat="25.0332280" lon="121.5470873"></rtept>
+    <rtept lat="25.0331944" lon="121.5487888"></rtept>
+    <rtept lat="25.0369179" lon="121.5488204"></rtept>
+    <rtept lat="25.0378763" lon="121.5493335"></rtept>
+    <rtept lat="25.0387952" lon="121.5488448"></rtept>
+    <rtept lat="25.0387993" lon="121.5485314"></rtept>
+    <rtept lat="25.0397432" lon="121.5485394"></rtept>
+    <rtept lat="25.0397535" lon="121.5471740"></rtept>
+    <rtept lat="25.0393495" lon="121.5471337"></rtept>
+    <rtept lat="25.0393697" lon="121.5460708"></rtept>
+    <rtept lat="25.0397916" lon="121.5460800"></rtept>
+    <rtept lat="25.0398594" lon="121.5420087"></rtept>
+    <rtept lat="25.0394538" lon="121.5419959"></rtept>
+    <rtept lat="25.0394573" lon="121.5412861"></rtept>
+    <rtept lat="25.0384613" lon="121.5412693"></rtept>
+    <rtept lat="25.0384289" lon="121.5390093"></rtept>
+    <rtept lat="25.0382050" lon="121.5381715"></rtept>
+    <rtept lat="25.0379554" lon="121.5381747"></rtept>
+    <rtept lat="25.0379692" lon="121.5375417"></rtept>
+    <rtept lat="25.0382157" lon="121.5375393"></rtept>
+    <rtept lat="25.0384665" lon="121.5368601"></rtept>
+    <rtept lat="25.0384737" lon="121.5358799"></rtept>
+    <rtept lat="25.0389547" lon="121.5358794"></rtept>
+  </rte>
   <trk>
     <name>台北恐龍路線 (poc10)</name>
     <type>cycling</type>
