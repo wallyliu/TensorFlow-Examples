@@ -1,0 +1,66 @@
+{
+  "clean": {
+    "distance_from_clean": 0.0,
+    "what": "the dinosaur, untouched"
+  },
+  "L1_merged": {
+    "level": 1,
+    "distance_from_clean": 0.0763462774108594,
+    "alpha": 0.35,
+    "what": "leg gap closed 35% of the way"
+  },
+  "L1_noise": {
+    "level": 1,
+    "distance_from_clean": 0.07634627741145854,
+    "amplitude_m": 21.936793930484328,
+    "seed": 1,
+    "what": "low-frequency wander, no feature destroyed"
+  },
+  "L2_merged": {
+    "level": 2,
+    "distance_from_clean": 0.11310602398306009,
+    "alpha": 0.55,
+    "what": "leg gap closed 55% of the way"
+  },
+  "L2_noise": {
+    "level": 2,
+    "distance_from_clean": 0.113106023983598,
+    "amplitude_m": 32.789886098634724,
+    "seed": 1,
+    "what": "low-frequency wander, no feature destroyed"
+  },
+  "L3_merged": {
+    "level": 3,
+    "distance_from_clean": 0.14626960224781663,
+    "alpha": 0.75,
+    "what": "leg gap closed 75% of the way"
+  },
+  "L3_noise": {
+    "level": 3,
+    "distance_from_clean": 0.1462696022474857,
+    "amplitude_m": 42.63191508308364,
+    "seed": 1,
+    "what": "low-frequency wander, no feature destroyed"
+  },
+  "L4_merged": {
+    "level": 4,
+    "distance_from_clean": 0.16893140973902465,
+    "alpha": 1.0,
+    "what": "leg gap closed 100% of the way"
+  },
+  "L4_noise": {
+    "level": 4,
+    "distance_from_clean": 0.16893140973919554,
+    "amplitude_m": 49.6429558793875,
+    "seed": 1,
+    "what": "low-frequency wander, no feature destroyed"
+  },
+  "scrambled": {
+    "distance_from_clean": 0.996973604136271,
+    "what": "quarters traversed out of order - catch trial"
+  },
+  "transplant": {
+    "distance_from_clean": 0.2533847436022673,
+    "what": "the merge's own displacements, applied where no feature lives"
+  }
+}

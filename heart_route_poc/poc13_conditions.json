@@ -1,0 +1,38 @@
+{
+  "outline_free": {
+    "style": "outline",
+    "rotation": "free",
+    "n": 84,
+    "width_m": 4541.866389653369,
+    "rotation_deg": 300.0,
+    "distance": 0.06620587047054217,
+    "route_km": 31.435871036113934
+  },
+  "outline_upright": {
+    "style": "outline",
+    "rotation": "upright",
+    "n": 84,
+    "width_m": 4541.866389653369,
+    "rotation_deg": 0.0,
+    "distance": 0.11353264835621167,
+    "route_km": 29.875399210686748
+  },
+  "stroke_free": {
+    "style": "stroke",
+    "rotation": "free",
+    "n": 116,
+    "width_m": 6133.993808049536,
+    "rotation_deg": 330.0,
+    "distance": 0.12444297634618652,
+    "route_km": 43.53841764193404
+  },
+  "stroke_upright": {
+    "style": "stroke",
+    "rotation": "upright",
+    "n": 116,
+    "width_m": 6133.993808049536,
+    "rotation_deg": 0.0,
+    "distance": 0.1635751824593547,
+    "route_km": 40.4989329306271
+  }
+}
