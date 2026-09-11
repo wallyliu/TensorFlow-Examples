@@ -160,10 +160,35 @@ def merge(contours: list[np.ndarray], collinearity_weight: float = 0.0
     return np.array(walk(0, 0)), sum(e[2] for e in edges), edges
 
 
+def unsupported_characters(text: str, family: str = "DejaVu Sans") -> list[str]:
+    """
+    Which characters this font has no glyph for.
+
+    Worth its own function because the failure is silent and convincing: a
+    character the font lacks is drawn as a "missing glyph" box, and DejaVu's
+    box is not empty - it contains the Unicode block name in tiny letters. Ask
+    for a route shaped like a Chinese character and you get a rounded rectangle
+    reading "CJK 4E00 9FFF IDEOGRAPHS" in 35 contours, traced and fitted with
+    no error anywhere. Checking the glyph index is the only honest way to find
+    out; the traced outline looks like a real shape.
+    """
+    from matplotlib import font_manager
+    from matplotlib.ft2font import FT2Font
+
+    font = FT2Font(font_manager.findfont(
+        font_manager.FontProperties(family=family)))
+    return [c for c in text
+            if not c.isspace() and font.get_char_index(ord(c)) == 0]
+
+
 def text_contours(text: str, size: float = 1.0, family: str = "DejaVu Sans") -> list[np.ndarray]:
     """A word's letterform outlines, as closed contours. Counters come out too."""
     from matplotlib.font_manager import FontProperties
     from matplotlib.textpath import TextPath
+
+    missing = unsupported_characters(text, family)
+    if missing:
+        raise ValueError(f"{family} has no glyph for {''.join(missing)!r}")
 
     path = TextPath((0, 0), text, size=size, prop=FontProperties(family=family))
     out = []

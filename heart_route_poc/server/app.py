@@ -37,6 +37,7 @@ from pyproj import Transformer
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
+import multi_contour as mc                                      # noqa: E402
 import route_feasibility as rf                                   # noqa: E402
 from heart_route_poc import download_walk_graph                  # noqa: E402
 from heart_route_poc2 import NoRouteFoundError                   # noqa: E402
@@ -46,11 +47,12 @@ from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               select_candidates)
 from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
 from route_export import to_gpx                                  # noqa: E402
-from shape_library import SHAPES                                 # noqa: E402
+from shape_library import SHAPES, register                       # noqa: E402
 
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
           "triangle": "三角形", "trex": "恐龍"}
 N_CANDIDATES = 3
+MAX_TEXT = 12
 ROUTES: dict[str, dict] = {}
 _networks: dict[tuple, dict] = {}
 _lock = threading.Lock()
@@ -77,10 +79,75 @@ def network(lat: float, lon: float, mode: str) -> dict:
         return _networks[key]
 
 
+def text_shape(text: str) -> str:
+    """
+    Register a word as a shape the rest of the pipeline can draw.
+
+    The letterforms are traced, their contours joined into one closed curve
+    (`multi_contour`), and the result registered under a name derived from the
+    text, so `route_feasibility` and the search treat it exactly like a heart.
+
+    Cached on the name: `n_min` is memoised per name, so re-registering a
+    different curve under one name would serve a stale answer.
+    """
+    key = "text_" + "".join(c if c.isalnum() else "_" for c in text.upper())
+    if key not in SHAPES:
+        register(key, mc.text_curve(text.upper(), "outline"))
+    return key
+
+
+def is_text(shape: str) -> bool:
+    return shape.startswith("text_")
+
+
+def rotations_for(shape: str) -> tuple:
+    """
+    Text is the one shape family that is not rotation-invariant.
+
+    POC 12 measured it: with rotation free the search returns tilted
+    placements, `shape_distance` scores them BETTER than upright ones, and
+    nobody can read them. So a word is pinned upright and everything else keeps
+    the full sweep.
+    """
+    return (0.0,) if is_text(shape) else ROTATIONS_DEG
+
+
+def streets_near(net: dict, xy: np.ndarray, pad_m: float = 400.0) -> list:
+    """
+    Every street around the route, as lat/lon polylines.
+
+    The page needs a map behind the route or the shape is floating in nothing,
+    and the obvious way to get one is a tile provider. This project already
+    holds the streets it fitted to, so it draws those instead: no tile server,
+    no API key, nothing to be blocked or rate-limited, and what the reader sees
+    is exactly the network the route was matched against rather than a
+    different rendering of the same city.
+    """
+    lo = xy.min(axis=0) - pad_m
+    hi = xy.max(axis=0) + pad_m
+    to_wgs = Transformer.from_crs(net["crs"], "EPSG:4326", always_xy=True)
+    out = []
+    for u, v, data in net["graph"].edges(data=True):
+        geom = data.get("geometry")
+        if geom is not None:
+            xs, ys = np.asarray(geom.xy[0]), np.asarray(geom.xy[1])
+        else:
+            nodes = net["graph"].nodes
+            xs = np.array([nodes[u]["x"], nodes[v]["x"]])
+            ys = np.array([nodes[u]["y"], nodes[v]["y"]])
+        if xs.max() < lo[0] or xs.min() > hi[0] or ys.max() < lo[1] or ys.min() > hi[1]:
+            continue
+        lons, lats = to_wgs.transform(xs, ys)
+        out.append([[round(a, 5), round(b, 5)] for a, b in zip(lats, lons)])
+    return out
+
+
 def plan(shape: str, target_km: float, mode: str) -> dict:
     """The feasibility answer, which needs no map and returns immediately."""
     p = rf.plan(shape, target_km, mode)
-    return {"shape": shape, "label": LABELS.get(shape, shape), "mode": mode,
+    return {"shape": shape,
+            "label": LABELS.get(shape, shape.replace("text_", "").replace("_", " ")),
+            "is_text": is_text(shape), "mode": mode,
             "target_km": target_km, "feasible": p.feasible,
             "n_min": rf.n_min(shape), "points": p.points,
             "min_km": round(p.min_km, 1),
@@ -104,7 +171,8 @@ def build_route(shape: str, target_km: float, mode: str,
 
     margin = max(400.0, NETWORK_HALF_SIZE_M - width_m * 0.75)
     centers, _, _ = build_center_grid(net["region"], margin, GRID_STEP_M)
-    scored = coarse_scan(net["tree"], centers, shape, width_m, ROTATIONS_DEG)
+    scored = coarse_scan(net["tree"], centers, shape, width_m,
+                         rotations_for(shape))
     if not np.isfinite(scored["score"]).any():
         return {"status": "no placement", **verdict}
 
@@ -137,6 +205,7 @@ def build_route(shape: str, target_km: float, mode: str,
             "seconds": round(time.time() - t0, 1),
             "coordinates": [[round(a, 6), round(b, 6)]
                             for a, b in zip(lats, lons)],
+            "streets": streets_near(net, best["route_xy"]),
             "gpx_url": f"/api/route/{route_id}.gpx"}
 
 
@@ -195,11 +264,23 @@ class Handler(BaseHTTPRequestHandler):
             self._json(400, {"error": "body must be JSON"})
             return
 
-        shape = body.get("shape", "heart")
         mode = body.get("mode", rf.DEFAULT_MODE)
-        if shape not in SHAPES:
-            self._json(400, {"error": f"unknown shape {shape!r}"})
-            return
+        text = (body.get("text") or "").strip()
+        if text:
+            if len(text) > MAX_TEXT:
+                self._json(400, {"error": f"最多 {MAX_TEXT} 個字元"})
+                return
+            try:
+                shape = text_shape(text)
+            except (KeyError, ValueError) as exc:
+                self._json(400, {"error": f"畫不出來：{exc}。"
+                                          "目前的字型只有拉丁字母、數字和標點。"})
+                return
+        else:
+            shape = body.get("shape", "heart")
+            if shape not in SHAPES:
+                self._json(400, {"error": f"unknown shape {shape!r}"})
+                return
         if mode not in rf.MODES:
             self._json(400, {"error": f"unknown mode {mode!r}"})
             return

@@ -79,8 +79,29 @@
   button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .result { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 22px; }
   @media (max-width: 700px) { .result { grid-template-columns: 1fr; } }
-  .preview { background: #fff; border: 1px solid var(--rule); border-radius: 4px; }
+  .preview { background: #fff; border: 1px solid var(--rule); border-radius: 4px; position: relative; }
   .preview svg { display: block; width: 100%; height: auto; }
+  .views { display: flex; gap: 6px; margin-bottom: 10px; }
+  .views button {
+    font: inherit; font-size: 13px; padding: 5px 14px; cursor: pointer;
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 999px;
+  }
+  .views button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .textrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input[type=text] {
+    font: inherit; font-size: 16px; padding: 10px 12px; flex: 1; min-width: 180px;
+    background: var(--ground); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 4px;
+  }
+  input[type=text]:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .verdict { font-size: 14px; margin-top: 10px; min-height: 1.6em; }
+  .verdict.ok { color: var(--accent); }
+  .verdict.bad { color: var(--warn); }
+  .caveat {
+    font-size: 13px; color: var(--warn); background: var(--warn-soft);
+    border-radius: 4px; padding: 10px 12px; margin-top: 12px;
+  }
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
   dt { color: var(--muted); }
   dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
@@ -118,13 +139,33 @@
   </div>
 
   <div class="card">
+    <p class="eyebrow" style="margin-bottom:12px">或者，打一個字上去</p>
+    <div class="textrow">
+      <input type="text" id="text" maxlength="12" placeholder="LOVE、TAIPEI、GO…"
+             autocomplete="off" spellcheck="false">
+      <button class="primary" id="use-text" type="button">用這個字</button>
+    </div>
+    <p class="verdict" id="verdict"></p>
+    <p class="caveat" id="text-caveat" hidden>
+      老實說：文字路線目前還沒有人讀得出來。三個標註者看正立的英文字路線，
+      三個都把「LIT」讀成「UT」。這個功能是能跑的，但還不能算成功。
+    </p>
+  </div>
+
+  <div class="card">
     <button class="primary" id="go" type="button" disabled>產生路線</button>
     <span class="status" id="status" style="margin-left:14px"></span>
   </div>
 
   <div class="card" id="result-card" hidden>
     <div class="result">
-      <div class="preview" id="preview"></div>
+      <div>
+        <div class="views" role="group" aria-label="顯示方式">
+          <button id="view-map" type="button" aria-pressed="true">路網底圖</button>
+          <button id="view-shape" type="button" aria-pressed="false">只看形狀</button>
+        </div>
+        <div class="preview" id="preview"><div id="svg"></div></div>
+      </div>
       <div>
         <dl id="stats"></dl>
         <a class="download" id="download" href="#" download>下載 GPX</a>
@@ -137,7 +178,9 @@
 
 <script>
 (function () {
-  var state = { mode: "bike", km: 10, shape: null, shapes: [] };
+  var state = { mode: "bike", km: 10, shape: null, text: null, shapes: [] };
+  state.view = "map";
+  state.last = null;
   var $ = function (id) { return document.getElementById(id); };
 
   function api(path, body) {
@@ -179,6 +222,9 @@
               : "距離不夠 · 至少要 " + s.min_km + " km") + "</small>";
       b.addEventListener("click", function () {
         state.shape = s.name;
+        state.text = null;
+        $("verdict").textContent = "";
+        $("text-caveat").hidden = true;
         renderShapes();
         $("go").disabled = false;
       });
@@ -194,32 +240,59 @@
     else if (!state.shape) $("status").textContent = "";
   }
 
-  function drawPreview(coords) {
-    var lats = coords.map(function (c) { return c[0]; });
-    var lons = coords.map(function (c) { return c[1]; });
+  function setView(which) {
+    state.view = which;
+    $("view-map").setAttribute("aria-pressed", String(which === "map"));
+    $("view-shape").setAttribute("aria-pressed", String(which !== "map"));
+    if (state.last) drawPreview(state.last);
+  }
+
+  function drawPreview(result) {
+    state.last = result;
+    var coords = result.coordinates;
+    var streets = (state.view === "map" && result.streets) ? result.streets : [];
+    var all = streets.length ? [].concat.apply(coords, streets) : coords;
+    var lats = all.map(function (c) { return c[0]; });
+    var lons = all.map(function (c) { return c[1]; });
     var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
     var minLon = Math.min.apply(null, lons), maxLon = Math.max.apply(null, lons);
-    // Longitude degrees are shorter than latitude degrees away from the
-    // equator, so without this the shape comes out stretched sideways.
+    // A degree of longitude is shorter than a degree of latitude away from the
+    // equator; without this the shape comes out stretched sideways.
     var k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
     var w = (maxLon - minLon) * k, h = maxLat - minLat;
-    var pad = Math.max(w, h) * 0.06;
-    var d = coords.map(function (c, i) {
-      var x = (c[1] - minLon) * k, y = maxLat - c[0];
-      return (i ? "L" : "M") + x.toFixed(6) + " " + y.toFixed(6);
-    }).join(" ");
-    $("preview").innerHTML =
-      '<svg viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (w + 2 * pad) + ' '
-      + (h + 2 * pad) + '" xmlns="http://www.w3.org/2000/svg">'
-      + '<path d="' + d + '" fill="none" stroke="#1a1a1a" stroke-width="'
-      + (Math.max(w, h) / 320) + '" stroke-linejoin="round"/></svg>';
+    var pad = Math.max(w, h) * 0.03;
+    var unit = Math.max(w, h);
+
+    function pathOf(points) {
+      return points.map(function (c, i) {
+        return (i ? "L" : "M") + ((c[1] - minLon) * k).toFixed(6)
+          + " " + (maxLat - c[0]).toFixed(6);
+      }).join(" ");
+    }
+
+    var svg = '<svg viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (w + 2 * pad)
+      + ' ' + (h + 2 * pad) + '" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect x="' + (-pad) + '" y="' + (-pad) + '" width="' + (w + 2 * pad)
+      + '" height="' + (h + 2 * pad) + '" fill="#f4f2ec"/>';
+    if (streets.length) {
+      svg += '<g stroke="#c9c6bd" stroke-width="' + (unit / 900)
+        + '" fill="none" stroke-linecap="round">';
+      streets.forEach(function (s) { svg += '<path d="' + pathOf(s) + '"/>'; });
+      svg += "</g>";
+    }
+    svg += '<path d="' + pathOf(coords) + '" fill="none" stroke="#c0392b"'
+      + ' stroke-width="' + (unit / 260) + '" stroke-linejoin="round"'
+      + ' stroke-linecap="round"/></svg>';
+    $("svg").innerHTML = svg;
   }
 
   function go() {
     $("go").disabled = true;
     $("status").textContent = "計算中…（第一次會等路網載入，之後只要幾秒）";
     $("status").className = "status";
-    api("/api/route", { shape: state.shape, target_km: state.km, mode: state.mode })
+    var body = { target_km: state.km, mode: state.mode };
+    if (state.text) body.text = state.text; else body.shape = state.shape;
+    api("/api/route", body)
       .then(function (r) {
         $("go").disabled = false;
         if (r.status !== "ok") {
@@ -229,7 +302,7 @@
           return;
         }
         $("status").textContent = "";
-        drawPreview(r.coordinates);
+        drawPreview(r);
         $("stats").innerHTML =
           "<dt>圖案</dt><dd>" + r.label + "</dd>"
           + "<dt>實際距離</dt><dd>" + r.route_km + " km</dd>"
@@ -247,12 +320,54 @@
       });
   }
 
+  function checkText() {
+    var text = $("text").value.trim();
+    if (!text) {
+      $("verdict").textContent = "";
+      $("text-caveat").hidden = true;
+      return;
+    }
+    api("/api/plan", { text: text, target_km: state.km, mode: state.mode })
+      .then(function (r) {
+        if (r.error) {
+          $("verdict").textContent = r.error;
+          $("verdict").className = "verdict bad";
+          state.text = null;
+          return;
+        }
+        state.text = text;
+        state.shape = null;
+        renderShapes();
+        $("text-caveat").hidden = false;
+        if (r.feasible) {
+          $("verdict").textContent = "「" + r.label + "」可以：畫成 "
+            + (r.width_m / 1000).toFixed(1) + " km 寬，"
+            + r.points + " 個輪廓點，大約 "
+            + r.estimate_km[0] + "–" + r.estimate_km[1] + " km。";
+          $("verdict").className = "verdict ok";
+          $("go").disabled = false;
+        } else {
+          $("verdict").textContent = "「" + r.label + "」至少需要 "
+            + r.min_km + " km，目前設定的是 " + state.km.toFixed(1) + " km。";
+          $("verdict").className = "verdict bad";
+          $("go").disabled = true;
+        }
+      });
+  }
+
+  $("use-text").addEventListener("click", checkText);
+  $("text").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") checkText();
+  });
+  $("view-map").addEventListener("click", function () { setView("map"); });
+  $("view-shape").addEventListener("click", function () { setView("shape"); });
   $("mode-bike").addEventListener("click", function () { setMode("bike"); });
   $("mode-walk").addEventListener("click", function () { setMode("walk"); });
   $("km").addEventListener("input", function (e) {
     state.km = parseFloat(e.target.value);
     $("km-value").textContent = state.km.toFixed(1);
     renderShapes();
+    if (state.text || $("text").value.trim()) checkText();
   });
   $("go").addEventListener("click", go);
   loadShapes();
