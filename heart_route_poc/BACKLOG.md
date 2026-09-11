@@ -140,6 +140,22 @@ that have one. Neither exists yet.
 Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
 
 
+## 9. The coarse scan ranks nothing — POC 17
+
+Over thirty fitted candidates the coarse scan's rank and the final shape
+distance correlate at Spearman -0.024 (p = 0.90). The best final route sat at
+coarse rank 4, 5, 2, 4 and 0 for the five shapes. Stage 1 tells you which
+placements are ROUTABLE, which is worth having, but among those its order is
+noise — and POC 3 built the two-stage search on the premise that it ranks.
+
+Handled for now by fitting more of them: six instead of three, which takes the
+worst of the five shapes from 0.117 to 0.097 and costs 12.6 s → 23.3 s a
+request. That is a workaround, not a fix. A stage-1 score that actually
+predicted the fit would buy back both the time and the quality, and nobody has
+tried to build one; the obvious candidates are how much of the contour sits
+within a street scale of the network rather than the mean distance to it, and
+whether the placement's worst gap falls on a feature or a flat stretch.
+
 ## 8. Text does not read as text yet — and the failure is specific
 
 Four raters' worth of reading trials, each shown a route before the word

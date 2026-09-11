@@ -54,7 +54,13 @@ from shape_library import SHAPES, register                       # noqa: E402
 
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
           "triangle": "三角形", "trex": "恐龍"}
-N_CANDIDATES = 3
+# POC 17 fitted six candidates per shape and found the coarse scan's rank
+# uncorrelated with the final result (Spearman -0.024 over thirty candidates).
+# The pre-ranking says which placements are routable, not which are good, so the
+# only way to find the good one is to fit more of them. Best-of-3 leaves two of
+# five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
+# linear time, and that is the whole trade.
+N_CANDIDATES = 6
 MAX_TEXT = 12
 ROUTES: dict[str, dict] = {}
 _networks: dict[tuple, dict] = {}
