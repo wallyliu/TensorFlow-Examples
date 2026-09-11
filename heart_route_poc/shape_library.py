@@ -93,34 +93,39 @@ def crescent(n: int = 40, inner_radius: float = 0.86, offset: float = 0.34) -> n
     return _normalise(_resample_polygon(boundary, n))
 
 
-# A T-rex silhouette in the spirit of Chrome's offline dinosaur, authored rather
-# than traced: the point is to have a shape with MANY concave features at very
-# different scales, which is what stresses the pipeline. Vertices run clockwise
-# from the back of the skull, down the face and chest, around both legs, then up
-# the tail and back. Coordinates are in an arbitrary 0-100 grid.
+# The outline of Chrome's offline dinosaur, traced from the sprite rather than
+# drawn by hand: the dark pixels were thresholded, the largest connected
+# component taken (dropping the cactus and the ground dashes), holes filled, and
+# the 0.5 contour of that mask simplified to 58 vertices - which changes its
+# enclosed area by 0.19%, so the silhouette is the sprite's, not an impression
+# of it.
+#
+# Filling the holes removed exactly one: a 13x12 px eye, 0.85% of the dinosaur's
+# area and 6.4% of its width. At a 2 km target that eye would be 128 m across,
+# comfortably above the ~50 m this street network can resolve - so it is not too
+# small to draw. It is simply not drawable: every stage here takes ONE closed
+# curve, and an eye is a second one.
 TREX_OUTLINE = [
-    (58, 100), (78, 100), (78, 92), (92, 92), (92, 84),   # skull and snout
-    (80, 84), (80, 78), (64, 78),                          # mouth notch and jaw
-    (60, 70), (56, 60),                                    # neck into chest
-    (60, 56), (70, 52), (70, 46), (58, 48),                # the little arm
-    (55, 40), (54, 30),                                    # belly
-    (50, 30), (50, 8), (62, 8), (62, 0), (40, 0), (40, 18),  # front leg
-    (32, 18),                                              # gap between the legs
-    (32, 0), (12, 0), (12, 8), (24, 8), (24, 26),          # back leg
-    (16, 30), (0, 38), (0, 50), (12, 50), (12, 58),        # tail
-    (26, 64), (42, 76), (52, 88),                          # back up to the skull
+    (20.5, 119.1), (93.5, 119.1), (95.0, 106.6), (107.0, 105.6), (107.0, 68.6), (57.5, 68.1),
+    (57.5, 56.1), (92.5, 56.1), (94.0, 43.6), (44.0, 41.6), (45.5, 18.1), (69.0, 17.6),
+    (69.0, -6.4), (57.5, -6.9), (57.0, 4.6), (45.5, 5.1), (44.0, -19.4), (32.0, -21.4),
+    (31.5, -32.9), (19.0, -34.4), (19.0, -81.4), (32.0, -83.4), (32.0, -95.4), (7.5, -95.9),
+    (7.0, -71.4), (-5.5, -69.9), (-6.5, -57.9), (-17.5, -57.9), (-19.0, -69.4), (-31.0, -71.4),
+    (-31.0, -81.4), (-19.5, -82.9), (-18.0, -93.4), (-43.5, -94.9), (-44.0, -45.4), (-55.5, -44.9),
+    (-56.5, -32.9), (-68.5, -32.9), (-69.0, -21.4), (-81.5, -19.9), (-83.5, -6.9), (-95.0, -6.4),
+    (-95.0, 54.6), (-82.0, 54.6), (-82.0, 30.6), (-70.5, 30.1), (-69.5, 18.1), (-57.5, 18.1),
+    (-55.5, 5.1), (-32.5, 5.1), (-31.0, 17.6), (-19.5, 18.1), (-17.5, 30.1), (-6.0, 30.6),
+    (-6.0, 42.6), (7.0, 44.6), (7.0, 105.6), (18.5, 106.1),
 ]
 
 
 def trex(n: int = 40) -> np.ndarray:
-    """A dinosaur silhouette - the hardest shape in the library.
+    """Chrome's dinosaur, minus its eye.
 
-    Note what is NOT here: the eye. The real sprite has one, and an eye is a
-    HOLE. Every stage of this pipeline - the contour sampler, the placement, the
-    Viterbi matcher, the metric - assumes a single closed curve, so a shape with
-    a hole cannot be expressed at all, never mind drawn badly. That limit is
-    topological, not a matter of resolution, and dropping the eye to get a
-    runnable shape is itself the finding.
+    The hardest shape in the library, and the one that shows where the pipeline
+    ends. Its features span a wide range of scales - a snout, an armpit, a gap
+    between two legs - so it is also the shape most sensitive to how finely the
+    contour is sampled (see POC 7).
     """
     return _normalise(_resample_polygon(np.array(TREX_OUTLINE, dtype=float), n))
 

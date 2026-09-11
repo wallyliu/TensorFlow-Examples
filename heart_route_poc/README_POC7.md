@@ -1,5 +1,9 @@
 # POC 7 — A dinosaur, and three limits it exposed
 
+> **POC 8 supersedes the silhouette used here** with one traced from the actual
+> sprite, and explains this POC's non-monotonic resolution sweep: the T-rex at
+> 2 km has no feasible n at all. See [README_POC8.md](README_POC8.md).
+
 You asked whether a more complex shape — Chrome's offline dinosaur — would make
 the threshold measurement more accurate. It would not: that uncertainty is
 methodological (one non-independent rater, the anchoring confound, an unmeasured
