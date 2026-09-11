@@ -151,3 +151,17 @@ def resample_by_arclength(shape: str, n_points: int, oversample: int = 4000) -> 
     """
     dense = SHAPES[shape](oversample)
     return _resample_polygon(dense, n_points)
+
+
+def register(name: str, curve: np.ndarray) -> str:
+    """
+    Add a curve to the library at runtime, under `name`.
+
+    This is what makes a shape supplied at request time - a word, a contour
+    generated from a description - go through the same search and fit as the
+    five built-in shapes. The curve is normalised the same way, so nothing
+    downstream can tell the difference.
+    """
+    points = _normalise(np.asarray(curve, dtype=float))
+    SHAPES[name] = lambda n=40, _p=points: _resample_polygon(_p, n)
+    return name

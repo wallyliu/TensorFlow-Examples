@@ -35,6 +35,14 @@ def densify(contour: np.ndarray, step: float) -> np.ndarray:
     return np.column_stack([np.interp(t, s, closed[:, 0]), np.interp(t, s, closed[:, 1])])
 
 
+def _tangents(contour: np.ndarray) -> np.ndarray:
+    """Unit direction of the curve at each point, by central difference."""
+    d = np.roll(contour, -1, axis=0) - np.roll(contour, 1, axis=0)
+    n = np.hypot(d[:, 0], d[:, 1])
+    n[n == 0] = 1.0
+    return d / n[:, None]
+
+
 def closest_pair(a: np.ndarray, b: np.ndarray) -> tuple[int, int, float]:
     """Indices of the nearest point on each contour, and the distance."""
     d = np.hypot(a[:, None, 0] - b[None, :, 0], a[:, None, 1] - b[None, :, 1])
@@ -42,17 +50,70 @@ def closest_pair(a: np.ndarray, b: np.ndarray) -> tuple[int, int, float]:
     return int(i), int(j), float(d[i, j])
 
 
-def connector_tree(contours: list[np.ndarray]) -> list[tuple[int, int, float, int, int]]:
+def best_pair(a: np.ndarray, b: np.ndarray, collinearity_weight: float,
+              stride: int = 4) -> tuple[int, int, float, float]:
     """
-    Minimum spanning tree over the contours, by nearest-point distance.
+    The connector between two contours that is short AND does not read as a stroke.
+
+    Nearest-point is the wrong objective on thin drawings. The shortest link
+    between the I's top bar and the T's top bar is horizontal, which is exactly
+    the direction both bars run, so the three fuse into one long bar and the
+    letters are lost. Penalising that costs a little length and buys back the
+    reading.
+
+    Ambiguity is `max(|u . t_a|, |u . t_b|)` where u is the connector direction
+    and t the curve's tangent at each end: 1 when the connector continues a
+    stroke, 0 when it meets it square. Cost is `length * (1 + w * ambiguity^2)`,
+    so a connector is only allowed to look like a stroke if the alternatives are
+    much longer.
+
+    Returns (index into a, index into b, geometric length, cost).
+    """
+    ia = np.arange(0, len(a), stride)
+    ib = np.arange(0, len(b), stride)
+    pa, pb = a[ia], b[ib]
+    ta, tb = _tangents(a)[ia], _tangents(b)[ib]
+
+    delta = pb[None, :, :] - pa[:, None, :]
+    length = np.hypot(delta[:, :, 0], delta[:, :, 1])
+    safe = np.where(length == 0, 1.0, length)
+    u = delta / safe[:, :, None]
+
+    align_a = np.abs(u[:, :, 0] * ta[:, None, 0] + u[:, :, 1] * ta[:, None, 1])
+    align_b = np.abs(u[:, :, 0] * tb[None, :, 0] + u[:, :, 1] * tb[None, :, 1])
+    ambiguity = np.maximum(align_a, align_b)
+
+    cost = length * (1.0 + collinearity_weight * ambiguity ** 2)
+    cost[length == 0] = 0.0
+    i, j = np.unravel_index(np.argmin(cost), cost.shape)
+    return int(ia[i]), int(ib[j]), float(length[i, j]), float(cost[i, j])
+
+
+def connector_tree(contours: list[np.ndarray],
+                   collinearity_weight: float = 0.0
+                   ) -> list[tuple[int, int, float, int, int]]:
+    """
+    Minimum spanning tree over the contours.
 
     A tree, not a tour: a tree is the shortest set of links that leaves nothing
     stranded, and since every link is ridden out and back anyway, closing it into
     a tour would only add length.
+
+    `collinearity_weight` 0 reproduces plain nearest-point linking, which is
+    right for outlines - a bridge between two closed letterforms reads as a
+    bridge whatever its angle. Raise it for thin drawings, where a connector is
+    made of the same stuff as the strokes it joins. See `best_pair`.
     """
     n = len(contours)
-    pairs = {(i, j): closest_pair(contours[i], contours[j])
-             for i in range(n) for j in range(i + 1, n)}
+    pairs = {}
+    for i in range(n):
+        for j in range(i + 1, n):
+            if collinearity_weight > 0:
+                pi, pj, d, c = best_pair(contours[i], contours[j], collinearity_weight)
+            else:
+                pi, pj, d = closest_pair(contours[i], contours[j])
+                c = d
+            pairs[(i, j)] = (pi, pj, d, c)
     joined, edges = {0}, []
     while len(joined) < n:
         best = None
@@ -60,17 +121,18 @@ def connector_tree(contours: list[np.ndarray]) -> list[tuple[int, int, float, in
             for j in range(n):
                 if j in joined:
                     continue
-                pi, pj, d = pairs[(min(i, j), max(i, j))]
+                pi, pj, d, c = pairs[(min(i, j), max(i, j))]
                 if min(i, j) != i:
                     pi, pj = pj, pi
-                if best is None or d < best[2]:
-                    best = (i, j, d, pi, pj)
-        edges.append(best)
+                if best is None or c < best[5]:
+                    best = (i, j, d, pi, pj, c)
+        edges.append(best[:5])
         joined.add(best[1])
     return edges
 
 
-def merge(contours: list[np.ndarray]) -> tuple[np.ndarray, float, list]:
+def merge(contours: list[np.ndarray], collinearity_weight: float = 0.0
+          ) -> tuple[np.ndarray, float, list]:
     """
     Return (single closed curve, total connector length, the connector tree).
 
@@ -78,7 +140,7 @@ def merge(contours: list[np.ndarray]) -> tuple[np.ndarray, float, list]:
     connector exactly twice, so its length is
     `sum(contour perimeters) + 2 * connector length`.
     """
-    edges = connector_tree(contours)
+    edges = connector_tree(contours, collinearity_weight)
     children: dict[int, list] = {i: [] for i in range(len(contours))}
     for i, j, d, pi, pj in edges:
         children[i].append((j, pi, pj))
@@ -114,8 +176,16 @@ def text_contours(text: str, size: float = 1.0, family: str = "DejaVu Sans") -> 
     return out
 
 
+# How hard to push connectors away from looking like strokes, per style. An
+# outline needs none: a bridge between two closed letterforms reads as a bridge.
+# A single-stroke drawing is all thin lines, so the connector has to be told to
+# meet the strokes at an angle. POC 12 swept this - see poc12_connector_sweep.
+COLLINEARITY_WEIGHT = {"outline": 0.0, "stroke": 6.0}
+
+
 def text_curve(text: str, style: str = "outline", step: float = 0.01,
-               family: str = "DejaVu Sans") -> np.ndarray:
+               family: str = "DejaVu Sans",
+               collinearity_weight: float | None = None) -> np.ndarray:
     """
     A word as one closed curve, normalised to width 1 and centred.
 
@@ -132,6 +202,8 @@ def text_curve(text: str, style: str = "outline", step: float = 0.01,
         contours = [densify(stroke_to_contour(s), step) for s in strokes(text)]
     else:
         raise ValueError(f"unknown style {style!r}; use 'outline' or 'stroke'")
-    curve, _, _ = merge(contours)
+    if collinearity_weight is None:
+        collinearity_weight = COLLINEARITY_WEIGHT[style]
+    curve, _, _ = merge(contours, collinearity_weight)
     span = curve.max(axis=0) - curve.min(axis=0)
     return (curve - curve.min(axis=0) - span / 2) / span[0]

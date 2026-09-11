@@ -88,3 +88,22 @@ route to shorter rides.
 drawing it, which `route_feasibility` can already do); a taller font or stacked
 lines, to spend width on height instead of length; or accepting a multi-day /
 multi-segment route, which is a product decision, not an algorithmic one.
+
+
+## 7. The metric is wrong for text — rotation must be a constraint
+
+POC 12 fitted "LIT" to the bike network with rotation free, as every POC since 6
+has done. The search returned tilted placements and `shape_distance` scored them
+well — outline 0.066, stroke 0.124 — and neither reads as a word. Forced
+upright, the routes read as letters and the metric scored them *worse*, 0.114
+and 0.164. For text the metric is not merely blind to orientation, it prefers
+the unreadable fit.
+
+Rotation invariance was not a mistake when it was adopted: POC 5's rater called
+tilted and upright hearts equally heart-like, and POC 6 built the search on
+that. It is simply not a property of every shape. The shape has to carry its own
+orientation constraint — free for a heart, fixed for a word, probably a narrow
+band for a dinosaur — and the metric needs an orientation term for the shapes
+that have one. Neither exists yet.
+
+Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
