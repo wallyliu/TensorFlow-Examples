@@ -55,13 +55,26 @@ Measuring where a shape stops reading as itself at all needs **unanchored pairs
 AND the four-option response together** — the two fixes have never been in the
 same instrument.
 
-## 4. A rater round on feature destruction
+## 4. A rater round on feature destruction — run once, needs more raters
 
-POC 7 found that merging the dinosaur's legs costs 0.060 in metric terms, below
-the ~0.10 threshold at which a person reliably sees a difference — while a
-defining feature is gone. That is POC 4's cleft finding at larger scale, and it
-has never been put to a rater on a complex shape. Needs a fresh rater, since the
-existing one has done three rounds.
+POC 13 put it to a fresh rater as an iso-distance ladder: the dinosaur's leg gap
+closed 35 / 55 / 75 / 100%, each rung matched against noise of identical shape
+distance. The rater called the two bottom rungs a tie and preferred the
+feature-destroyed member at both top rungs, including on both repeat trials —
+4 of 4 decided judgements in the same direction, sign test p = 0.125. The catch
+trial passed.
+
+Direction as predicted, significance not reached. One rater, four decided
+judgements; p = 0.125 is the *floor* for 4/4, so no single rater could have
+settled this however lopsided their answers. Needs three or four more raters on
+the same ladder, which is built and takes five minutes.
+
+Two things the round did settle. The "neither" option is reachable — it was used
+on an unanchored text pair, which closes the instrument half of item 3. And the
+0.060 figure quoted here from POC 7 does not reproduce: filling the leg gap on
+the dense template costs 0.169, not 0.060. POC 7 measured it on a 40-point
+fitted route, which is a different operation on a different object, and the two
+numbers were never comparable.
 
 ## 5. Detour ratio as a constant
 
@@ -107,3 +120,24 @@ band for a dinosaur — and the metric needs an orientation term for the shapes
 that have one. Neither exists yet.
 
 Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
+
+
+## 8. Text does not read as text yet — orientation is not the reason
+
+POC 12 predicted the metric was inverted for text and POC 13 tested it. The
+result is worse than inverted and simpler: the rater could not read any of the
+four LIT routes. Shown the upright outline route before the word appeared
+anywhere on the page, they answered "UT" after 8.9 seconds; shown the upright
+single-stroke route, "can't tell". Told afterwards that the word was LIT, the
+best rating any of the four received was "not much like it", and one pair drew
+"neither".
+
+The orientation claim itself did not replicate cleanly: the rater rated the
+upright outline above the tilted one, then picked the tilted one in a forced
+choice between the same two images. One rater contradicting themselves on two
+trials settles nothing either way.
+
+So the open question is no longer which orientation reads better. It is whether
+a word at this size, on this street network, can read as a word at all — and
+the first evidence says no. Worth knowing before any more work goes into
+stacked lines, taller fonts, or an orientation term in the metric.

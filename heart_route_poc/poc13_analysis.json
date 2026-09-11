@@ -1,0 +1,72 @@
+{
+  "n_raters": 1,
+  "catch_pass": 1,
+  "ladder": {
+    "rows": [
+      {
+        "rung": "L1",
+        "distance": 0.0763462774108594,
+        "choice": "tie",
+        "ms": 6656
+      },
+      {
+        "rung": "L2",
+        "distance": 0.11310602398306009,
+        "choice": "tie",
+        "ms": 1708
+      },
+      {
+        "rung": "L3",
+        "distance": 0.14626960224781663,
+        "choice": "merged",
+        "ms": 2311
+      },
+      {
+        "rung": "L4",
+        "distance": 0.16893140973902465,
+        "choice": "merged",
+        "ms": 1141
+      }
+    ],
+    "decided": 4,
+    "merged_wins": 4,
+    "sign_test_p": 0.125
+  },
+  "repeat_agreement": "1/2",
+  "text": [
+    {
+      "image": "lit_outline_free",
+      "metric": 0.06620587047054217,
+      "rating": "完全看不出是字",
+      "ms": 14228
+    },
+    {
+      "image": "lit_outline_upright",
+      "metric": 0.11353264835621167,
+      "rating": "不太像",
+      "ms": 4641
+    },
+    {
+      "image": "lit_stroke_free",
+      "metric": 0.12444297634618652,
+      "rating": "不太像",
+      "ms": 2499
+    },
+    {
+      "image": "lit_stroke_upright",
+      "metric": 0.1635751824593547,
+      "rating": "完全看不出是字",
+      "ms": 2472
+    },
+    {
+      "pair": "pair_outline",
+      "chose": "lit_outline_free",
+      "ms": 6247
+    },
+    {
+      "pair": "pair_stroke",
+      "chose": "neither",
+      "ms": 2865
+    }
+  ]
+}
