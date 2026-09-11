@@ -114,9 +114,24 @@ def text_contours(text: str, size: float = 1.0, family: str = "DejaVu Sans") -> 
     return out
 
 
-def text_curve(text: str, step: float = 0.01, family: str = "DejaVu Sans") -> np.ndarray:
-    """A word as one closed curve, normalised to width 1 and centred."""
-    contours = [densify(p, step) for p in text_contours(text, family=family)]
+def text_curve(text: str, style: str = "outline", step: float = 0.01,
+               family: str = "DejaVu Sans") -> np.ndarray:
+    """
+    A word as one closed curve, normalised to width 1 and centred.
+
+    `style="outline"` traces both edges of every letter stroke - the letter as
+    printed. `style="stroke"` uses the single-stroke font: one line down the
+    middle of each stroke, ridden out and back. Outline is the better-looking
+    of the two and costs more distance; the choice belongs to the rider, so it
+    is a parameter rather than a default.
+    """
+    if style == "outline":
+        contours = [densify(p, step) for p in text_contours(text, family=family)]
+    elif style == "stroke":
+        from stroke_font import stroke_to_contour, strokes
+        contours = [densify(stroke_to_contour(s), step) for s in strokes(text)]
+    else:
+        raise ValueError(f"unknown style {style!r}; use 'outline' or 'stroke'")
     curve, _, _ = merge(contours)
     span = curve.max(axis=0) - curve.min(axis=0)
     return (curve - curve.min(axis=0) - span / 2) / span[0]

@@ -70,8 +70,21 @@ validated in POC 9 across sizes — but it is an empirical constant from one cit
 and a different street grid would move it.
 ## 6. Words are too long to ride — the new text blocker
 
-Following from item 1. Three directions, none tested: short words only (a
-feasibility gate that rejects TAIPEI before drawing it, which
-`route_feasibility` can already do); a taller font or stacked lines, to spend
-width on height instead of length; or accepting a multi-day / multi-segment
-route, which is a product decision, not an algorithmic one.
+Following from item 1. Four directions; one is now tested and dead.
+
+**Tested, and it does not help: a single-stroke font.** POC 12 built one (26
+glyphs, `stroke_font.py`) on the reasonable guess that one line down the middle
+of each letter would be cheaper than tracing both edges. It is not. A line with
+no thickness has to be ridden out and back, so it costs 2× its length — which is
+roughly what an outline's perimeter already is. Measured at equal width the two
+styles are within 7% (LIT 0.93, LOVE 1.05, TAIPEI 0.96). Worse, n_min rises
+27–43%, because with everything a thin line the connectors from item 1 become
+indistinguishable from letter strokes: in LIT the link between the I's top bar
+and the T's top bar is collinear with both and fuses the letters. Shipped as a
+user-selectable style regardless — wanting it is legitimate — but it is not a
+route to shorter rides.
+
+**Untested:** short words only (a feasibility gate that rejects TAIPEI before
+drawing it, which `route_feasibility` can already do); a taller font or stacked
+lines, to spend width on height instead of length; or accepting a multi-day /
+multi-segment route, which is a product decision, not an algorithmic one.
