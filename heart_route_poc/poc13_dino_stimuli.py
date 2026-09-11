@@ -18,6 +18,13 @@ If the metric is adequate, a rater has no reason to prefer either. If features
 are what people see, the noisy one still reads as a dinosaur and the merged one
 does not.
 
+OUTCOME: the second half of that was wrong, and instructively so. Three raters
+preferred the MERGED one at every rung above 0.076 - eight of eight decided
+judgements, p = 0.008. Losing one clean feature costs less recognisability than
+the same metric distance spread out as wander. The metric under-penalises wander
+and over-penalises clean feature loss, which is the opposite of what this test
+was built to catch.
+
 Neither member of the pair is the clean shape. That is deliberate: POC 6's v2
 task anchored every pair to a clean route, which guaranteed one good member and
 so recorded zero "neither looks like it" answers (backlog item 3). Unanchored
