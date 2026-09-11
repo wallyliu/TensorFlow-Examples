@@ -1,0 +1,147 @@
+{
+  "n_raters": 1,
+  "shapes": {
+    "heart": [
+      {
+        "shape": "heart",
+        "rung": "L1",
+        "gap": 0.027017947968643832,
+        "distance": 0.06545075719999287,
+        "predicted": "tie",
+        "answers": [
+          "tie"
+        ]
+      },
+      {
+        "shape": "heart",
+        "rung": "L2",
+        "gap": 0.05781856062617255,
+        "distance": 0.09779292200250836,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "heart",
+        "rung": "L3",
+        "gap": 0.08914507252380224,
+        "distance": 0.1232113340484785,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "heart",
+        "rung": "L4",
+        "gap": 0.11712454152801641,
+        "distance": 0.14268400844611032,
+        "predicted": "merged",
+        "answers": [
+          "neither"
+        ]
+      }
+    ],
+    "crescent": [
+      {
+        "shape": "crescent",
+        "rung": "L1",
+        "gap": 0.016998749900300654,
+        "distance": 0.04516788520554146,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "crescent",
+        "rung": "L2",
+        "gap": 0.03643288899924847,
+        "distance": 0.0719839025527644,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "crescent",
+        "rung": "L3",
+        "gap": 0.060089416329174306,
+        "distance": 0.09756348175771712,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "crescent",
+        "rung": "L4",
+        "gap": 0.08127788586988055,
+        "distance": 0.11722446382984658,
+        "predicted": "tie",
+        "answers": [
+          "merged"
+        ]
+      }
+    ],
+    "star5": [
+      {
+        "shape": "star5",
+        "rung": "L1",
+        "gap": 0.10592167365535457,
+        "distance": 0.13866759016715333,
+        "predicted": "merged",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "star5",
+        "rung": "L2",
+        "gap": 0.20533969988289555,
+        "distance": 0.21323599198355495,
+        "predicted": "merged",
+        "answers": [
+          "merged"
+        ]
+      },
+      {
+        "shape": "star5",
+        "rung": "L3",
+        "gap": 0.3087784023011303,
+        "distance": 0.27571067457880727,
+        "predicted": "merged",
+        "answers": [
+          "neither"
+        ]
+      },
+      {
+        "shape": "star5",
+        "rung": "L4",
+        "gap": 0.38828996597753634,
+        "distance": 0.31718705226345784,
+        "predicted": "merged",
+        "answers": [
+          "neither"
+        ]
+      }
+    ]
+  },
+  "weight_bounds": {
+    "needs_w_above": 4.117949873398063,
+    "needs_w_below": 2.590870338524852,
+    "satisfiable": false
+  },
+  "predictions_right": "3/12",
+  "decided": 8,
+  "merged_wins": 8,
+  "sign_test_p": 0.0078125,
+  "answer_mix": {
+    "tie": 1,
+    "merged": 8,
+    "neither": 3
+  },
+  "catches": "3/3",
+  "repeat_agreement": "3/3"
+}

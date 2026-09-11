@@ -140,6 +140,30 @@ that have one. Neither exists yet.
 Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
 
 
+## 10. The wander term measures the right thing and predicts nothing
+
+POC 15 added `distance_v2 = shape_distance + 0.7 * wander` and POC 18 put its
+predictions to a rater on three shapes it had never seen. Catch trials 3/3,
+repeats 3/3, so the rater was careful.
+
+**Direction replicates.** Eight of eight decided judgements prefer the member
+with a feature destroyed over noise of the same shape distance, p = 0.008,
+matching the dinosaur rounds on shapes chosen for being different from it.
+
+**Calibration fails, and cannot be patched.** 3 of 12 predictions right. The
+model expected ties in 9 of 12 trials; the rater tied once. Every "merged"
+answer is a lower bound on the weight and every "tie" an upper bound, and these
+answers need w > 4.1 (crescent L1, gap 0.024) and w < 2.6 (heart L1, gap 0.039)
+simultaneously. No constant exists. The weighted-sum form is wrong, not the
+constant — though the contradiction rests on two trials from one rater, so a
+second rater is the cheap next step before anything is rebuilt on it.
+
+What the answers look like instead is closer to lexicographic: the rater
+preferred the clean-but-damaged member at a wander gap of 0.017, a sixth of the
+supposed threshold, in 2.6 seconds. Any visible wobble seems to lose, whatever
+its magnitude. `neither` appeared only at the top of two ladders, where both
+members are past saving.
+
 ## 9. The coarse scan ranks nothing — POC 17
 
 Over thirty fitted candidates the coarse scan's rank and the final shape

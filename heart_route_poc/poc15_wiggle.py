@@ -19,9 +19,17 @@ what it throws away.
 WANDER_WEIGHT is fitted to four rungs of one shape. That is not a validated
 constant and this file does not pretend otherwise: `main` reports the fit, then
 checks the one thing that can be checked without more raters - whether the
-term behaves the same way on shapes it was not fitted to. Whether it predicts
-what a PERSON sees on those shapes needs a rater round, and
-`poc15_build_task.py` builds it.
+term behaves the same way on shapes it was not fitted to.
+
+The rater round happened. POC 18: the DIRECTION replicates on three unseen
+shapes - eight of eight decided judgements prefer the member with a feature
+destroyed, p = 0.008 - and the CALIBRATION does not, 3 of 12 predictions right.
+Worse than the number being wrong, no number works: a "merged" answer puts a
+lower bound on the weight and a "tie" puts an upper bound, and the answers need
+w > 4.1 and w < 2.6 at once. The weighted-sum FORM is what fails, not 0.7.
+
+So the term below is kept for what it measures and not for what it predicts.
+See poc18_heldout.py.
 
 Run:  python poc15_wiggle.py
 Out:  poc15_wiggle.png, poc15_wiggle.json
