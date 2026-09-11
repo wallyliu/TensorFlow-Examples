@@ -94,6 +94,12 @@ outside your Claude organisation will not be able to open it — in that case th
 page still works and shows a copyable JSON blob at the end, which they can send
 back by any route.
 
+> **POC 7 corrects the concavity claim below.** All four shapes here were run at
+> 40 contour points regardless of perimeter, which is not the same sampling
+> density. At matched density the crescent needs 6 backtracked segments, not 14 —
+> so "star and crescent both pay the concavity cost" was half a sampling
+> artifact. See [README_POC7.md](README_POC7.md).
+
 ## Rater 2 replicated rater 1 exactly
 
 | | rater 1 (POC 5) | rater 2 (POC 6) |

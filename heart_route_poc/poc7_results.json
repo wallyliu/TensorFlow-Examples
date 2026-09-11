@@ -1,0 +1,79 @@
+{
+ "heart_spacing": 0.0798183160250264,
+ "trex_sweep": [
+  {
+   "n": 40,
+   "spacing_m": 244.05031324060786,
+   "distance": 0.1333199973037383,
+   "route_km": 10.705726581152376,
+   "backtracked": 5
+  },
+  {
+   "n": 61,
+   "spacing_m": 160.03299228892317,
+   "distance": 0.07275850778345015,
+   "route_km": 11.613082118679381,
+   "backtracked": 11
+  },
+  {
+   "n": 80,
+   "spacing_m": 122.02515662030393,
+   "distance": 0.08686802094306023,
+   "route_km": 11.604287132784195,
+   "backtracked": 17
+  },
+  {
+   "n": 120,
+   "spacing_m": 81.35010441353595,
+   "distance": 0.09541682640492118,
+   "route_km": 11.768318851730315,
+   "backtracked": 19
+  },
+  {
+   "n": 160,
+   "spacing_m": 61.012578310151966,
+   "distance": 0.10018211828372056,
+   "route_km": 12.166035923073835,
+   "backtracked": 13
+  }
+ ],
+ "matched": [
+  {
+   "shape": "heart",
+   "n": 40,
+   "distance": 0.06077944801162805,
+   "backtracked": 5,
+   "poc6_distance": 0.06077944801162805,
+   "poc6_backtracked": 5
+  },
+  {
+   "shape": "star5",
+   "n": 48,
+   "distance": 0.07753468979163256,
+   "backtracked": 20,
+   "poc6_distance": 0.07850267102851473,
+   "poc6_backtracked": 16
+  },
+  {
+   "shape": "crescent",
+   "n": 60,
+   "distance": 0.0480627372428152,
+   "backtracked": 6,
+   "poc6_distance": 0.046875699462853554,
+   "poc6_backtracked": 14
+  },
+  {
+   "shape": "triangle",
+   "n": 38,
+   "distance": 0.06297199955803306,
+   "backtracked": 7,
+   "poc6_distance": 0.05389324775064856,
+   "poc6_backtracked": 5
+  }
+ ],
+ "best": {
+  "lat": 25.036427656936088,
+  "lon": 121.54400657638995,
+  "rotation": 0.0
+ }
+}

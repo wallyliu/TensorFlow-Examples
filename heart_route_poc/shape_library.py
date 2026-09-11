@@ -5,6 +5,8 @@ POC 1-5 hard-coded one parametric heart. POC 6 asks whether the pipeline is a
 heart trick or a shape pipeline, which needs shapes that stress it differently:
 
     heart      two cusps, one shallow concavity - the known baseline
+    trex       many concave features at very different scales, and an eye that
+               cannot be represented at all
     star5      five sharp points and five DEEP concavities, plus 72-degree
                rotational symmetry
     crescent   one deep concavity and two very sharp cusps, strongly asymmetric
@@ -91,6 +93,38 @@ def crescent(n: int = 40, inner_radius: float = 0.86, offset: float = 0.34) -> n
     return _normalise(_resample_polygon(boundary, n))
 
 
+# A T-rex silhouette in the spirit of Chrome's offline dinosaur, authored rather
+# than traced: the point is to have a shape with MANY concave features at very
+# different scales, which is what stresses the pipeline. Vertices run clockwise
+# from the back of the skull, down the face and chest, around both legs, then up
+# the tail and back. Coordinates are in an arbitrary 0-100 grid.
+TREX_OUTLINE = [
+    (58, 100), (78, 100), (78, 92), (92, 92), (92, 84),   # skull and snout
+    (80, 84), (80, 78), (64, 78),                          # mouth notch and jaw
+    (60, 70), (56, 60),                                    # neck into chest
+    (60, 56), (70, 52), (70, 46), (58, 48),                # the little arm
+    (55, 40), (54, 30),                                    # belly
+    (50, 30), (50, 8), (62, 8), (62, 0), (40, 0), (40, 18),  # front leg
+    (32, 18),                                              # gap between the legs
+    (32, 0), (12, 0), (12, 8), (24, 8), (24, 26),          # back leg
+    (16, 30), (0, 38), (0, 50), (12, 50), (12, 58),        # tail
+    (26, 64), (42, 76), (52, 88),                          # back up to the skull
+]
+
+
+def trex(n: int = 40) -> np.ndarray:
+    """A dinosaur silhouette - the hardest shape in the library.
+
+    Note what is NOT here: the eye. The real sprite has one, and an eye is a
+    HOLE. Every stage of this pipeline - the contour sampler, the placement, the
+    Viterbi matcher, the metric - assumes a single closed curve, so a shape with
+    a hole cannot be expressed at all, never mind drawn badly. That limit is
+    topological, not a matter of resolution, and dropping the eye to get a
+    runnable shape is itself the finding.
+    """
+    return _normalise(_resample_polygon(np.array(TREX_OUTLINE, dtype=float), n))
+
+
 def triangle(n: int = 40) -> np.ndarray:
     """An equilateral triangle, point upward - convex, so the easy control."""
     angles = np.pi / 2 + np.arange(3) * (2 * np.pi / 3)
@@ -98,7 +132,8 @@ def triangle(n: int = 40) -> np.ndarray:
     return _normalise(_resample_polygon(vertices, n))
 
 
-SHAPES = {"heart": heart, "star5": star5, "crescent": crescent, "triangle": triangle}
+SHAPES = {"heart": heart, "star5": star5, "crescent": crescent,
+          "triangle": triangle, "trex": trex}
 
 
 def resample_by_arclength(shape: str, n_points: int, oversample: int = 4000) -> np.ndarray:
