@@ -78,7 +78,13 @@ def main() -> None:
     images = {name: data_uri(name) for name in IMAGES}
     payload = json.dumps({"trials": trials, "images": images, "version": "v2"},
                          ensure_ascii=False, separators=(",", ":"))
-    OUT.write_text(TEMPLATE.replace("__PAYLOAD__", payload), encoding="utf-8")
+    html = TEMPLATE.replace("__PAYLOAD__", payload)
+    # A distinct name, so round one and round two are told apart in a gallery
+    # that shows only titles.
+    marker = "<title>這些路線看起來像什麼</title>"
+    assert marker in html, "title marker moved; fix this before publishing"
+    html = html.replace(marker, "<title>連接線會不會讓字讀不出來</title>")
+    OUT.write_text(html, encoding="utf-8")
     print(f"wrote {OUT.name}: {len(trials)} trials "
           f"({len(DINO_TRIALS)} pooled from round one), {len(images)} images, "
           f"{OUT.stat().st_size / 1024:.0f} KB")
