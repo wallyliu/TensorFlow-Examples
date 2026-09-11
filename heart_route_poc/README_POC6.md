@@ -255,9 +255,64 @@ aborted the script before it painted. Every replacement is now routed through a
 helper that raises if it does not match — a silent no-op is the characteristic
 failure of patching code as text.
 
+### Version 2 contradicted version 1, and the reaction times say why
+
+![v2](poc6e_threshold_v2.png)
+
+Version 2 fixed the missing response option and sampled the unsampled interval.
+It also disagreed with version 1 outright. On essentially the same comparison —
+the clean route against one about 0.16 away — version 1 answered "about the
+same" **twice**, and version 2 answered correctly in **0.85 s**.
+
+Version 2's own reaction times split into two regimes with nothing between them:
+
+| gap | outcome | time to answer |
+| --- | --- | --- |
+| ≤ 0.074 | mixed — one correct, one still a tie | **7–13 seconds** |
+| ≥ 0.098 | every one correct | **under 1.4 s** |
+
+An eight-fold cliff in effort at exactly the gap where accuracy turns. So
+discrimination below ~0.10 is not impossible, it is **effortful** — and version 2
+made effort cheaper in a way that does not generalise. Every one of its 14 trials
+put the *same* clean route on one side, so "find the smooth one" becomes a
+learnable strategy after a few trials. A person glancing at one route on a map
+has no reference and no practice. That is version 1's condition, and version 1
+tied everything up to 0.10.
+
+**Fixing one confound introduced another.** Both runs agree on what matters
+though: effortless discrimination begins around **0.10**, and that is the number
+a product should use, because nobody stares at a map for thirteen seconds.
+
+Zero "neither looks like it" answers were recorded, so the **recognisability
+ceiling is still unmeasured** — anchoring every pair to the clean route
+guaranteed one good member every time, which is the same fix that caused the
+learning confound. Measuring the ceiling needs unanchored pairs *and* the fourth
+option together.
+
+### Correcting what I claimed from run 1 alone
+
+Two turns ago I wrote that picking the best of eight shortlisted placements
+instead of the worst is "a difference no one can see." Against the effortless
+threshold of ~0.10 that is **only true for two of the four shapes**:
+
+| shape | shortlist spread | verdict |
+| --- | ---: | --- |
+| crescent | 0.037 | invisible under any condition |
+| heart | 0.069 | invisible at a glance; visible only with effort and a reference |
+| star5 | 0.134 | **visible at a glance** |
+| triangle | 0.137 | **visible at a glance** |
+
+So the claim holds for the crescent and the heart and **fails for the star and
+the triangle**, whose shortlists straddle the threshold. The weaker,
+defensible version: *stage 2's ranking earns its keep on shapes whose placements
+vary a lot, and is imperceptible on shapes where they do not* — which is a
+reason to spend the refinement budget adaptively, not to abandon it.
+
 ### Limits specific to this measurement
 
-- **One rater, 12 gap trials.** A single-subject psychophysics run.
+- **One rater across both runs, 26 gap trials.** A single-subject psychophysics
+  run, and the two runs are not independent — the same person did both, so run 2
+  carries whatever run 1 taught them.
 - **The bracket is not resolved.** My target gaps jumped from 0.100 to 0.150,
   so nothing was sampled where the threshold actually sits. Version 2 above
   fixes this.
@@ -293,10 +348,11 @@ That reframes what is left:
 
 1. **Stop tuning the objective.** `shape_distance` clears the bar. Fine-ranking
    inside a shortlist optimises below the threshold of perception.
-2. **Add a second objective past the threshold.** Once a placement is
-   recognisable, rank on something a walker perceives — total distance, how much
-   of the route is on quiet streets, whether it passes a park. That is a
-   genuinely new axis, not more of the same.
+2. **Spend the refinement budget adaptively.** Shortlist spread is knowable
+   before any fitting: where it is under ~0.07 (crescent, heart) the ranking is
+   imperceptible and one refinement would do; where it straddles ~0.10 (star,
+   triangle) the ranking is worth computing. Then rank on something a walker
+   perceives — total distance, quiet streets, whether it passes a park.
 3. **Then shape acquisition** — text-to-shape or image-to-shape. The pipeline is
    already shape-agnostic: it takes any ordered closed contour and returns a
    route, so the interface is exactly that.
