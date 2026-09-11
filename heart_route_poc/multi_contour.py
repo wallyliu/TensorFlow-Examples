@@ -185,9 +185,14 @@ COLLINEARITY_WEIGHT = {"outline": 0.0, "stroke": 6.0}
 
 def text_curve(text: str, style: str = "outline", step: float = 0.01,
                family: str = "DejaVu Sans",
-               collinearity_weight: float | None = None) -> np.ndarray:
+               collinearity_weight: float | None = None,
+               link: str = "mst") -> np.ndarray:
     """
     A word as one closed curve, normalised to width 1 and centred.
+
+    `link="mst"` joins the parts by the shortest links it can find;
+    `link="rail"` runs them along a line below the word instead. See
+    `rail_connectors` for why that is not a cosmetic difference.
 
     `style="outline"` traces both edges of every letter stroke - the letter as
     printed. `style="stroke"` uses the single-stroke font: one line down the
@@ -202,8 +207,137 @@ def text_curve(text: str, style: str = "outline", step: float = 0.01,
         contours = [densify(stroke_to_contour(s), step) for s in strokes(text)]
     else:
         raise ValueError(f"unknown style {style!r}; use 'outline' or 'stroke'")
-    if collinearity_weight is None:
-        collinearity_weight = COLLINEARITY_WEIGHT[style]
-    curve, _, _ = merge(contours, collinearity_weight)
+    if link == "rail":
+        curve = merge_along_paths(contours, rail_connectors(contours), step)
+    else:
+        if collinearity_weight is None:
+            collinearity_weight = COLLINEARITY_WEIGHT[style]
+        curve, _, _ = merge(contours, collinearity_weight)
     span = curve.max(axis=0) - curve.min(axis=0)
     return (curve - curve.min(axis=0) - span / 2) / span[0]
+
+
+# ---------------------------------------------------------------------------
+# Rail linking
+#
+# POC 13's rater read the upright outline route as "UT" and said afterwards
+# that the links sat too close to the letters to tell them apart. Nearest-point
+# linking guarantees exactly that: the shortest link between two letters
+# attaches at the two points where they most nearly touch, which is where a
+# reader most needs empty space.
+#
+# A rail takes the opposite approach. Every contour drops a stem to a common
+# line below the word and the stems are joined along it, so the whole connecting
+# structure sits outside the letters - an underline, which a reader already
+# knows how to ignore. It costs more length than the MST, and whether the trade
+# is worth it is a question for a rater, not for me.
+# ---------------------------------------------------------------------------
+
+def rail_connectors(contours: list[np.ndarray], drop: float = 0.22
+                    ) -> list[tuple[int, int, int, int, np.ndarray]]:
+    """
+    Link the contours along a rail below the drawing, left to right.
+
+    `drop` is how far below the drawing the rail sits, as a fraction of the
+    drawing's height. Returns one edge per adjacent pair as
+    (parent, child, exit index on parent, entry index on child, path), where
+    `path` is the polyline from the parent's exit point to the child's entry
+    point - down, across, and up.
+    """
+    # Parts that already touch are one thing to a reader - the stem and the two
+    # bars of an I are not three shapes needing three stems to the rail. Group
+    # them first and link inside a group where they meet, so only whole letters
+    # reach the rail.
+    parent = list(range(len(contours)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    scale = max(float(np.ptp(np.vstack(contours)[:, 0])), 1e-9)
+    touching = 0.01 * scale
+    joins = {}
+    for i in range(len(contours)):
+        for j in range(i + 1, len(contours)):
+            pi, pj, d = closest_pair(contours[i], contours[j])
+            if d < touching:
+                joins[(i, j)] = (pi, pj)
+                parent[find(i)] = find(j)
+
+    groups: dict[int, list[int]] = {}
+    for i in range(len(contours)):
+        groups.setdefault(find(i), []).append(i)
+
+    edges = []
+    for members in groups.values():
+        seen = {members[0]}
+        while len(seen) < len(members):
+            for (i, j), (pi, pj) in joins.items():
+                if i in seen and j in members and j not in seen:
+                    edges.append((i, j, pi, pj, np.array([contours[i][pi],
+                                                          contours[j][pj]])))
+                    seen.add(j)
+                elif j in seen and i in members and i not in seen:
+                    edges.append((j, i, pj, pi, np.array([contours[j][pj],
+                                                          contours[i][pi]])))
+                    seen.add(i)
+
+    lowest = {}
+    for key, members in groups.items():
+        lowest[key] = min(((i, int(np.argmin(contours[i][:, 1]))) for i in members),
+                          key=lambda t: contours[t[0]][t[1], 1])
+    y_min = min(float(c[:, 1].min()) for c in contours)
+    height = max(float(c[:, 1].max()) for c in contours) - y_min
+    rail_y = y_min - drop * height
+
+    order = sorted(groups, key=lambda k: np.vstack([contours[i] for i in groups[k]])[:, 0].mean())
+    for ka, kb in zip(order, order[1:]):
+        ia, pa_i = lowest[ka]
+        ib, pb_i = lowest[kb]
+        pa, pb = contours[ia][pa_i], contours[ib][pb_i]
+        path = np.array([pa, [pa[0], rail_y], [pb[0], rail_y], pb], dtype=float)
+        edges.append((ia, ib, pa_i, pb_i, path))
+    return edges
+
+
+def merge_along_paths(contours: list[np.ndarray],
+                      edges: list[tuple[int, int, int, int, np.ndarray]],
+                      step: float = 0.01) -> np.ndarray:
+    """
+    `merge`, but each link is a polyline rather than a straight segment.
+
+    Same construction: walk every contour once and detour into each child at its
+    exit point, riding the link out and back. The only difference is that the
+    link has shape, so it is densified and emitted point by point in both
+    directions.
+    """
+    children: dict[int, list] = {i: [] for i in range(len(contours))}
+    for a, b, exit_idx, entry_idx, path in edges:
+        children[a].append((b, exit_idx, entry_idx, path))
+    roots = set(range(len(contours))) - {b for _, b, _, _, _ in edges}
+    root = min(roots)
+
+    def densify_path(path: np.ndarray) -> np.ndarray:
+        out = [path[:1]]
+        for p, q in zip(path, path[1:]):
+            n = max(2, int(np.hypot(*(q - p)) / step))
+            out.append(p + np.linspace(0, 1, n)[1:, None] * (q - p))
+        return np.vstack(out)
+
+    def walk(i: int, entry: int) -> list[np.ndarray]:
+        contour = contours[i]
+        pts: list[np.ndarray] = []
+        for idx in np.roll(np.arange(len(contour)), -entry):
+            pts.append(contour[idx])
+            for j, exit_idx, entry_idx, path in children[i]:
+                if exit_idx == idx:
+                    dense = densify_path(path)
+                    pts.extend(dense[1:])           # out along the rail
+                    pts.extend(walk(j, entry_idx))  # round the child
+                    pts.extend(dense[::-1][1:])     # and back along it
+        pts.append(contour[entry % len(contour)])
+        return pts
+
+    return np.array(walk(root, 0))

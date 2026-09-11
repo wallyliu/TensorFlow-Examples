@@ -111,7 +111,7 @@ def data_uri(name: str) -> str:
 
 def main() -> None:
     images = {name: data_uri(name) for name in IMAGES}
-    payload = json.dumps({"trials": TRIALS, "images": images},
+    payload = json.dumps({"trials": TRIALS, "images": images, "version": "v1"},
                          ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(TEMPLATE.replace("__PAYLOAD__", payload), encoding="utf-8")
     kb = OUT.stat().st_size / 1024
@@ -392,6 +392,7 @@ TEMPLATE = r"""<title>這些路線看起來像什麼</title>
 
     var result = {
       session: sessionId,
+      version: DATA.version || "v1",
       finished_at: new Date().toISOString(),
       total_ms: answers.reduce(function (s, a) { return s + a.ms; }, 0),
       answers: answers

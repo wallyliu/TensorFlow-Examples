@@ -1,0 +1,18 @@
+{
+  "outline_rail": {
+    "style": "outline",
+    "link": "rail",
+    "n": 104,
+    "width_m": 4290.615466759556,
+    "distance": 0.10937754129493875,
+    "route_km": 36.22288766168617
+  },
+  "stroke_rail": {
+    "style": "stroke",
+    "link": "rail",
+    "n": 168,
+    "width_m": 6666.096256684492,
+    "distance": 0.3091441527078518,
+    "route_km": 76.90728588778987
+  }
+}
