@@ -33,6 +33,15 @@ import networkx as nx
 import numpy as np
 import osmnx as ox
 from pyproj import Transformer
+
+# osmnx keeps a short default list of way tags and drops the rest, and `bicycle`
+# is not on it. Every rideability audit in POC 10 therefore read a field that did
+# not exist and counted every pavement as off-limits, when 14% of Taipei's are
+# signed for shared use. The filters were right; the analysis was reading blanks.
+ox.settings.useful_tags_way = list(dict.fromkeys(
+    list(ox.settings.useful_tags_way)
+    + ["bicycle", "cycleway", "foot", "surface", "segregated", "incline"]
+))
 from scipy.spatial import cKDTree
 
 # ---------------------------------------------------------------------------

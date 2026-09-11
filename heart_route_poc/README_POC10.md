@@ -6,16 +6,28 @@ question was not "filter differently" but **which of nine POCs' numbers survive.
 
 ## The walking routes were not rideable
 
-| shape | route | unrideable | **dismounts** |
-| --- | ---: | ---: | ---: |
-| heart | 8.1 km | 22% | **12** |
-| star5 | 9.5 km | 25% | **18** |
-| crescent | 11.9 km | 25% | **22** |
-| triangle | 7.7 km | 58% | **27** |
+> **Corrected.** The first version of this table said 31% unrideable, from an
+> audit that read `d.get("bicycle")` on graph edges. osmnx keeps a short default
+> list of way tags and `bicycle` is not on it, so that field was always empty and
+> every pavement was counted as off-limits — when 14% of Taipei's footways are
+> signed for shared use (1,721 `bicycle=yes` plus 551 `designated` out of
+> 16,065). The filters were right; the analysis was reading blanks.
+> `heart_route_poc` now extends `useful_tags_way`. Re-measured:
 
-31% of total length, and 12–27 places per loop where you would have to get off.
-The percentage is the less useful number: a closed loop with **one** impassable
-segment is a broken shape.
+| shape | route | unrideable | **dismounts** | first reported |
+| --- | ---: | ---: | ---: | --- |
+| heart | 8.1 km | 11% | **9** | 22% / 12 |
+| star5 | 9.5 km | 12% | **14** | 25% / 18 |
+| crescent | 11.9 km | 17% | **22** | 25% / 22 |
+| triangle | 7.7 km | 38% | **27** | 58% / 27 |
+
+**19% of total length**, not 31%. The magnitude was overstated by more than half.
+
+The decision it drove is unchanged, because the percentage was never the
+operative number: **9 to 27 dismounts per loop** barely moved, since a dismount
+is a *transition* and even a short blocked segment creates one. A closed loop
+with one impassable segment is a broken shape regardless of how few metres it
+covers.
 
 Three separate faults, not one:
 
