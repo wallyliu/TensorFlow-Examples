@@ -114,12 +114,17 @@ staircase or a spur.
 The generic straight flanks are near-perfect; the shape's information content
 sits in the cusps, and that is what the grid erodes.
 
-> **POC 2–9 are done** — see [README_POC2.md](README_POC2.md),
+> **POC 2–10 are done** — see [README_POC2.md](README_POC2.md),
 > [README_POC3.md](README_POC3.md), [README_POC4.md](README_POC4.md) and
 > [README_POC5.md](README_POC5.md) and [README_POC6.md](README_POC6.md) and
 > [README_POC7.md](README_POC7.md) and
 > [README_POC8.md](README_POC8.md) and
-> [README_POC9.md](README_POC9.md). Deferred work is in [BACKLOG.md](BACKLOG.md).
+> [README_POC9.md](README_POC9.md) and [README_POC10.md](README_POC10.md).
+> Deferred work is in [BACKLOG.md](BACKLOG.md).
+>
+> **POC 10 changed the target mode to cycling.** Everything before it was
+> measured on the walking network, and the walking numbers are kept as a
+> comparison rather than deleted.
 >
 > **POC 2** — see [README_POC2.md](README_POC2.md). It implements the
 > recommendation below and beats POC 1 on every metric (8.80 km, detour 1.38×,

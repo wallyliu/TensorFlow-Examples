@@ -30,8 +30,21 @@ import numpy as np
 from shape_library import SHAPES, resample_by_arclength
 from shape_metrics import shape_distance
 
-# Measured in POC 7: the spacing at which contour sampling stops helping and
-# starts over-constraining the matcher. A property of the city, not the shape.
+# The spacing at which contour sampling stops helping and starts over-constraining
+# the matcher. A property of the city AND the mode - a cyclist may not use the
+# pavements and alleys that make a walking network dense.
+#
+# Honest about where these come from. The walking 160 m is POC 7's, taken as the
+# argmin of a resolution sweep - and POC 10 found that sweep is flat within the
+# perceptual threshold, so the argmin is largely noise and 160 m is an empirical
+# fitting constant, not a measured quantity. The bicycle value is NOT measured
+# independently either: it is 160 m scaled by 1.75, the measured ratio of median
+# junction spacing along real routes (23 m walking, 40 m cycling), which is a
+# robust network statistic even though it is not the same quantity.
+#
+# That transfer earns its keep by making out-of-sample predictions. It says the
+# star and the T-rex cannot clear the perceptual threshold as 2 km cycling
+# routes and the other three can - and all five came out that way when measured.
 TAIPEI_STREET_SCALE_M = 160.0
 
 # Measured over 12 fits spanning five shapes and three sizes (POC 9): mean
@@ -46,6 +59,14 @@ TAIPEI_STREET_SCALE_M = 160.0
 # of quiet lie this project keeps finding in its own metrics.
 DETOUR_RATIO = 1.25
 DETOUR_UNCERTAINTY = 0.15   # +-10% covered 10 of 12 measured fits; +-15% covered all 12
+
+# Per-mode constants. Bicycle is the default: it is the mode the product is for,
+# and the walking numbers are kept because nine POCs of measurement rest on them.
+MODES = {
+    "walk": {"street_scale_m": 160.0, "detour": 1.25, "label": "walking"},
+    "bike": {"street_scale_m": 280.0, "detour": 1.26, "label": "cycling"},
+}
+DEFAULT_MODE = "bike"
 
 # Sampling loss must stay well under the ~0.10 gap at which a person reliably
 # sees a difference (POC 6), so that sampling is not itself eating the budget.
@@ -87,10 +108,10 @@ def n_min(shape: str, tolerance: float = SAMPLING_TOLERANCE, ceiling: int = 400)
     return ceiling
 
 
-def min_distance_km(shape: str, street_scale_m: float = TAIPEI_STREET_SCALE_M,
-                    detour: float = DETOUR_RATIO) -> float:
-    """The shortest walk this shape can produce and still be itself."""
-    return n_min(shape) * street_scale_m * detour / 1000.0
+def min_distance_km(shape: str, mode: str = DEFAULT_MODE) -> float:
+    """The shortest route this shape can produce in this mode and still be itself."""
+    cfg = MODES[mode]
+    return n_min(shape) * cfg["street_scale_m"] * cfg["detour"] / 1000.0
 
 
 # Where inside the window to sit. POC 9 swept this across five shapes and found
@@ -102,8 +123,7 @@ def min_distance_km(shape: str, street_scale_m: float = TAIPEI_STREET_SCALE_M,
 WINDOW_FRACTION = 0.75
 
 
-def contour_points(shape: str, width_m: float,
-                   street_scale_m: float = TAIPEI_STREET_SCALE_M) -> int:
+def contour_points(shape: str, width_m: float, mode: str = DEFAULT_MODE) -> int:
     """
     How many contour points to sample, for a shape drawn this wide.
 
@@ -115,7 +135,7 @@ def contour_points(shape: str, width_m: float,
     constrained at all - the sampled polygon is heart-shaped while the walk need
     not be.
     """
-    cap = max(1, int(perimeter(shape) * width_m / street_scale_m))
+    cap = max(1, int(perimeter(shape) * width_m / MODES[mode]["street_scale_m"]))
     return max(n_min(shape), round(WINDOW_FRACTION * cap))
 
 
@@ -123,6 +143,7 @@ def contour_points(shape: str, width_m: float,
 class Plan:
     """What a given distance buys for a given shape."""
     shape: str
+    mode: str
     feasible: bool
     target_km: float
     min_km: float
@@ -133,9 +154,7 @@ class Plan:
     reason: str
 
 
-def plan(shape: str, target_km: float,
-         street_scale_m: float = TAIPEI_STREET_SCALE_M,
-         detour: float = DETOUR_RATIO) -> Plan:
+def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE) -> Plan:
     """
     Size a shape to a distance, or explain why it does not fit.
 
@@ -144,21 +163,22 @@ def plan(shape: str, target_km: float,
     the failure this whole project keeps running into: the metric cannot see a
     destroyed feature, so the check has to happen HERE, before anything is drawn.
     """
-    floor = min_distance_km(shape, street_scale_m, detour)
+    detour = MODES[mode]["detour"]
+    floor = min_distance_km(shape, mode)
     if target_km < floor:
-        return Plan(shape, False, target_km, floor, None, None, None, None,
+        return Plan(shape, mode, False, target_km, floor, None, None, None, None,
                     f"needs at least {floor:.1f} km; too much detail to fit in "
                     f"{target_km:.1f} km of walking")
 
     width = target_km * 1000.0 / (perimeter(shape) * detour)
-    points = contour_points(shape, width, street_scale_m)
+    points = contour_points(shape, width, mode)
     predicted = perimeter(shape) * width * detour / 1000.0
     span = (predicted * (1 - DETOUR_UNCERTAINTY), predicted * (1 + DETOUR_UNCERTAINTY))
-    return Plan(shape, True, target_km, floor, width, points, predicted, span,
+    return Plan(shape, mode, True, target_km, floor, width, points, predicted, span,
                 f"{width / 1000:.1f} km wide, {points} contour points")
 
 
-def feasible_shapes(target_km: float, **kwargs) -> list[Plan]:
+def feasible_shapes(target_km: float, mode: str = DEFAULT_MODE) -> list[Plan]:
     """Every shape sized to this distance, feasible ones first, then by floor."""
-    plans = [plan(s, target_km, **kwargs) for s in SHAPES]
+    plans = [plan(s, target_km, mode) for s in SHAPES]
     return sorted(plans, key=lambda p: (not p.feasible, p.min_km))

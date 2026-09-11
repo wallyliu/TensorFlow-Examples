@@ -37,6 +37,17 @@ _EXCLUDED_HIGHWAY_SUBSTRINGS = (
     "planned", "platform", "proposed", "raceway", "razed",
 )
 
+# Ways a bicycle may not legally use in Taiwan unless a tag says otherwise.
+# Pavements are the big one: POC 10 measured 30% of every walk-network route
+# running along `footway`, which is where the walking routes stop being rideable.
+_BIKE_FORBIDDEN = {
+    "footway", "steps", "pedestrian", "path", "corridor", "elevator",
+    "bridleway", "platform", "construction", "proposed", "raceway",
+    "motorway", "motorway_link", "trunk", "trunk_link",
+}
+# A tag that overrides the default ban on a forbidden class.
+_BIKE_ALLOWED_VALUES = {"yes", "designated", "permissive", "official"}
+
 
 def _way_is_walkable(tags: dict[str, str]) -> bool:
     """Return True if a pedestrian may reasonably walk along this OSM way."""
@@ -54,6 +65,44 @@ def _way_is_walkable(tags: dict[str, str]) -> bool:
     if tags.get("access") == "private":
         return False
     return True
+
+
+def _way_is_rideable(tags: dict[str, str]) -> bool:
+    """
+    Return True if a bicycle may legally ride along this OSM way.
+
+    Deliberately strict, which is the choice that matters most here. The
+    permissive alternative - allowing short pushes along pavements and steps -
+    keeps the network dense and the routes pretty, at the cost of handing the
+    rider a loop they have to dismount for. The walk-network routes needed 12 to
+    27 dismounts each, so "pretty but unrideable" is the failure being designed
+    out.
+
+    An explicit `bicycle` tag overrides the class default in both directions: a
+    pavement signed for shared use is admitted, and a residential street tagged
+    `bicycle=no` is not.
+    """
+    highway = tags.get("highway")
+    if not highway or highway == "no":
+        return False
+
+    bicycle = tags.get("bicycle")
+    if bicycle in ("no", "dismount", "private"):
+        return False
+    if tags.get("access") in ("private", "no", "permit", "customers"):
+        return bicycle in _BIKE_ALLOWED_VALUES
+    if tags.get("area") == "yes":
+        return False
+    # Driveways and parking aisles are private land in practice; alleys are not,
+    # and in Taipei an alley is ordinary riding space.
+    if tags.get("service") in ("driveway", "parking_aisle", "private"):
+        return False
+    if highway in _BIKE_FORBIDDEN:
+        return bicycle in _BIKE_ALLOWED_VALUES
+    return True
+
+
+FILTERS = {"walk": _way_is_walkable, "bike": _way_is_rideable}
 
 
 def _tile_bboxes(
@@ -91,8 +140,8 @@ def _fetch_tile(bbox: tuple[float, float, float, float], retries: int = 4) -> by
     raise RuntimeError("unreachable")
 
 
-def _parse_tile(raw: bytes, nodes: dict, ways: dict) -> None:
-    """Merge one tile's walkable ways (and the nodes they use) into the accumulators."""
+def _parse_tile(raw: bytes, nodes: dict, ways: dict, keep_way) -> None:
+    """Merge one tile's usable ways (and the nodes they use) into the accumulators."""
     root = ET.fromstring(raw)
 
     # Every node in the tile, including ones outside the bbox that a returned
@@ -106,8 +155,13 @@ def _parse_tile(raw: bytes, nodes: dict, ways: dict) -> None:
         if way_id in ways:
             continue  # already collected from an adjacent tile
         tags = {t.get("k"): t.get("v") for t in way.findall("tag")}
-        if not _way_is_walkable(tags):
+        if not keep_way(tags):
             continue
+        # A contraflow cycle lane means the one-way restriction does not apply to
+        # bicycles. osmnx only reads `oneway`, so the override is applied here by
+        # dropping the tag rather than carried downstream.
+        if tags.get("oneway:bicycle") == "no":
+            tags.pop("oneway", None)
         refs = [nd.get("ref") for nd in way.findall("nd")]
         ways[way_id] = (refs, tags)
         for ref in refs:
@@ -115,19 +169,22 @@ def _parse_tile(raw: bytes, nodes: dict, ways: dict) -> None:
                 nodes[ref] = tile_nodes[ref]
 
 
-def download_walk_xml(
+def download_network_xml(
     center_lat: float,
     center_lon: float,
     half_size_m: float,
     out_path: Path,
+    mode: str = "walk",
     step_deg: float = 0.008,
 ) -> Path:
     """
-    Download the walkable street network around a point and write it as OSM XML.
+    Download the usable street network around a point and write it as OSM XML.
 
+    `mode` selects the filter: "walk" for pedestrians, "bike" for bicycles.
     `half_size_m` is half the side length of the square box, in metres, so the
     covered area is (2 * half_size_m)^2.
     """
+    keep_way = FILTERS[mode]
     # Metres -> degrees. Longitude degrees shrink with cos(latitude).
     d_lat = half_size_m / 111_320.0
     d_lon = half_size_m / (111_320.0 * math.cos(math.radians(center_lat)))
@@ -135,14 +192,14 @@ def download_walk_xml(
     east, west = center_lon + d_lon, center_lon - d_lon
 
     tiles = _tile_bboxes(north, south, east, west, step_deg)
-    print(f"  fetching {len(tiles)} tiles from the OSM Map API "
+    print(f"  fetching {len(tiles)} tiles from the OSM Map API for {mode} "
           f"(box {2 * half_size_m / 1000:.1f} km x {2 * half_size_m / 1000:.1f} km)")
 
     nodes: dict[str, tuple[str, str]] = {}
     ways: dict[str, tuple[list[str], dict[str, str]]] = {}
     for idx, bbox in enumerate(tiles, start=1):
-        _parse_tile(_fetch_tile(bbox), nodes, ways)
-        print(f"    tile {idx}/{len(tiles)}: {len(ways)} walkable ways, "
+        _parse_tile(_fetch_tile(bbox), nodes, ways, keep_way)
+        print(f"    tile {idx}/{len(tiles)}: {len(ways)} usable ways, "
               f"{len(nodes)} nodes so far")
 
     # Drop nodes no retained way references, then write the minimal XML file.
@@ -165,3 +222,9 @@ def download_walk_xml(
 
     print(f"  wrote {out_path} ({len(ways)} ways, {len(used)} nodes)")
     return out_path
+
+
+def download_walk_xml(center_lat, center_lon, half_size_m, out_path, step_deg=0.008):
+    """Backwards-compatible alias: POCs 1-9 all call this."""
+    return download_network_xml(center_lat, center_lon, half_size_m, out_path,
+                                mode="walk", step_deg=step_deg)

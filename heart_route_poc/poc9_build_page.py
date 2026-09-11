@@ -24,8 +24,7 @@ import numpy as np
 
 from poc5_build_pairs import to_svg_path
 from route_feasibility import (
-    DETOUR_RATIO, DETOUR_UNCERTAINTY, TAIPEI_STREET_SCALE_M, WINDOW_FRACTION,
-    n_min, perimeter,
+    DEFAULT_MODE, DETOUR_UNCERTAINTY, MODES, WINDOW_FRACTION, n_min, perimeter,
 )
 from shape_library import SHAPES, resample_by_arclength
 
@@ -70,6 +69,13 @@ PAGE = """<title>Shape Or Distance, Pick One</title>
              padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
   .control label { font-size: 13px; color: var(--muted); letter-spacing: .03em;
                    text-transform: uppercase; }
+  .modes { display: flex; gap: 8px; }
+  .mode { appearance: none; font: inherit; font-size: 14px; cursor: pointer;
+          padding: 7px 16px; border-radius: 999px; border: 1px solid var(--line);
+          background: none; color: var(--muted); }
+  .mode[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
+                               background: var(--card); font-weight: 600; }
+  .mode:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .readout { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .readout .km { font-family: var(--mono); font-size: 34px; font-weight: 500;
                  font-variant-numeric: tabular-nums; }
@@ -112,13 +118,17 @@ PAGE = """<title>Shape Or Distance, Pick One</title>
 
 <div class="wrap">
   <div>
-    <h1>圖案的細節，是用走路距離買的</h1>
-    <p class="lede">在台北，街道大約每 <b>160 公尺</b>才給你一次轉向的機會。一個圖案要多少個輪廓點才認得出來，
-    就決定了它至少要畫多大、你至少要走多遠。<b>先決定要走多遠，再看有哪些圖案。</b></p>
+    <h1>圖案的細節，是用距離買的</h1>
+    <p class="lede">一個圖案要多少個輪廓點才認得出來，就決定了它至少要畫多大、你至少要走或騎多遠。
+    <b>先決定交通方式和距離，再看有哪些圖案。</b>騎車能用的路比走路少得多，所以同一個圖案要騎得更遠才畫得出來。</p>
   </div>
 
   <div class="control">
-    <label for="dist">你想走多遠</label>
+    <div class="modes" role="group" aria-label="交通方式">
+      <button type="button" id="m-bike" class="mode" data-mode="bike" aria-pressed="true">🚲 騎車</button>
+      <button type="button" id="m-walk" class="mode" data-mode="walk" aria-pressed="false">🚶 走路</button>
+    </div>
+    <label for="dist" id="distlabel">你想騎多遠</label>
     <div class="readout">
       <span class="km" id="km">8.0 km</span>
       <span class="budget">這段距離買得起 <b id="cap">—</b> 個輪廓點</span>
@@ -138,28 +148,31 @@ PAGE = """<title>Shape Or Distance, Pick One</title>
   var D = JSON.parse(document.getElementById("data").textContent);
   var slider = document.getElementById("dist");
   var rows = document.getElementById("rows");
+  var mode = D.defaultMode;
 
   function render() {
     var km = slider.value / 10;
     document.getElementById("km").textContent = km.toFixed(1) + " km";
     // What the walk affords: one contour point per street scale of route.
-    var cap = Math.max(1, Math.floor(km * 1000 / (D.street * D.detour)));
+    var cfg = D.modes[mode];
+    var cap = Math.max(1, Math.floor(km * 1000 / (cfg.street_scale_m * cfg.detour)));
     document.getElementById("cap").textContent = cap;
 
     var html = "";
     D.shapes.slice().sort(function (a, b) { return a.nmin - b.nmin; }).forEach(function (s) {
       var ok = s.nmin <= cap;
-      var width = km * 1000 / (s.perimeter * D.detour);
+      var width = km * 1000 / (s.perimeter * cfg.detour);
       var n = Math.max(s.nmin, Math.round(D.fraction * cap));
       var lo = (km * (1 - D.uncertainty)).toFixed(1);
       var hi = (km * (1 + D.uncertainty)).toFixed(1);
-      var floor = s.nmin * D.street * D.detour / 1000;
+      var floor = s.nmin * cfg.street_scale_m * cfg.detour / 1000;
       var fill = Math.min(100, s.nmin / Math.max(cap, s.nmin) * 100);
 
+      var verb = mode === "bike" ? "騎" : "走";
       var detail = ok
         ? "畫成 <b>" + (width / 1000).toFixed(1) + " km</b> 寬，取 <b>" + n +
           "</b> 個輪廓點，實際路線大約 <b>" + lo + "–" + hi + " km</b>"
-        : "細節太多，" + km.toFixed(1) + " km 走不出來 —— 它至少需要 <b>" +
+        : "細節太多，" + km.toFixed(1) + " km " + verb + "不出來 —— 它至少需要 <b>" +
           floor.toFixed(1) + " km</b>";
 
       html += '<div class="row" data-ok="' + (ok ? 1 : 0) + '">' +
@@ -174,14 +187,27 @@ PAGE = """<title>Shape Or Distance, Pick One</title>
   }
 
   slider.addEventListener("input", render);
+  ["bike", "walk"].forEach(function (m) {
+    document.getElementById("m-" + m).addEventListener("click", function () {
+      mode = m;
+      ["bike", "walk"].forEach(function (o) {
+        document.getElementById("m-" + o).setAttribute("aria-pressed", String(o === m));
+      });
+      document.getElementById("distlabel").textContent =
+        m === "bike" ? "你想騎多遠" : "你想走多遠";
+      render();
+    });
+  });
   render();
 
   document.getElementById("foot").innerHTML =
-    "數字來自實測，不是估計。街道尺度 160 公尺量自 POC 7；繞路比 " + D.detour +
-    " 量自 POC 9 的 12 次擬合（標準差 0.07，隨圖案與尺寸變動），所以這裡給的是<b>區間而不是單一數字</b>" +
-    " —— 12 次擬合全部落在 ±15% 內。<b>「距離不夠」不是把圖案鎖起來</b>：" +
-    "在門檻以下，系統畫得出東西，但那個東西的定義性特徵會消失，而指標偵測不到 —— " +
-    "所以這個檢查必須發生在畫之前。";
+    "<b>騎車的路網比走路稀疏得多</b>：同一片台北，可合法騎乘的路只有步行路網的 56%，" +
+    "人行道、階梯、行人專用區都不能騎，而單行道對單車有效。所以同一個圖案，騎車需要的最小距離" +
+    "大約是走路的 1.75 倍。" +
+    "<br><br>繞路比量自 POC 9 的 12 次擬合，所以這裡給的是<b>區間而不是單一數字</b>。" +
+    "<b>「距離不夠」不是把圖案鎖起來</b>：在門檻以下系統畫得出東西，但定義性特徵會消失，" +
+    "而指標偵測不到 —— 所以這個檢查必須發生在畫之前。" +
+    "這條規則在單車路網上做過樣本外檢驗，5 個圖案全部預測正確。";
 })();
 </script>
 """
@@ -196,14 +222,16 @@ def main() -> None:
             "nmin": n_min(key), "perimeter": perimeter(key),
             "path": to_svg_path(pts, size=100.0, margin=10.0),
         })
-    data = {"shapes": shapes, "street": TAIPEI_STREET_SCALE_M, "detour": DETOUR_RATIO,
+    data = {"shapes": shapes, "modes": MODES, "defaultMode": DEFAULT_MODE,
             "fraction": WINDOW_FRACTION, "uncertainty": DETOUR_UNCERTAINTY}
     payload = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
     OUT_HTML.write_text(PAGE.replace("__DATA__", payload))
     print(f"wrote {OUT_HTML} ({OUT_HTML.stat().st_size / 1024:.0f} KB)")
     for s in sorted(shapes, key=lambda x: x["nmin"]):
-        floor = s["nmin"] * TAIPEI_STREET_SCALE_M * DETOUR_RATIO / 1000
-        print(f"  {s['label']:<6} n_min {s['nmin']:>3}  floor {floor:>5.1f} km")
+        floors = {m: s["nmin"] * c["street_scale_m"] * c["detour"] / 1000
+                  for m, c in MODES.items()}
+        print(f"  {s['label']:<6} n_min {s['nmin']:>3}  "
+              + "  ".join(f"{m} {v:>5.1f} km" for m, v in floors.items()))
 
 
 if __name__ == "__main__":

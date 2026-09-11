@@ -121,40 +121,47 @@ def download_walk_graph(
     center_lat: float = CENTER_LAT,
     center_lon: float = CENTER_LON,
     half_size_m: float = NETWORK_HALF_SIZE_M,
+    mode: str = "walk",
 ) -> nx.MultiDiGraph:
     """
-    Download the walkable street network around the centre and project it to a
+    Download the usable street network around the centre and project it to a
     metric CRS (UTM zone 51N for Taipei, chosen automatically by osmnx).
+
+    `mode` is "walk" or "bike", and it changes two things, not one. The filter
+    differs - a bicycle may not use a pavement or a flight of steps - and so
+    does the traversal model: a pedestrian ignores one-way restrictions and a
+    cyclist does not. Getting the second one wrong would produce routes that
+    look legal and ride the wrong way up 8,000 one-way streets.
 
     The primary path is osmnx's usual Overpass query. Some sandboxed networks
     block every Overpass mirror; in that case this falls back to tiling the
     official OSM Map API (see osm_api_fallback.py). The fallback produces the
     same kind of graph, just over a square box instead of a disc.
     """
+    bidirectional = mode == "walk"
     # Key the cache on the actual area, so changing --lat/--lon fetches a new
     # network instead of silently reusing the previous one.
-    cache_xml = CACHE_DIR / f"_walk_{center_lat:.4f}_{center_lon:.4f}_{half_size_m:.0f}m.osm"
+    cache_xml = CACHE_DIR / f"_{mode}_{center_lat:.4f}_{center_lon:.4f}_{half_size_m:.0f}m.osm"
 
     if cache_xml.exists():
         print(f"  using cached network file {cache_xml.name}")
-        graph = ox.graph_from_xml(cache_xml, bidirectional=True, simplify=True)
+        graph = ox.graph_from_xml(cache_xml, bidirectional=bidirectional, simplify=True)
     else:
         try:
             # dist is the half-side of a square bbox, matching the fallback.
             graph = ox.graph_from_point(
                 (center_lat, center_lon),
                 dist=half_size_m,
-                network_type="walk",
+                network_type=mode,
                 simplify=True,
             )
         except Exception as exc:  # noqa: BLE001 - Overpass unreachable, not a bug
             print(f"  Overpass unavailable ({type(exc).__name__}: {exc})")
             print("  falling back to the OSM Map API tiler")
-            from osm_api_fallback import download_walk_xml
+            from osm_api_fallback import download_network_xml
 
-            download_walk_xml(center_lat, center_lon, half_size_m, cache_xml)
-            # bidirectional=True: pedestrians ignore one-way restrictions.
-            graph = ox.graph_from_xml(cache_xml, bidirectional=True, simplify=True)
+            download_network_xml(center_lat, center_lon, half_size_m, cache_xml, mode)
+            graph = ox.graph_from_xml(cache_xml, bidirectional=bidirectional, simplify=True)
 
     graph_proj = ox.project_graph(graph)
     print(f"  network: {graph_proj.number_of_nodes()} nodes, "

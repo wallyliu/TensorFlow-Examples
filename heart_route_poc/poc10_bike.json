@@ -1,0 +1,170 @@
+{
+ "walk": {
+  "stats": {
+   "nodes": 51971,
+   "edges": 158032,
+   "km_of_network": 6220.704999260256,
+   "median_to_network_m": 8.06166174721714,
+   "p90_to_network_m": 23.564119617978836
+  },
+  "fits": {
+   "heart": {
+    "status": "ok",
+    "distance": 0.06290345633599984,
+    "route_km": 8.244928266007017,
+    "detour": 1.2912024264301483,
+    "backtracked": 1,
+    "failed_placements": 0
+   },
+   "star5": {
+    "status": "ok",
+    "distance": 0.07850267102851473,
+    "route_km": 9.495460498746857,
+    "detour": 1.2430060948681447,
+    "backtracked": 16,
+    "failed_placements": 0
+   },
+   "crescent": {
+    "status": "ok",
+    "distance": 0.046875699462853554,
+    "route_km": 11.917862722351796,
+    "detour": 1.2430906356921843,
+    "backtracked": 14,
+    "failed_placements": 0
+   },
+   "triangle": {
+    "status": "ok",
+    "distance": 0.07685934298234212,
+    "route_km": 7.137154375262784,
+    "detour": 1.1896399428663893,
+    "backtracked": 3,
+    "failed_placements": 0
+   },
+   "trex": {
+    "status": "ok",
+    "distance": 0.10580095376657289,
+    "route_km": 11.344829920454623,
+    "detour": 0.9911465096203878,
+    "backtracked": 14,
+    "failed_placements": 0
+   }
+  },
+  "sweep": [
+   {
+    "n": 40,
+    "spacing_m": 159.63663205005278,
+    "distance": 0.08595616420290685,
+    "backtracked": 8
+   },
+   {
+    "n": 55,
+    "spacing_m": 116.09936876367478,
+    "distance": 0.07644603665829872,
+    "backtracked": 7
+   },
+   {
+    "n": 70,
+    "spacing_m": 91.22093260003017,
+    "distance": 0.08071739833659324,
+    "backtracked": 5
+   },
+   {
+    "n": 90,
+    "spacing_m": 70.94961424446791,
+    "distance": 0.07939200840058051,
+    "backtracked": 8
+   },
+   {
+    "n": 120,
+    "spacing_m": 53.21221068335093,
+    "distance": 0.08508678191111549,
+    "backtracked": 9
+   }
+  ],
+  "scale_m": 116.09936876367478
+ },
+ "bike": {
+  "stats": {
+   "nodes": 23554,
+   "edges": 59582,
+   "km_of_network": 3480.3947606355414,
+   "median_to_network_m": 10.744712146378777,
+   "p90_to_network_m": 36.2306608282903
+  },
+  "fits": {
+   "heart": {
+    "status": "ok",
+    "distance": 0.07710957183472657,
+    "route_km": 8.327724871302985,
+    "detour": 1.3041688433848608,
+    "backtracked": 5,
+    "failed_placements": 0
+   },
+   "star5": {
+    "status": "ok",
+    "distance": 0.12198626232662106,
+    "route_km": 10.345689479846296,
+    "detour": 1.3543055737802367,
+    "backtracked": 9,
+    "failed_placements": 0
+   },
+   "crescent": {
+    "status": "ok",
+    "distance": 0.06296465228139153,
+    "route_km": 11.966110277629426,
+    "detour": 1.2481230887046704,
+    "backtracked": 3,
+    "failed_placements": 0
+   },
+   "triangle": {
+    "status": "ok",
+    "distance": 0.09899868458373262,
+    "route_km": 7.644317242310488,
+    "detour": 1.2741752033434854,
+    "backtracked": 6,
+    "failed_placements": 0
+   },
+   "trex": {
+    "status": "ok",
+    "distance": 0.14816897644154953,
+    "route_km": 12.527207335444862,
+    "detour": 1.0944454798242265,
+    "backtracked": 11,
+    "failed_placements": 0
+   }
+  },
+  "sweep": [
+   {
+    "n": 40,
+    "spacing_m": 159.63663205005278,
+    "distance": 0.11215618808158805,
+    "backtracked": 3
+   },
+   {
+    "n": 55,
+    "spacing_m": 116.09936876367478,
+    "distance": 0.14515426969215847,
+    "backtracked": 2
+   },
+   {
+    "n": 70,
+    "spacing_m": 91.22093260003017,
+    "distance": 0.09805903397974494,
+    "backtracked": 4
+   },
+   {
+    "n": 90,
+    "spacing_m": 70.94961424446791,
+    "distance": 0.11701794681038051,
+    "backtracked": 6
+   },
+   {
+    "n": 120,
+    "spacing_m": 53.21221068335093,
+    "distance": 0.1159765290030781,
+    "backtracked": 14
+   }
+  ],
+  "scale_m": 91.22093260003017
+ }
+}
