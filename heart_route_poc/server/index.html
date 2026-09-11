@@ -163,6 +163,8 @@
         <div class="views" role="group" aria-label="顯示方式">
           <button id="view-map" type="button" aria-pressed="true">路網底圖</button>
           <button id="view-shape" type="button" aria-pressed="false">只看形狀</button>
+          <button id="view-north" type="button" aria-pressed="false"
+                  title="把圖案轉正，或維持正北朝上">轉正圖案</button>
         </div>
         <div class="preview" id="preview"><div id="svg"></div></div>
       </div>
@@ -181,6 +183,7 @@
   var state = { mode: "bike", km: 10, shape: null, text: null, shapes: [] };
   state.view = "map";
   state.last = null;
+  state.upright = true;
   var $ = function (id) { return document.getElementById(id); };
 
   function api(path, body) {
@@ -259,14 +262,33 @@
     // A degree of longitude is shorter than a degree of latitude away from the
     // equator; without this the shape comes out stretched sideways.
     var k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
-    var w = (maxLon - minLon) * k, h = maxLat - minLat;
+
+    // The search is free to place a shape at any angle, because the metric it
+    // optimises does not care about orientation and a rater said a tilted
+    // heart is as heart-like as an upright one. Drawing north-up then shows a
+    // tilted heart and the reader marks it down for a choice nobody made. So
+    // the picture can be turned by the angle the search used - with a north
+    // arrow, since the rider still has to know which way they are going.
+    var theta = (state.upright ? -(result.rotation_deg || 0) : 0) * Math.PI / 180;
+    var cos = Math.cos(theta), sin = Math.sin(theta);
+    function project(c) {
+      var x = (c[1] - minLon) * k, y = maxLat - c[0];
+      return [x * cos - y * sin, x * sin + y * cos];
+    }
+
+    var xs = [], ys = [];
+    all.forEach(function (c) { var q = project(c); xs.push(q[0]); ys.push(q[1]); });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var w = maxX - minX, h = maxY - minY;
     var pad = Math.max(w, h) * 0.03;
     var unit = Math.max(w, h);
 
     function pathOf(points) {
       return points.map(function (c, i) {
-        return (i ? "L" : "M") + ((c[1] - minLon) * k).toFixed(6)
-          + " " + (maxLat - c[0]).toFixed(6);
+        var q = project(c);
+        return (i ? "L" : "M") + (q[0] - minX).toFixed(6)
+          + " " + (q[1] - minY).toFixed(6);
       }).join(" ");
     }
 
@@ -282,7 +304,19 @@
     }
     svg += '<path d="' + pathOf(coords) + '" fill="none" stroke="#c0392b"'
       + ' stroke-width="' + (unit / 260) + '" stroke-linejoin="round"'
-      + ' stroke-linecap="round"/></svg>';
+      + ' stroke-linecap="round"/>';
+    // North arrow, rotated with everything else.
+    var arrow = unit * 0.07, ax = w - arrow * 0.7, ay = arrow * 1.1;
+    svg += '<g transform="translate(' + ax + ' ' + ay + ') rotate('
+      + (theta * 180 / Math.PI) + ')" stroke="#6d716d" fill="#6d716d"'
+      + ' stroke-width="' + (unit / 700) + '">'
+      + '<line x1="0" y1="' + (arrow / 2) + '" x2="0" y2="' + (-arrow / 2) + '"/>'
+      + '<path d="M' + (-arrow / 5) + ' ' + (-arrow / 4) + ' L0 ' + (-arrow / 2)
+      + ' L' + (arrow / 5) + ' ' + (-arrow / 4) + ' Z" stroke="none"/></g>'
+      + '<text x="' + ax + '" y="' + (ay + arrow * 0.95) + '" font-size="'
+      + (unit / 22) + '" fill="#6d716d" text-anchor="middle"'
+      + ' font-family="system-ui, sans-serif">N</text>';
+    svg += "</svg>";
     $("svg").innerHTML = svg;
   }
 
@@ -358,6 +392,12 @@
   $("use-text").addEventListener("click", checkText);
   $("text").addEventListener("keydown", function (e) {
     if (e.key === "Enter") checkText();
+  });
+  $("view-north").addEventListener("click", function () {
+    state.upright = !state.upright;
+    $("view-north").setAttribute("aria-pressed", String(!state.upright));
+    $("view-north").textContent = state.upright ? "轉正圖案" : "正北朝上";
+    if (state.last) drawPreview(state.last);
   });
   $("view-map").addEventListener("click", function () { setView("map"); });
   $("view-shape").addEventListener("click", function () { setView("shape"); });

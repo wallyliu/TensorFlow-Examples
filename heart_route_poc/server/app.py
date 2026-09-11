@@ -200,6 +200,13 @@ def build_route(shape: str, target_km: float, mode: str,
     to_wgs = Transformer.from_crs(net["crs"], "EPSG:4326", always_xy=True)
     lons, lats = to_wgs.transform(best["route_xy"][:, 0], best["route_xy"][:, 1])
     return {"status": "ok", **verdict, "id": route_id,
+            # The orientation the search chose. The page can turn the drawing
+            # back upright with it: POC 6 established the metric is
+            # rotation-invariant and a rater called tilted and upright hearts
+            # equally heart-like, so the search is free to use orientation -
+            # but a reader looking at a north-up picture sees a tilted heart
+            # and marks it down for something nobody chose.
+            "rotation_deg": round(float(best["rotation"]), 1),
             "route_km": round(km, 1),
             "shape_distance": round(best["distance"], 3),
             "seconds": round(time.time() - t0, 1),
