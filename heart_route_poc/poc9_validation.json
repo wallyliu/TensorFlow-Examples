@@ -1,0 +1,310 @@
+{
+ "prediction": [
+  {
+   "shape": "heart",
+   "target_km": 5.0,
+   "width_m": 1204.6589171800854,
+   "points": 20,
+   "predicted_km": 5.000000000000001,
+   "actual_km": 4.823922244978078,
+   "error_pct": -3.521555100438451,
+   "detour": 1.2542197836943574,
+   "distance": 0.09448444630822143
+  },
+  {
+   "shape": "heart",
+   "target_km": 10.0,
+   "width_m": 2409.3178343601708,
+   "points": 41,
+   "predicted_km": 10.000000000000002,
+   "actual_km": 9.923312167542866,
+   "error_pct": -0.7668783245713583,
+   "detour": 1.2900305817804827,
+   "distance": 0.05780162571170446
+  },
+  {
+   "shape": "heart",
+   "target_km": 20.0,
+   "width_m": 4818.6356687203415,
+   "points": 82,
+   "predicted_km": 20.000000000000004,
+   "actual_km": 20.27046841026773,
+   "error_pct": 1.352342051338624,
+   "detour": 1.3175804466673895,
+   "distance": 0.040762444192390904
+  },
+  {
+   "shape": "star5",
+   "target_km": 10.0,
+   "width_m": 2013.9276755248916,
+   "points": 41,
+   "predicted_km": 10.000000000000002,
+   "actual_km": 9.068684994267477,
+   "error_pct": -9.31315005732525,
+   "detour": 1.1789290492547257,
+   "distance": 0.09470874994106236
+  },
+  {
+   "shape": "star5",
+   "target_km": 20.0,
+   "width_m": 4027.855351049783,
+   "points": 82,
+   "predicted_km": 20.000000000000004,
+   "actual_km": 18.495546330000657,
+   "error_pct": -7.5222683499967316,
+   "detour": 1.2022105114500252,
+   "distance": 0.07163526630971098
+  },
+  {
+   "shape": "crescent",
+   "target_km": 5.0,
+   "width_m": 802.344840005288,
+   "points": 20,
+   "predicted_km": 5.0,
+   "actual_km": 4.460404575780231,
+   "error_pct": -10.791908484395378,
+   "detour": 1.1597051897028205,
+   "distance": 0.08574260317783607
+  },
+  {
+   "shape": "crescent",
+   "target_km": 10.0,
+   "width_m": 1604.689680010576,
+   "points": 41,
+   "predicted_km": 10.0,
+   "actual_km": 9.998756779664927,
+   "error_pct": -0.012432203350734028,
+   "detour": 1.299838381356429,
+   "distance": 0.09288279848357842
+  },
+  {
+   "shape": "crescent",
+   "target_km": 20.0,
+   "width_m": 3209.379360021152,
+   "points": 82,
+   "predicted_km": 20.0,
+   "actual_km": 20.50325591579674,
+   "error_pct": 2.5162795789836956,
+   "detour": 1.332711634526782,
+   "distance": 0.06043070078883225
+  },
+  {
+   "shape": "triangle",
+   "target_km": 5.0,
+   "width_m": 1282.1743796526266,
+   "points": 20,
+   "predicted_km": 5.0,
+   "actual_km": 4.392036011701129,
+   "error_pct": -12.15927976597742,
+   "detour": 1.1419293630421674,
+   "distance": 0.09955024774698662
+  },
+  {
+   "shape": "triangle",
+   "target_km": 10.0,
+   "width_m": 2564.348759305253,
+   "points": 41,
+   "predicted_km": 10.0,
+   "actual_km": 9.904389604600803,
+   "error_pct": -0.9561039539919668,
+   "detour": 1.2875706485981036,
+   "distance": 0.059984502254531835
+  },
+  {
+   "shape": "triangle",
+   "target_km": 20.0,
+   "width_m": 5128.697518610506,
+   "points": 82,
+   "predicted_km": 20.0,
+   "actual_km": 20.790156147185,
+   "error_pct": 3.950780735925008,
+   "detour": 1.351360149567071,
+   "distance": 0.05294705778934148
+  },
+  {
+   "shape": "trex",
+   "target_km": 20.0,
+   "width_m": 2688.1686102354242,
+   "points": 92,
+   "predicted_km": 20.0,
+   "actual_km": 18.549278636357904,
+   "error_pct": -7.2536068182104785,
+   "detour": 1.2057031113631995,
+   "distance": 0.1246889367214782
+  }
+ ],
+ "window": [
+  {
+   "shape": "heart",
+   "cap": 48,
+   "n_min": 12,
+   "target_km": 10.0,
+   "curve": [
+    {
+     "n": 24,
+     "fraction": 0.5,
+     "distance": 0.055809846249805714,
+     "backtracked": 2
+    },
+    {
+     "n": 33,
+     "fraction": 0.6875,
+     "distance": 0.061779230523274505,
+     "backtracked": 1
+    },
+    {
+     "n": 40,
+     "fraction": 0.8333333333333334,
+     "distance": 0.05646636528989056,
+     "backtracked": 6
+    },
+    {
+     "n": 48,
+     "fraction": 1.0,
+     "distance": 0.07418840036097778,
+     "backtracked": 7
+    }
+   ],
+   "best": {
+    "n": 24,
+    "fraction": 0.5,
+    "distance": 0.055809846249805714,
+    "backtracked": 2
+   }
+  },
+  {
+   "shape": "star5",
+   "cap": 48,
+   "n_min": 36,
+   "target_km": 10.0,
+   "curve": [
+    {
+     "n": 36,
+     "fraction": 0.75,
+     "distance": 0.09578078378466687,
+     "backtracked": 4
+    },
+    {
+     "n": 40,
+     "fraction": 0.8333333333333334,
+     "distance": 0.11705187641709003,
+     "backtracked": 16
+    },
+    {
+     "n": 48,
+     "fraction": 1.0,
+     "distance": 0.11643733489812455,
+     "backtracked": 8
+    }
+   ],
+   "best": {
+    "n": 36,
+    "fraction": 0.75,
+    "distance": 0.09578078378466687,
+    "backtracked": 4
+   }
+  },
+  {
+   "shape": "crescent",
+   "cap": 48,
+   "n_min": 12,
+   "target_km": 10.0,
+   "curve": [
+    {
+     "n": 24,
+     "fraction": 0.5,
+     "distance": 0.08473363587914222,
+     "backtracked": 5
+    },
+    {
+     "n": 33,
+     "fraction": 0.6875,
+     "distance": 0.08279581191206097,
+     "backtracked": 4
+    },
+    {
+     "n": 40,
+     "fraction": 0.8333333333333334,
+     "distance": 0.1107221846342731,
+     "backtracked": 5
+    },
+    {
+     "n": 48,
+     "fraction": 1.0,
+     "distance": 0.09720809982280915,
+     "backtracked": 5
+    }
+   ],
+   "best": {
+    "n": 33,
+    "fraction": 0.6875,
+    "distance": 0.08279581191206097,
+    "backtracked": 4
+   }
+  },
+  {
+   "shape": "triangle",
+   "cap": 48,
+   "n_min": 12,
+   "target_km": 10.0,
+   "curve": [
+    {
+     "n": 24,
+     "fraction": 0.5,
+     "distance": 0.08222159740843812,
+     "backtracked": 6
+    },
+    {
+     "n": 33,
+     "fraction": 0.6875,
+     "distance": 0.0750539079240772,
+     "backtracked": 6
+    },
+    {
+     "n": 40,
+     "fraction": 0.8333333333333334,
+     "distance": 0.06929579159539989,
+     "backtracked": 1
+    },
+    {
+     "n": 48,
+     "fraction": 1.0,
+     "distance": 0.08189735543092042,
+     "backtracked": 3
+    }
+   ],
+   "best": {
+    "n": 40,
+    "fraction": 0.8333333333333334,
+    "distance": 0.06929579159539989,
+    "backtracked": 1
+   }
+  },
+  {
+   "shape": "trex",
+   "cap": 96,
+   "n_min": 92,
+   "target_km": 20.0,
+   "curve": [
+    {
+     "n": 92,
+     "fraction": 0.9583333333333334,
+     "distance": 0.1246889367214782,
+     "backtracked": 13
+    },
+    {
+     "n": 96,
+     "fraction": 1.0,
+     "distance": 0.0841668254013215,
+     "backtracked": 19
+    }
+   ],
+   "best": {
+    "n": 96,
+    "fraction": 1.0,
+    "distance": 0.0841668254013215,
+    "backtracked": 19
+   }
+  }
+ ]
+}
