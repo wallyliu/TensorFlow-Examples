@@ -1,0 +1,172 @@
+{
+  "answers": [
+    {
+      "chose": "UT",
+      "flipped": false,
+      "id": "read_mst",
+      "image": "lit_outline_upright",
+      "kind": "single",
+      "ms": 2082,
+      "option_index": 2,
+      "option_label": "UT",
+      "section": "read"
+    },
+    {
+      "chose": "LIT",
+      "flipped": false,
+      "id": "read_rail",
+      "image": "lit_outline_rail",
+      "kind": "single",
+      "ms": 7546,
+      "option_index": 0,
+      "option_label": "LIT",
+      "section": "read"
+    },
+    {
+      "chose": "dino_clean",
+      "flipped": false,
+      "id": "catch_clean",
+      "kind": "pair",
+      "left": "dino_clean",
+      "ms": 1498,
+      "option_index": 0,
+      "option_label": "左邊比較像",
+      "right": "dino_scrambled",
+      "section": "dino"
+    },
+    {
+      "chose": "tie",
+      "flipped": true,
+      "id": "L1",
+      "kind": "pair",
+      "left": "dino_L1_noise",
+      "ms": 2806,
+      "option_index": 2,
+      "option_label": "兩個差不多",
+      "right": "dino_L1_merged",
+      "section": "dino"
+    },
+    {
+      "chose": "dino_L2_merged",
+      "flipped": true,
+      "id": "L2",
+      "kind": "pair",
+      "left": "dino_L2_noise",
+      "ms": 1042,
+      "option_index": 1,
+      "option_label": "右邊比較像",
+      "right": "dino_L2_merged",
+      "section": "dino"
+    },
+    {
+      "chose": "dino_L3_merged",
+      "flipped": false,
+      "id": "L3",
+      "kind": "pair",
+      "left": "dino_L3_merged",
+      "ms": 916,
+      "option_index": 0,
+      "option_label": "左邊比較像",
+      "right": "dino_L3_noise",
+      "section": "dino"
+    },
+    {
+      "chose": "dino_L4_merged",
+      "flipped": true,
+      "id": "L4",
+      "kind": "pair",
+      "left": "dino_L4_noise",
+      "ms": 1102,
+      "option_index": 1,
+      "option_label": "右邊比較像",
+      "right": "dino_L4_merged",
+      "section": "dino"
+    },
+    {
+      "chose": "neither",
+      "flipped": false,
+      "id": "catch_bothbad",
+      "kind": "pair",
+      "left": "dino_scrambled",
+      "ms": 1912,
+      "option_index": 3,
+      "option_label": "兩個都不像",
+      "right": "dino_L4_noise",
+      "section": "dino"
+    },
+    {
+      "chose": "dino_L2_merged",
+      "flipped": false,
+      "id": "L2_repeat",
+      "kind": "pair",
+      "left": "dino_L2_merged",
+      "ms": 3869,
+      "option_index": 0,
+      "option_label": "左邊比較像",
+      "right": "dino_L2_noise",
+      "section": "dino"
+    },
+    {
+      "chose": "dino_L4_merged",
+      "flipped": true,
+      "id": "L4_repeat",
+      "kind": "pair",
+      "left": "dino_L4_noise",
+      "ms": 966,
+      "option_index": 1,
+      "option_label": "右邊比較像",
+      "right": "dino_L4_merged",
+      "section": "dino"
+    },
+    {
+      "chose": "不太像",
+      "flipped": false,
+      "id": "rate_rail_outline",
+      "image": "lit_outline_rail",
+      "kind": "single",
+      "ms": 2715,
+      "option_index": 2,
+      "option_label": "不太像",
+      "section": "text"
+    },
+    {
+      "chose": "不太像",
+      "flipped": false,
+      "id": "rate_rail_stroke",
+      "image": "lit_stroke_rail",
+      "kind": "single",
+      "ms": 1034,
+      "option_index": 2,
+      "option_label": "不太像",
+      "section": "text"
+    },
+    {
+      "chose": "neither",
+      "flipped": true,
+      "id": "pair_outline_link",
+      "kind": "pair",
+      "left": "lit_outline_rail",
+      "ms": 6961,
+      "option_index": 3,
+      "option_label": "兩個都不像",
+      "right": "lit_outline_upright",
+      "section": "text"
+    },
+    {
+      "chose": "neither",
+      "flipped": true,
+      "id": "pair_stroke_link",
+      "kind": "pair",
+      "left": "lit_stroke_rail",
+      "ms": 1957,
+      "option_index": 3,
+      "option_label": "兩個都不像",
+      "right": "lit_stroke_upright",
+      "section": "text"
+    }
+  ],
+  "finished_at": "2026-09-11T14:10:54.548Z",
+  "session": "rmtx19rfon9mly",
+  "total_ms": 36406,
+  "version": "v2"
+}

@@ -149,10 +149,21 @@ def main() -> None:
             "what": "low-frequency wander, no feature destroyed"}
         print(f"{level:6d}{alpha:7.2f}{d:10.3f}{amp:11.0f}")
 
-    # The catch trial: a deformation nobody should call a dinosaur.
+    # The catch trials. `scrambled` was the first one and it leaks: traversing
+    # the quarters out of order leaves straight chords across the body, and a
+    # rater in round two asked why some dinosaurs "suddenly have a triangle in
+    # the middle". A catch a rater can spot by its artifact measures whether
+    # they noticed the artifact, not whether they were judging the shape. So
+    # `wrecked` replaces it for future rounds: the same wander as every noise
+    # stimulus, at four times L4's amplitude, so it is far worse without looking
+    # like a different kind of picture.
     variants["scrambled"] = swap_arcs(clean)
     meta["scrambled"] = {"distance_from_clean": shape_distance(variants["scrambled"], clean),
-                         "what": "quarters traversed out of order - catch trial"}
+                         "what": "quarters out of order - round 1-2 catch, leaks a triangle"}
+    variants["wrecked"] = smooth_noise(clean, 4 * meta["L4_noise"]["amplitude_m"], 7)
+    meta["wrecked"] = {"distance_from_clean": shape_distance(variants["wrecked"], clean),
+                       "amplitude_m": 4 * meta["L4_noise"]["amplitude_m"],
+                       "what": "noise far past the ladder - catch trial, same idiom"}
 
     # POC 4's own control, kept for comparison: the merge's displacements applied
     # point for point where no feature lives. It does NOT land at the same

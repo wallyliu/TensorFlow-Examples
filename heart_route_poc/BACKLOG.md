@@ -55,26 +55,44 @@ Measuring where a shape stops reading as itself at all needs **unanchored pairs
 AND the four-option response together** — the two fixes have never been in the
 same instrument.
 
-## 4. A rater round on feature destruction — run once, needs more raters
+## 4. Feature destruction — SETTLED for the dinosaur
 
-POC 13 put it to a fresh rater as an iso-distance ladder: the dinosaur's leg gap
-closed 35 / 55 / 75 / 100%, each rung matched against noise of identical shape
-distance. The rater called the two bottom rungs a tie and preferred the
-feature-destroyed member at both top rungs, including on both repeat trials —
-4 of 4 decided judgements in the same direction, sign test p = 0.125. The catch
-trial passed.
+Three raters on an identical iso-distance ladder: the dinosaur's leg gap closed
+35 / 55 / 75 / 100%, each rung matched against noise of the same shape distance.
 
-Direction as predicted, significance not reached. One rater, four decided
-judgements; p = 0.125 is the *floor* for 4/4, so no single rater could have
-settled this however lopsided their answers. Needs three or four more raters on
-the same ladder, which is built and takes five minutes.
+| rung | distance | r1 | r2 | r3 |
+|---|---|---|---|---|
+| L1 | 0.076 | tie | tie | tie |
+| L2 | 0.113 | tie | merged | merged |
+| L3 | 0.146 | merged | merged | merged |
+| L4 | 0.169 | merged | merged | merged |
 
-Two things the round did settle. The "neither" option is reachable — it was used
-on an unanchored text pair, which closes the instrument half of item 3. And the
-0.060 figure quoted here from POC 7 does not reproduce: filling the leg gap on
-the dense template costs 0.169, not 0.060. POC 7 measured it on a 40-point
-fitted route, which is a different operation on a different object, and the two
-numbers were never comparable.
+**Eight of eight decided first-pass judgements prefer the feature-destroyed
+member, p = 0.008.** With the repeats it is 14 of 14, but repeats are the same
+question asked twice and are not independent, so the headline excludes them.
+Self-consistency 5/6.
+
+Equal shape distance does not mean equal damage, and the boundary is visible:
+at 0.076 every rater called it a tie, from 0.113 up nobody did. Below roughly
+0.08 the metric's equivalence holds; above it the metric is measuring something
+people are not looking at.
+
+Decision times say the same thing from the other side. All three took longest
+on L1 — the rung they called a tie — and were fastest at the top, where the
+metric insists nothing has changed relative to L1.
+
+**The 0.060 from POC 7 does not reproduce**: filling the leg gap on the dense
+template costs 0.169. POC 7 measured a 40-point fitted route, a different
+operation on a different object.
+
+**The catch trial leaks.** `scrambled` traverses the quarters out of order,
+which leaves straight chords across the body, and a round-two rater asked why
+some dinosaurs "suddenly have a triangle in the middle". A catch a rater can
+spot by its artifact measures whether they noticed the artifact. All three
+passed it, so nothing here is invalidated, but the result rests on a weaker
+check than intended. `dino_wrecked` replaces it for future rounds: the same
+wander as every other noise stimulus at four times L4's amplitude, so it is far
+worse without being a different kind of picture.
 
 ## 5. Detour ratio as a constant
 
@@ -122,22 +140,28 @@ that have one. Neither exists yet.
 Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
 
 
-## 8. Text does not read as text yet — orientation is not the reason
+## 8. Text does not read as text yet — and the failure is specific
 
-POC 12 predicted the metric was inverted for text and POC 13 tested it. The
-result is worse than inverted and simpler: the rater could not read any of the
-four LIT routes. Shown the upright outline route before the word appeared
-anywhere on the page, they answered "UT" after 8.9 seconds; shown the upright
-single-stroke route, "can't tell". Told afterwards that the word was LIT, the
-best rating any of the four received was "not much like it", and one pair drew
-"neither".
+Four raters' worth of reading trials, each shown a route before the word
+appeared anywhere on the page:
 
-The orientation claim itself did not replicate cleanly: the rater rated the
-upright outline above the tilted one, then picked the tilted one in a forced
-choice between the same two images. One rater contradicting themselves on two
-trials settles nothing either way.
+| route | r1 | r2 | r3 |
+|---|---|---|---|
+| outline, nearest-point links | UT | UT | UT |
+| outline, rail links | — | can't tell | **LIT** |
 
-So the open question is no longer which orientation reads better. It is whether
-a word at this size, on this street network, can read as a word at all — and
-the first evidence says no. Worth knowing before any more work goes into
-stacked lines, taller fonts, or an orientation term in the metric.
+**Three out of three read the nearest-point outline as "UT".** That is not
+noise, it is a reproducible misreading: the L and the I are being run together
+into a U. It names the culprit — the link between those two letters — far more
+precisely than any metric has.
+
+The rail links produced the first correct read anyone has given this project,
+after 7.5 seconds of looking. One read out of two is not a result, but it is
+the first one above zero. Against that, both round-two raters answered
+"neither" on both forced choices between rail and nearest-point, and the best
+rating any route has received remains "not much like it".
+
+So the rail is not established as better, and the honest summary is unchanged:
+no word has been reliably read yet. The next thing to try is not another link
+scheme but the size question — the same word drawn twice as wide — because
+until that is answered nobody knows whether links are the problem at all.

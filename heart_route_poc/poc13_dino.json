@@ -57,7 +57,12 @@
   },
   "scrambled": {
     "distance_from_clean": 0.996973604136271,
-    "what": "quarters traversed out of order - catch trial"
+    "what": "quarters out of order - round 1-2 catch, leaks a triangle"
+  },
+  "wrecked": {
+    "distance_from_clean": 0.44996769027432737,
+    "amplitude_m": 198.57182351755,
+    "what": "noise far past the ladder - catch trial, same idiom"
   },
   "transplant": {
     "distance_from_clean": 0.2533847436022673,

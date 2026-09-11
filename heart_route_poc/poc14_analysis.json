@@ -1,0 +1,189 @@
+{
+  "sessions": [
+    {
+      "id": "rmtwzgpoieuqh4",
+      "version": "v1",
+      "total_ms": 70975
+    },
+    {
+      "id": "rmtx16znbadwbp",
+      "version": "v2",
+      "total_ms": 53967
+    },
+    {
+      "id": "rmtx19rfon9mly",
+      "version": "v2",
+      "total_ms": 36406
+    }
+  ],
+  "ladder": {
+    "per_rung": {
+      "L1": [
+        "tie",
+        "tie",
+        "tie"
+      ],
+      "L2": [
+        "tie",
+        "merged",
+        "merged"
+      ],
+      "L3": [
+        "merged",
+        "merged",
+        "merged"
+      ],
+      "L4": [
+        "merged",
+        "merged",
+        "merged"
+      ]
+    },
+    "decided": 8,
+    "merged_wins": 8,
+    "sign_test_p": 0.0078125,
+    "with_repeats": {
+      "decided": 14,
+      "merged_wins": 14,
+      "sign_test_p": 0.0001220703125
+    }
+  },
+  "repeat_agreement": "5/6",
+  "catch_clean": {
+    "dino_clean": 3
+  },
+  "catch_bothbad": {
+    "dino_L4_noise": 1,
+    "neither": 2
+  },
+  "reads": [
+    {
+      "version": "v1",
+      "trial": "read_outline",
+      "image": "lit_outline_upright",
+      "answer": "UT",
+      "ms": 8894
+    },
+    {
+      "version": "v1",
+      "trial": "read_stroke",
+      "image": "lit_stroke_upright",
+      "answer": "看不出來",
+      "ms": 3489
+    },
+    {
+      "version": "v2",
+      "trial": "read_mst",
+      "image": "lit_outline_upright",
+      "answer": "UT",
+      "ms": 5137
+    },
+    {
+      "version": "v2",
+      "trial": "read_rail",
+      "image": "lit_outline_rail",
+      "answer": "看不出來",
+      "ms": 5349
+    },
+    {
+      "version": "v2",
+      "trial": "read_mst",
+      "image": "lit_outline_upright",
+      "answer": "UT",
+      "ms": 2082
+    },
+    {
+      "version": "v2",
+      "trial": "read_rail",
+      "image": "lit_outline_rail",
+      "answer": "LIT",
+      "ms": 7546
+    }
+  ],
+  "rated": [
+    {
+      "version": "v1",
+      "trial": "rate_outline_free",
+      "answer": "完全看不出是字",
+      "ms": 14228
+    },
+    {
+      "version": "v1",
+      "trial": "rate_outline_upright",
+      "answer": "不太像",
+      "ms": 4641
+    },
+    {
+      "version": "v1",
+      "trial": "rate_stroke_free",
+      "answer": "不太像",
+      "ms": 2499
+    },
+    {
+      "version": "v1",
+      "trial": "rate_stroke_upright",
+      "answer": "完全看不出是字",
+      "ms": 2472
+    },
+    {
+      "version": "v1",
+      "trial": "pair_outline",
+      "answer": "lit_outline_free",
+      "ms": 6247
+    },
+    {
+      "version": "v1",
+      "trial": "pair_stroke",
+      "answer": "neither",
+      "ms": 2865
+    },
+    {
+      "version": "v2",
+      "trial": "rate_rail_outline",
+      "answer": "完全看不出是字",
+      "ms": 3241
+    },
+    {
+      "version": "v2",
+      "trial": "rate_rail_stroke",
+      "answer": "完全看不出是字",
+      "ms": 1235
+    },
+    {
+      "version": "v2",
+      "trial": "pair_outline_link",
+      "answer": "neither",
+      "ms": 8912
+    },
+    {
+      "version": "v2",
+      "trial": "pair_stroke_link",
+      "answer": "neither",
+      "ms": 1477
+    },
+    {
+      "version": "v2",
+      "trial": "rate_rail_outline",
+      "answer": "不太像",
+      "ms": 2715
+    },
+    {
+      "version": "v2",
+      "trial": "rate_rail_stroke",
+      "answer": "不太像",
+      "ms": 1034
+    },
+    {
+      "version": "v2",
+      "trial": "pair_outline_link",
+      "answer": "neither",
+      "ms": 6961
+    },
+    {
+      "version": "v2",
+      "trial": "pair_stroke_link",
+      "answer": "neither",
+      "ms": 1957
+    }
+  ]
+}
