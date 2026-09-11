@@ -168,7 +168,7 @@ def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE) -> Plan:
     if target_km < floor:
         return Plan(shape, mode, False, target_km, floor, None, None, None, None,
                     f"needs at least {floor:.1f} km; too much detail to fit in "
-                    f"{target_km:.1f} km of walking")
+                    f"{target_km:.1f} km of {MODES[mode]['label']}")
 
     width = target_km * 1000.0 / (perimeter(shape) * detour)
     points = contour_points(shape, width, mode)
