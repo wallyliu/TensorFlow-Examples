@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把圖案騎出來</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f6f5f1; --panel: #fffefb; --ink: #191b1a; --muted: #6d716d;
+    --rule: #ddddd6; --accent: #2f5d50; --accent-soft: #e4ece8;
+    --warn: #9a3b1f; --warn-soft: #f7e7e1; --focus: #b4622c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #16181a; --panel: #1f2224; --ink: #e9e9e3; --muted: #9aa09c;
+      --rule: #333739; --accent: #7fbfa9; --accent-soft: #23302c;
+      --warn: #e79a7d; --warn-soft: #32231e; --focus: #e08a4d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #16181a; --panel: #1f2224; --ink: #e9e9e3; --muted: #9aa09c;
+    --rule: #333739; --accent: #7fbfa9; --accent-soft: #23302c;
+    --warn: #e79a7d; --warn-soft: #32231e; --focus: #e08a4d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6;
+    padding-inline: 20px; padding-block: 32px 64px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: 30px; font-weight: 600; margin: 0 0 12px; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0 0 26px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 20px; margin-bottom: 18px;
+  }
+  .modes { display: flex; gap: 8px; margin-bottom: 18px; }
+  .modes button {
+    font: inherit; padding: 8px 18px; border-radius: 999px; cursor: pointer;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--rule);
+  }
+  .modes button[aria-pressed="true"] {
+    border-color: var(--accent); color: var(--accent); font-weight: 500;
+  }
+  label.field { display: block; font-size: 13px; color: var(--muted); }
+  .km {
+    font-family: "IBM Plex Mono", monospace; font-size: 34px; font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 6px; }
+  .scale {
+    display: flex; justify-content: space-between; font-size: 11px;
+    color: var(--muted); font-family: "IBM Plex Mono", monospace;
+  }
+  .shapes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .shape {
+    font: inherit; text-align: left; cursor: pointer; padding: 12px 14px;
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 4px;
+  }
+  .shape[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .shape:disabled { cursor: not-allowed; background: var(--warn-soft); border-color: var(--warn-soft); }
+  .shape b { display: block; font-weight: 600; }
+  .shape small { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+  .shape:disabled small { color: var(--warn); }
+  button.primary {
+    font: inherit; font-size: 16px; font-weight: 500; border: none;
+    background: var(--accent); color: var(--ground); border-radius: 4px;
+    padding: 13px 28px; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .result { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 22px; }
+  @media (max-width: 700px) { .result { grid-template-columns: 1fr; } }
+  .preview { background: #fff; border: 1px solid var(--rule); border-radius: 4px; }
+  .preview svg { display: block; width: 100%; height: auto; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+  a.download {
+    display: inline-block; margin-top: 16px; padding: 11px 20px;
+    background: var(--accent); color: var(--ground); border-radius: 4px;
+    text-decoration: none; font-weight: 500;
+  }
+  .status { color: var(--muted); font-size: 14px; }
+  .status.bad { color: var(--warn); }
+  .note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">形狀路線產生器</p>
+  <h1>把圖案騎出來</h1>
+  <p class="lede">選一個圖案和你想騎的距離，它會在台北的單車路網上找一個擺得下的位置，
+    沿著真實道路把圖案畫出來，然後給你一個可以匯入 Garmin 或 Komoot 的 GPX 檔。</p>
+
+  <div class="card">
+    <div class="modes" role="group" aria-label="交通方式">
+      <button id="mode-bike" type="button" aria-pressed="true">騎車</button>
+      <button id="mode-walk" type="button" aria-pressed="false">走路</button>
+    </div>
+    <label class="field" for="km">你想騎多遠</label>
+    <div class="km"><span id="km-value">10.0</span> km</div>
+    <input type="range" id="km" min="2" max="40" step="0.5" value="10">
+    <div class="scale"><span>2 km</span><span>20 km</span><span>40 km</span></div>
+  </div>
+
+  <div class="card">
+    <p class="eyebrow" style="margin-bottom:12px">選一個圖案</p>
+    <div class="shapes" id="shapes"></div>
+  </div>
+
+  <div class="card">
+    <button class="primary" id="go" type="button" disabled>產生路線</button>
+    <span class="status" id="status" style="margin-left:14px"></span>
+  </div>
+
+  <div class="card" id="result-card" hidden>
+    <div class="result">
+      <div class="preview" id="preview"></div>
+      <div>
+        <dl id="stats"></dl>
+        <a class="download" id="download" href="#" download>下載 GPX</a>
+        <p class="note" style="margin-top:18px">GPX 同時含有一條 route（給導航用，已簡化到轉彎點）
+          和一條 track（完整路線）。沒有寫入海拔 —— 這個流程從來沒有高程資料。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var state = { mode: "bike", km: 10, shape: null, shapes: [] };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function api(path, body) {
+    return fetch(path, body ? {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    } : undefined).then(function (r) { return r.json(); });
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    $("mode-bike").setAttribute("aria-pressed", String(mode === "bike"));
+    $("mode-walk").setAttribute("aria-pressed", String(mode === "walk"));
+    loadShapes();
+  }
+
+  function loadShapes() {
+    api("/api/shapes?mode=" + state.mode).then(function (data) {
+      state.shapes = data.shapes;
+      renderShapes();
+    });
+  }
+
+  function renderShapes() {
+    var box = $("shapes");
+    box.innerHTML = "";
+    var anyEnabled = false;
+    state.shapes.forEach(function (s) {
+      var ok = s.min_km <= state.km;
+      if (ok) anyEnabled = true;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "shape";
+      b.id = "shape-" + s.name;
+      b.disabled = !ok;
+      b.setAttribute("aria-pressed", String(state.shape === s.name));
+      b.innerHTML = "<b>" + s.label + "</b><small>"
+        + (ok ? "最少 " + s.min_km + " km · " + s.n_min + " 個輪廓點"
+              : "距離不夠 · 至少要 " + s.min_km + " km") + "</small>";
+      b.addEventListener("click", function () {
+        state.shape = s.name;
+        renderShapes();
+        $("go").disabled = false;
+      });
+      box.appendChild(b);
+    });
+    if (state.shape && !state.shapes.some(function (s) {
+      return s.name === state.shape && s.min_km <= state.km;
+    })) {
+      state.shape = null;
+      $("go").disabled = true;
+    }
+    if (!anyEnabled) $("status").textContent = "這個距離畫不出任何圖案，拉長一點。";
+    else if (!state.shape) $("status").textContent = "";
+  }
+
+  function drawPreview(coords) {
+    var lats = coords.map(function (c) { return c[0]; });
+    var lons = coords.map(function (c) { return c[1]; });
+    var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
+    var minLon = Math.min.apply(null, lons), maxLon = Math.max.apply(null, lons);
+    // Longitude degrees are shorter than latitude degrees away from the
+    // equator, so without this the shape comes out stretched sideways.
+    var k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+    var w = (maxLon - minLon) * k, h = maxLat - minLat;
+    var pad = Math.max(w, h) * 0.06;
+    var d = coords.map(function (c, i) {
+      var x = (c[1] - minLon) * k, y = maxLat - c[0];
+      return (i ? "L" : "M") + x.toFixed(6) + " " + y.toFixed(6);
+    }).join(" ");
+    $("preview").innerHTML =
+      '<svg viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (w + 2 * pad) + ' '
+      + (h + 2 * pad) + '" xmlns="http://www.w3.org/2000/svg">'
+      + '<path d="' + d + '" fill="none" stroke="#1a1a1a" stroke-width="'
+      + (Math.max(w, h) / 320) + '" stroke-linejoin="round"/></svg>';
+  }
+
+  function go() {
+    $("go").disabled = true;
+    $("status").textContent = "計算中…（第一次會等路網載入，之後只要幾秒）";
+    $("status").className = "status";
+    api("/api/route", { shape: state.shape, target_km: state.km, mode: state.mode })
+      .then(function (r) {
+        $("go").disabled = false;
+        if (r.status !== "ok") {
+          $("status").textContent = r.message || ("失敗：" + (r.status || r.error));
+          $("status").className = "status bad";
+          $("result-card").hidden = true;
+          return;
+        }
+        $("status").textContent = "";
+        drawPreview(r.coordinates);
+        $("stats").innerHTML =
+          "<dt>圖案</dt><dd>" + r.label + "</dd>"
+          + "<dt>實際距離</dt><dd>" + r.route_km + " km</dd>"
+          + "<dt>畫多寬</dt><dd>" + (r.width_m / 1000).toFixed(1) + " km</dd>"
+          + "<dt>輪廓點</dt><dd>" + r.points + "</dd>"
+          + "<dt>形狀誤差</dt><dd>" + r.shape_distance + "</dd>"
+          + "<dt>計算耗時</dt><dd>" + r.seconds + " s</dd>";
+        $("download").href = r.gpx_url;
+        $("result-card").hidden = false;
+      })
+      .catch(function (e) {
+        $("go").disabled = false;
+        $("status").textContent = "連不上伺服器：" + e.message;
+        $("status").className = "status bad";
+      });
+  }
+
+  $("mode-bike").addEventListener("click", function () { setMode("bike"); });
+  $("mode-walk").addEventListener("click", function () { setMode("walk"); });
+  $("km").addEventListener("input", function (e) {
+    state.km = parseFloat(e.target.value);
+    $("km-value").textContent = state.km.toFixed(1);
+    renderShapes();
+  });
+  $("go").addEventListener("click", go);
+  loadShapes();
+})();
+</script>
+</body>
+</html>
