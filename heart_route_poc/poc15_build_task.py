@@ -33,8 +33,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from heart_route_poc4 import smooth_noise
-from poc13_build_task import PAIR_OPTIONS, TEMPLATE, data_uri
+from poc13_build_task import PAIR_OPTIONS, TEMPLATE
 from poc13_dino_stimuli import ALPHAS, deepest_fjord, fill_span, match_noise, render
+from shape_metrics import resample_closed
 from poc15_wiggle import FEATURE, N, SCALE_M, biggest_spike
 from shape_library import resample_by_arclength
 from shape_metrics import shape_distance
@@ -45,6 +46,19 @@ OUT_HTML = Path(__file__).with_name("poc15_task.html")
 OUT_JSON = Path(__file__).with_name("poc15_stimuli.json")
 
 
+CURVE_POINTS = 256      # enough to draw smoothly, a fifth the bytes of a PNG
+CURVES: dict[str, list] = {}
+
+
+def keep(name: str, xy: np.ndarray) -> None:
+    """Store a curve for the page and render a PNG for the record."""
+    render(xy, RATER / f"{name}.png")
+    pts = resample_closed(np.asarray(xy, dtype=float), CURVE_POINTS)
+    pts = pts - pts.mean(axis=0)
+    pts = pts / float(np.abs(pts).max())
+    CURVES[name] = [[round(float(a), 4), round(float(b), 4)] for a, b in pts]
+
+
 def build_stimuli() -> dict:
     RATER.mkdir(exist_ok=True)
     meta = {}
@@ -52,18 +66,18 @@ def build_stimuli() -> dict:
         clean = resample_by_arclength(shape, N) * SCALE_M
         indices, _ = (deepest_fjord(clean) if FEATURE[shape] == "fjord"
                       else biggest_spike(clean))
-        render(clean, RATER / f"v3_{shape}_clean.png")
+        keep(f"v3_{shape}_clean", clean)
         for k, alpha in enumerate(ALPHAS, start=1):
             merged, _ = fill_span(clean, indices, alpha)
             d = shape_distance(merged, clean)
             noisy, amp = match_noise(clean, d, seed=1)
-            render(merged, RATER / f"v3_{shape}_L{k}_merged.png")
-            render(noisy, RATER / f"v3_{shape}_L{k}_noise.png")
+            keep(f"v3_{shape}_L{k}_merged", merged)
+            keep(f"v3_{shape}_L{k}_noise", noisy)
             meta[f"{shape}_L{k}"] = {"shape_distance": d, "alpha": alpha,
                                      "noise_amplitude_m": amp}
         # The catch: the same wander as every noise stimulus, four times over.
         wrecked = smooth_noise(clean, 4 * amp, 7)
-        render(wrecked, RATER / f"v3_{shape}_wrecked.png")
+        keep(f"v3_{shape}_wrecked", wrecked)
         meta[f"{shape}_wrecked"] = {
             "shape_distance": shape_distance(wrecked, clean),
             "what": "catch trial"}
@@ -101,7 +115,7 @@ def main() -> None:
     rng.shuffle(trials)
 
     names = sorted({t["a"] for t in trials} | {t["b"] for t in trials})
-    images = {n: data_uri(n) for n in names}
+    images = {n: CURVES[n] for n in names}
     payload = json.dumps({"trials": trials, "images": images, "version": "v3"},
                          ensure_ascii=False, separators=(",", ":"))
     html = TEMPLATE.replace("__PAYLOAD__", payload)

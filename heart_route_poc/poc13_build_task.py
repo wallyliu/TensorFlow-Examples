@@ -305,12 +305,47 @@ TEMPLATE = r"""<title>這些路線看起來像什麼</title>
 
   function stimCard(name, label) {
     var card = el("div", "stim");
-    var img = document.createElement("img");
-    img.src = DATA.images[name];
-    img.alt = "路線圖";
-    card.appendChild(img);
+    var art = DATA.images[name];
+    if (typeof art === "string") {
+      var img = document.createElement("img");
+      img.src = art;
+      img.alt = "路線圖";
+      card.appendChild(img);
+    } else {
+      // A curve, not a picture. Drawing it as inline SVG instead of shipping a
+      // PNG took one task page from 1.1 MB to a fifth of that - and the first
+      // version at 1.1 MB came back blank for the person it was sent to.
+      card.appendChild(svgOf(art));
+    }
     if (label) card.appendChild(el("div", "side", label));
     return card;
+  }
+
+  function svgOf(points) {
+    var xs = points.map(function (p) { return p[0]; });
+    var ys = points.map(function (p) { return p[1]; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var w = maxX - minX, h = maxY - minY, unit = Math.max(w, h);
+    var pad = unit * 0.06;
+    var d = points.map(function (p, i) {
+      // SVG y points down; flip so the shape is not drawn upside down.
+      return (i ? "L" : "M") + (p[0] - minX).toFixed(4) + " "
+        + (maxY - p[1]).toFixed(4);
+    }).join(" ") + " Z";
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", (minX - minX - pad) + " " + (-pad) + " "
+      + (w + 2 * pad) + " " + (h + 2 * pad));
+    svg.setAttribute("width", "100%");
+    var path = document.createElementNS(ns, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#1a1a1a");
+    path.setAttribute("stroke-width", String(unit / 160));
+    path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path);
+    return svg;
   }
 
   function render() {
