@@ -158,9 +158,22 @@ satisfies both. The weighted-sum form is wrong, not the constant.
 
 What the data looks like is closer to lexicographic: a crescent with a horn
 sliced clean off beats one that wobbles everywhere, at a wander gap a sixth of
-the supposed threshold, in under three seconds. So the next thing to try is
-wander as a CONSTRAINT on the fit - reject candidates past some ratio - rather
-than as a term to be traded off. Nobody has built that yet.
+the supposed threshold, in under three seconds. So wander is a CONSTRAINT, not a term to
+trade off — and POC 19 gave the reason from the other side: among fitted routes
+wander and shape distance are independent (rho +0.104, p = 0.52), so optimising
+one tells you nothing about the other.
+
+Built, in `server/app.py`: fit every candidate, keep those within
+WANDER_LIMIT = 0.30, pick the closest shape among them, fall back to the whole
+list rather than refuse. Measured over five shapes it cuts mean wander from
+0.263 to 0.240 for +0.001 of shape distance; 0.25 costs +0.013 and pushes a
+shape back over 0.10.
+
+**What is not established: that anyone can see the difference.** The raters
+compared curves whose better member had wander 0, and every real route sits
+between 0.19 and 0.50 — far outside the range they judged. A rater round on
+real routes at different wander levels is what would settle it, and it has not
+been run.
 
 A rater asked why several shapes were "missing a corner". They were: the
 deformation flattens each shape's largest outward feature, so a star loses a
@@ -168,21 +181,29 @@ point and a crescent loses a horn. Worth recording because the question is the
 finding restated - a shape with a corner amputated still read as the better
 one.
 
-## 9. The coarse scan ranks nothing — POC 17
+## 9. The coarse scan ranks nothing — POC 17, and POC 19 says why
 
 Over thirty fitted candidates the coarse scan's rank and the final shape
-distance correlate at Spearman -0.024 (p = 0.90). The best final route sat at
-coarse rank 4, 5, 2, 4 and 0 for the five shapes. Stage 1 tells you which
+distance correlate at Spearman -0.024 (p = 0.90). Stage 1 tells you which
 placements are ROUTABLE, which is worth having, but among those its order is
 noise — and POC 3 built the two-stage search on the premise that it ranks.
 
-Handled for now by fitting more of them: six instead of three, which takes the
-worst of the five shapes from 0.117 to 0.097 and costs 12.6 s → 23.3 s a
-request. That is a workaround, not a fix. A stage-1 score that actually
-predicted the fit would buy back both the time and the quality, and nobody has
-tried to build one; the obvious candidates are how much of the contour sits
-within a street scale of the network rather than the mean distance to it, and
-whether the placement's worst gap falls on a feature or a flat stretch.
+POC 19 tried to build a stage-1 score that predicts the fit and **failed at
+that**, which is the useful part. Six cheap features over forty candidates: the
+best correlation with final shape distance is -0.287 at p = 0.07, with a sign
+that says placements further from the network fit better. There is no signal
+there. Fidelity appears to be decided inside the routing, not by where the
+shape is placed.
+
+The same experiment found what stage 1 CAN see: worst gap predicts wander at
++0.355 (p = 0.025). So a cheap pre-screen for wander is possible; a cheap
+pre-screen for fidelity is not.
+
+`frac_within_s` was the feature the other findings pointed at and it turned out
+constant at 1.00, because MAX_GAP_M (250 m) is already stricter than the bike
+street scale (280 m). The filter was guaranteeing it all along.
+
+Still handled by fitting six candidates instead of three, at 23 s a request.
 
 ## 8. Text does not read as text yet — and the failure is specific
 

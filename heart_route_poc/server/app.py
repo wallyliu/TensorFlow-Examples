@@ -47,6 +47,7 @@ from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               select_candidates)
 from heart_route_poc3 import place_shape                          # noqa: E402
 from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
+from poc15_wiggle import wander                                  # noqa: E402
 from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
 from route_export import to_gpx                                  # noqa: E402
@@ -61,6 +62,24 @@ LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
 # five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
 # linear time, and that is the whole trade.
 N_CANDIDATES = 6
+
+# Two raters, seventeen of seventeen, preferred a shape with a feature amputated
+# over one of the same shape distance that wobbled everywhere (POC 18), and no
+# weighting of the two reproduces their answers - so wander is not a term to
+# trade off, it is a condition to meet. POC 19 then measured that among fitted
+# routes wander and shape distance are essentially independent (Spearman +0.10,
+# p = 0.52), which is what makes a constraint the right shape for it: you cannot
+# get one by optimising the other.
+#
+# 0.30 is where the sweep sits: it cuts mean wander from 0.263 to 0.240 for
+# +0.001 of shape distance across the five shapes. Tighter is worse - 0.25 costs
+# +0.013 and pushes one shape back over the 0.10 a person can see.
+#
+# What this is NOT: evidence that the difference is visible. The raters compared
+# curves whose better member had wander 0, and every real route here sits
+# between 0.19 and 0.50. Extrapolating their preference down to 0.263 against
+# 0.240 is not something the data supports.
+WANDER_LIMIT = 0.30
 MAX_TEXT = 12
 ROUTES: dict[str, dict] = {}
 _networks: dict[tuple, dict] = {}
@@ -185,17 +204,30 @@ def build_route(shape: str, target_km: float, mode: str,
     if not np.isfinite(scored["score"]).any():
         return {"status": "no placement", **verdict}
 
-    best = None
+    dense_template = resample_by_arclength(shape, 4000)
+    fitted = []
     for row in select_candidates(scored, N_CANDIDATES, MIN_SEPARATION_M):
         try:
             fit = refine(net["graph"], shape, np.array([row["x"], row["y"]]),
                          row["rotation"], width_m, points=points)
         except NoRouteFoundError:
             continue
-        if fit is not None and (best is None or fit["distance"] < best["distance"]):
-            best = fit
-    if best is None:
+        if fit is None:
+            continue
+        fit["wander"] = wander(
+            fit["route_xy"],
+            place_shape(np.vstack([dense_template, dense_template[:1]]),
+                        np.array([row["x"], row["y"]]), width_m, 0.0))
+        fitted.append(fit)
+
+    if not fitted:
         return {"status": "no route", **verdict}
+
+    # Lexicographic, not weighted: meet the wander condition first, then pick the
+    # closest shape among those that do. Falling back to the whole list rather
+    # than refusing - a route that wanders is still better than no route.
+    admissible = [f for f in fitted if f["wander"] <= WANDER_LIMIT] or fitted
+    best = min(admissible, key=lambda f: f["distance"])
 
     dense = resample_by_arclength(shape, 4000)
     upright = place_shape(np.vstack([dense, dense[:1]]),
@@ -220,6 +252,10 @@ def build_route(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
+            "wander": round(float(best["wander"]), 3),
+            "wander_limit": WANDER_LIMIT,
+            "candidates_within_limit": sum(f["wander"] <= WANDER_LIMIT
+                                           for f in fitted),
             "upright_deg": round(alignment_angle(best["route_xy"], upright), 1),
             "route_km": round(km, 1),
             "shape_distance": round(best["distance"], 3),
