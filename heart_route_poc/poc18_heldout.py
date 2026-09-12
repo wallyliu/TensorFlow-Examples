@@ -8,7 +8,27 @@ never crossing it, the star past it from the first. That is what made this a
 test rather than a demonstration - always picking one side fails two of three,
 always answering "about the same" fails two of three.
 
-It fails, and the way it fails is worth more than a pass would have been.
+Two raters. Catches 6/6, repeats 6/6, and they agreed with each other on 11 of
+12 trials, so what follows is not one person's noise.
+
+DIRECTION: confirmed, hard. Seventeen of seventeen decided judgements prefer the
+member with a feature destroyed over noise at the same shape distance
+(p < 0.0001), on shapes chosen for being unlike the dinosaur the term came from.
+
+CALIBRATION: fails. 7 of 24 predictions right. The model expected a tie in 18 of
+the 24; the raters tied twice.
+
+And it cannot be rescued by retuning. Every "merged" answer is a lower bound on
+the weight and every "tie" an upper bound. BOTH raters answered "merged" on
+crescent L1 (wander gap 0.024, needing w > 4.1) and "tie" on heart L1 (gap
+0.039, needing w < 2.6). No constant satisfies both, so the weighted-sum FORM is
+what fails, not the 0.7 - and it now rests on two people agreeing rather than on
+one person's two clicks.
+
+What the answers look like instead is closer to lexicographic than graded: a
+crescent with a horn sliced off beats one that wobbles everywhere, at a gap a
+sixth of the supposed threshold, in under three seconds. "Neither" appears only
+at the top of the ladders, where both members are past saving.
 
 Run:  python poc18_heldout.py
 Out:  poc18_heldout.png, poc18_heldout.json
@@ -132,8 +152,8 @@ def main() -> None:
     print(f"\na single weight would need w > {bound['needs_w_above']:.1f} "
           f"and w < {bound['needs_w_below']:.1f}: "
           f"{'satisfiable' if bound['satisfiable'] else 'IMPOSSIBLE'}")
-    print("  (this rests on two trials - crescent L1 and heart L1 - "
-          "from one rater)")
+    print(f"  (the bounds come from crescent L1 and heart L1, "
+          f"answered the same way by all {len(by_id)} rater(s))")
 
     report.update(weight_bounds=bound,
                   predictions_right=f"{predicted_right}/{total}",

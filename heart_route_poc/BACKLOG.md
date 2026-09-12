@@ -142,27 +142,31 @@ Until then `poc12_word_routes.py` pins `ROTATIONS_DEG = (0.0,)` by hand.
 
 ## 10. The wander term measures the right thing and predicts nothing
 
-POC 15 added `distance_v2 = shape_distance + 0.7 * wander` and POC 18 put its
-predictions to a rater on three shapes it had never seen. Catch trials 3/3,
-repeats 3/3, so the rater was careful.
+POC 15 added `distance_v2 = shape_distance + 0.7 * wander`; POC 18 put its
+predictions to two raters on three shapes it had never seen. Catches 6/6,
+repeats 6/6, and the two agreed with each other on 11 of 12 trials.
 
-**Direction replicates.** Eight of eight decided judgements prefer the member
-with a feature destroyed over noise of the same shape distance, p = 0.008,
-matching the dinosaur rounds on shapes chosen for being different from it.
+**Direction: confirmed.** Seventeen of seventeen decided judgements prefer the
+member with a feature destroyed over noise of the same shape distance,
+p < 0.0001.
 
-**Calibration fails, and cannot be patched.** 3 of 12 predictions right. The
-model expected ties in 9 of 12 trials; the rater tied once. Every "merged"
-answer is a lower bound on the weight and every "tie" an upper bound, and these
-answers need w > 4.1 (crescent L1, gap 0.024) and w < 2.6 (heart L1, gap 0.039)
-simultaneously. No constant exists. The weighted-sum form is wrong, not the
-constant — though the contradiction rests on two trials from one rater, so a
-second rater is the cheap next step before anything is rebuilt on it.
+**Calibration: fails, and cannot be patched.** 7 of 24 predictions right; the
+model expected 18 ties and got 2. Every "merged" answer lower-bounds the weight
+and every "tie" upper-bounds it, and BOTH raters answered "merged" on crescent
+L1 (needing w > 4.1) and "tie" on heart L1 (needing w < 2.6). No constant
+satisfies both. The weighted-sum form is wrong, not the constant.
 
-What the answers look like instead is closer to lexicographic: the rater
-preferred the clean-but-damaged member at a wander gap of 0.017, a sixth of the
-supposed threshold, in 2.6 seconds. Any visible wobble seems to lose, whatever
-its magnitude. `neither` appeared only at the top of two ladders, where both
-members are past saving.
+What the data looks like is closer to lexicographic: a crescent with a horn
+sliced clean off beats one that wobbles everywhere, at a wander gap a sixth of
+the supposed threshold, in under three seconds. So the next thing to try is
+wander as a CONSTRAINT on the fit - reject candidates past some ratio - rather
+than as a term to be traded off. Nobody has built that yet.
+
+A rater asked why several shapes were "missing a corner". They were: the
+deformation flattens each shape's largest outward feature, so a star loses a
+point and a crescent loses a horn. Worth recording because the question is the
+finding restated - a shape with a corner amputated still read as the better
+one.
 
 ## 9. The coarse scan ranks nothing — POC 17
 
