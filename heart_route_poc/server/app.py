@@ -305,11 +305,18 @@ def build_route(shape: str, target_km: float, mode: str,
     # of placement pays roughly double the detour of one chosen from thousands.
     half_size = max(NETWORK_HALF_SIZE_M, width_m * PLACEMENT_SLACK)
     net = network(lat, lon, mode, half_size)
-    if ss.cached_directional(lat, lon, mode) is None:
-        # First visit to this place: measure it off the graph we just loaded and
-        # re-plan, so the sizing matches where the route is actually going.
+    if not ss.is_measured(lat, lon, mode):
+        # First visit to this place: measure it and re-plan, so the sizing
+        # matches where the route is actually going.
+        #
+        # Measured on its OWN fixed-size box, not on `net`. net is as wide as
+        # whatever distance this caller asked for, and the reference 142 m for
+        # Taipei was taken over a 5 km box; measuring one place over a 25 km box
+        # and another over a 9 km one compares two different quantities, and the
+        # answer is then cached for that place for good.
+        probe = network(lat, lon, mode, ss.MEASURE_HALF_M)
         measured = ss.scale_for(lat, lon, mode,
-                                rf.MODES[mode]["street_scale_m"], net["graph"])
+                                rf.MODES[mode]["street_scale_m"], probe["graph"])
         if abs(measured - local_scale) > 1.0:
             local_scale = measured
             verdict = plan(shape, target_km, mode, local_scale)

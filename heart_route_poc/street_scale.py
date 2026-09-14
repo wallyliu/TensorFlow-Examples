@@ -28,6 +28,9 @@ having to take back out.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -43,6 +46,18 @@ NEAR_TOWN_M = 250.0
 REFERENCE_DIRECTIONAL_M = {"bike": 142.0}
 
 CACHE_PATH = Path(__file__).with_name("_street_scale_cache.json")
+# The service is a ThreadingHTTPServer, so two requests for two places can be
+# in remember() at once. Read-modify-write on a shared file without this loses
+# entries, and worse: a read landing inside another thread's truncation window
+# returns empty, the ValueError is swallowed as "no cache", and the file is
+# rewritten with one entry - silently discarding every city measured so far.
+_LOCK = threading.Lock()
+
+# Measured at this half-size and no other. The reference 142 m for Taipei was
+# taken over a 5 km box; measuring a different place over whatever box the
+# first caller's distance happened to need would compare two different things
+# and then cache the answer permanently.
+MEASURE_HALF_M = 5000.0
 # How far a cached measurement carries. Street density changes over a few km,
 # and re-measuring costs a full pass over the graph.
 CACHE_PRECISION = 2          # decimal places of lat/lon, ~1.1 km
@@ -102,17 +117,40 @@ def _key(lat: float, lon: float, mode: str) -> str:
     return f"{mode}:{lat:.{CACHE_PRECISION}f},{lon:.{CACHE_PRECISION}f}"
 
 
-def cached_directional(lat: float, lon: float, mode: str) -> float | None:
-    return _load().get(_key(lat, lon, mode))
+_MISSING = object()
 
 
-def remember(lat: float, lon: float, mode: str, value: float) -> None:
-    data = _load()
-    data[_key(lat, lon, mode)] = value
-    try:
-        CACHE_PATH.write_text(json.dumps(data, indent=2, sort_keys=True))
-    except OSError:
-        pass          # a cache that cannot be written is slow, not wrong
+def cached_directional(lat: float, lon: float, mode: str, default=None):
+    """The stored measurement. `default` distinguishes "not measured" from
+    "measured and came back None", which the plain None return cannot."""
+    return _load().get(_key(lat, lon, mode), default)
+
+
+def is_measured(lat: float, lon: float, mode: str) -> bool:
+    return cached_directional(lat, lon, mode, _MISSING) is not _MISSING
+
+
+def remember(lat: float, lon: float, mode: str, value: float | None) -> None:
+    """Record a measurement, including a failed one.
+
+    None is stored as null rather than skipped: a place where the measurement
+    cannot be taken would otherwise miss the cache forever and pay a full
+    twelve-direction pass over the graph on every single request.
+    """
+    with _LOCK:
+        data = _load()
+        data[_key(lat, lon, mode)] = value
+        try:
+            # Write a temporary file and rename it over the target. rename is
+            # atomic, so a concurrent reader sees either the old file or the
+            # new one, never a half-truncated one.
+            fd, tmp = tempfile.mkstemp(dir=str(CACHE_PATH.parent),
+                                       prefix="._scale", suffix=".json")
+            with os.fdopen(fd, "w") as fh:
+                json.dump(data, fh, indent=2, sort_keys=True)
+            os.replace(tmp, CACHE_PATH)
+        except OSError:
+            pass      # a cache that cannot be written is slow, not wrong
 
 
 def scale_for(lat: float, lon: float, mode: str, base_scale_m: float,
@@ -126,11 +164,12 @@ def scale_for(lat: float, lon: float, mode: str, base_scale_m: float,
     reference = REFERENCE_DIRECTIONAL_M.get(mode)
     if reference is None:
         return base_scale_m
-    value = cached_directional(lat, lon, mode)
-    if value is None and graph is not None:
+    value = cached_directional(lat, lon, mode, _MISSING)
+    if value is _MISSING:
+        if graph is None:
+            return base_scale_m
         value = directional_scale(graph)
-        if value is not None:
-            remember(lat, lon, mode, value)
+        remember(lat, lon, mode, value)
     if value is None:
         return base_scale_m
     return base_scale_m * value / reference

@@ -310,7 +310,10 @@
   }
 
   function loadShapes() {
-    api("/api/shapes?mode=" + state.mode).then(function (data) {
+    api("/api/shapes?mode=" + state.mode
+        + "&lat=" + state.place.lat + "&lon=" + state.place.lon)
+      .then(function (data) {
+      state.streetScale = data.street_scale_m;
       state.shapes = data.shapes;
       renderShapes();
     });
@@ -476,7 +479,8 @@
       $("text-caveat").hidden = true;
       return;
     }
-    api("/api/plan", { text: text, target_km: state.km, mode: state.mode })
+    api("/api/plan", { text: text, target_km: state.km, mode: state.mode,
+                       lat: state.place.lat, lon: state.place.lon })
       .then(function (r) {
         if (r.error) {
           $("verdict").textContent = r.error;
