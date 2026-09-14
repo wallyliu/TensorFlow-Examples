@@ -1,0 +1,20 @@
+{
+  "silhouette": {
+    "contours": 1,
+    "links": 0,
+    "n_min": 12,
+    "perimeter": 4.59163154385266,
+    "min_km": 4.2336,
+    "width_km": 0.7317660330342521,
+    "finest_feature_pct": 38.26359619877217
+  },
+  "lineart": {
+    "contours": 8,
+    "links": 7,
+    "n_min": 368,
+    "perimeter": 8.888385063785433,
+    "min_km": 129.8304,
+    "width_km": 11.592657075560671,
+    "finest_feature_pct": 2.4153220282025636
+  }
+}
