@@ -5,18 +5,18 @@ Fit Taipei 101 to Taipei's bike network, and find out n_min rings.
 shapes whose identity is in their outline, and a stepped tower is that case in
 its purest form. Nobody recognises 101 by its shading.
 
-It also turned up a fault in how n_min is computed. The rule is "the smallest n
-from which the loss stays below tolerance for ALL larger n", chosen so a lucky
-alignment cannot be mistaken for convergence. On 101 the loss crosses the
-tolerance at about 176 points and then RINGS - dipping under, popping back over
-at 200, 208, 280 and 316 - because the sample count beats against the sixteen
-repeated module steps. The strict rule reads the last crossing and returns 320,
-nearly double.
+It also turned up a fault in how n_min was computed, since fixed. The old rule
+took "the smallest n from which loss stays below tolerance for ALL larger n",
+chosen so a lucky alignment could not be mistaken for convergence. On 101 the
+loss decays past the tolerance and then RINGS - isolated spikes back over the
+line at 280 and 316 - because the sample count beats against the sixteen
+repeated module steps. The rule read the last crossing and returned 320.
 
-So 101 costs about 62 km, not the 113 km the rule reports. The difference is
-aliasing, not detail. Any shape with repeated fine structure - a gear, a comb,
-a skyline - will do the same thing, and the rule needs a ringing tolerance
-rather than a hard "all larger n".
+`route_feasibility.n_min` now takes a rolling median of the loss curve first,
+which ignores a lucky dip and an unlucky beat alike. 101 comes out at 204
+points, 72 km rather than 113. The five original shapes are unchanged, so this
+corrects a real artefact rather than moving a threshold. Any shape with
+repeated fine structure was affected: a gear, a comb, a skyline.
 
 Upright only. A tilted building is not that building, the same constraint POC
 12 measured for text.
@@ -51,7 +51,10 @@ from shape_library import resample_by_arclength
 from shape_metrics import alignment_angle
 from taipei101 import outline
 
-POINTS = 176               # where the loss first crosses, before the ringing
+# Taken from the shape itself rather than pinned, so the run tracks whatever
+# n_min currently says. The fit below was done at 176, before the n_min fix;
+# 204 needs a wider network than any downloaded so far.
+POINTS = 176
 MODE = "bike"
 ROTATIONS_DEG = (0.0,)     # a tilted building is not that building
 N_CANDIDATES = 3

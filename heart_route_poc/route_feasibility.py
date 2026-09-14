@@ -89,21 +89,39 @@ def sampling_loss(shape: str, n: int) -> float:
     return shape_distance(resample_by_arclength(shape, n), resample_by_arclength(shape, DENSE))
 
 
+SMOOTHING_WINDOW = 5       # grid steps, so 5 covers 20 contour points
+
+
 @lru_cache(maxsize=None)
 def n_min(shape: str, tolerance: float = SAMPLING_TOLERANCE, ceiling: int = 400) -> int:
     """
     The fewest contour points that represent this shape well enough.
 
-    Defined as the smallest n from which the loss stays below tolerance for ALL
-    larger n, not merely the first n that dips under it. The distinction is not
-    pedantic: a polygon shape sampled at a multiple of its vertex count is
-    reproduced exactly, so the loss curve dips to zero and back up again, and
-    "first crossing" would pick up one of those lucky alignments.
+    The loss curve has two kinds of noise on it and the rule has to survive
+    both. A polygon sampled at a multiple of its vertex count is reproduced
+    exactly, so the curve dips to zero and back - taking the first crossing
+    would read one of those lucky alignments as convergence. And a shape with
+    repeated fine structure makes the curve RING: Taipei 101's sixteen module
+    steps beat against the sample count, so the loss crosses the tolerance at
+    176 points and then pops back over it at 200, 208, 280 and 316.
+
+    The previous rule - below tolerance for ALL larger n - handled the dips and
+    was defeated by the ringing, reading 101's last crossing and returning 320
+    against a true cost near 176. Nearly double, on any shape with a repeated
+    feature: a gear, a comb, a skyline.
+
+    Both are sampling artefacts rather than properties of the shape, and a
+    rolling median over the grid removes both: it ignores a single lucky dip
+    and a single unlucky beat alike, while leaving the underlying decay alone.
+    The rule then applies to the smoothed curve.
     """
     grid = list(range(4, ceiling + 1, 4))
-    losses = {n: sampling_loss(shape, n) for n in grid}
-    for n in grid:
-        if all(losses[m] < tolerance for m in grid if m >= n):
+    raw = [sampling_loss(shape, n) for n in grid]
+    half = SMOOTHING_WINDOW // 2
+    smooth = [float(np.median(raw[max(0, i - half):i + half + 1]))
+              for i in range(len(grid))]
+    for i, n in enumerate(grid):
+        if all(value < tolerance for value in smooth[i:]):
             return n
     return ceiling
 
