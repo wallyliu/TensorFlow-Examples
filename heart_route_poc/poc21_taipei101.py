@@ -39,6 +39,7 @@ from pyproj import Transformer
 import route_feasibility as rf
 import shape_library as sl
 from heart_route_poc import download_walk_graph
+from region_graph import RegionNotCovered, region_graph
 from heart_route_poc2 import NoRouteFoundError
 from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M, SEARCH_LAT,
                               SEARCH_LON, build_center_grid, build_street_index,
@@ -52,9 +53,11 @@ from shape_metrics import alignment_angle
 from taipei101 import outline
 
 # Taken from the shape itself rather than pinned, so the run tracks whatever
-# n_min currently says. The fit below was done at 176, before the n_min fix;
-# 204 needs a wider network than any downloaded so far.
-POINTS = 176
+# n_min currently says. The first fit was forced down to 176 because 204 needs
+# a network wider than anything downloaded then - 2 of 16 placements were
+# viable and the fit came out at 0.275. The regional cache now covers 北北基桃宜,
+# so the honest number can be used.
+POINTS = None            # resolved from n_min below
 MODE = "bike"
 ROTATIONS_DEG = (0.0,)     # a tilted building is not that building
 N_CANDIDATES = 3
@@ -65,26 +68,38 @@ OUT_JSON = Path(__file__).with_name("poc21_taipei101.json")
 def main() -> None:
     cfg = rf.MODES[MODE]
     sl.register("taipei101", outline())
+    points = POINTS or rf.n_min("taipei101")
     dense = resample_by_arclength("taipei101", 4000)
     perimeter = float(np.hypot(*np.diff(np.vstack([dense, dense[:1]]), axis=0).T).sum())
-    width_m = POINTS * cfg["street_scale_m"] / perimeter
-    print(f"101 at {POINTS} points: {width_m / 1000:.1f} km wide, "
-          f"predicted {POINTS * cfg['street_scale_m'] * cfg['detour'] / 1000:.0f} km",
+    width_m = points * cfg["street_scale_m"] / perimeter
+    print(f"101 at {points} points: {width_m / 1000:.1f} km wide, "
+          f"predicted {points * cfg['street_scale_m'] * cfg['detour'] / 1000:.0f} km",
           flush=True)
 
-    graph = download_walk_graph(SEARCH_LAT, SEARCH_LON, HALF_SIZE_M, mode=MODE)
+    # The network has to hold the shape AND leave somewhere to put it. At 176
+    # points inside a network barely wider than the shape, 14 of 16 placements
+    # were off the grid before scoring began, and the fit was whatever the two
+    # survivors happened to give. Half a shape-width of slack on each side is
+    # the cheapest thing that turns a forced placement into a chosen one.
+    half_size = max(HALF_SIZE_M, width_m * 1.0)
+    try:
+        graph = region_graph(SEARCH_LAT, SEARCH_LON, half_size, mode=MODE)
+    except RegionNotCovered as exc:
+        print(f"  region cache insufficient ({exc}); downloading directly",
+              flush=True)
+        graph = download_walk_graph(SEARCH_LAT, SEARCH_LON, half_size, mode=MODE)
     to_proj = Transformer.from_crs("EPSG:4326", graph.graph["crs"], always_xy=True)
     region = np.array(to_proj.transform(SEARCH_LON, SEARCH_LAT))
     tree = build_street_index(graph)
 
-    margin = max(300.0, HALF_SIZE_M - width_m * 0.75)
+    margin = max(300.0, half_size - width_m * 0.75)
     centers, _, _ = build_center_grid(region, margin, GRID_STEP_M)
     scored = coarse_scan(tree, centers, "taipei101", width_m, ROTATIONS_DEG)
     viable = int(np.isfinite(scored["score"]).sum())
     print(f"  {len(centers)} placements, {viable} viable", flush=True)
     if viable == 0:
         OUT_JSON.write_text(json.dumps({"status": "no placement",
-                                        "width_m": width_m, "points": POINTS}))
+                                        "width_m": width_m, "points": points}))
         print("  no placement fits")
         return
 
@@ -93,7 +108,7 @@ def main() -> None:
         centre = np.array([row["x"], row["y"]])
         try:
             fit = refine(graph, "taipei101", centre, row["rotation"], width_m,
-                         points=POINTS)
+                         points=points)
         except NoRouteFoundError:
             continue
         if fit is None:
@@ -119,7 +134,7 @@ def main() -> None:
     write_gpx(best, graph.graph["crs"], gpx_dir / "taipei101.gpx",
               "台北101路線", "taipei101", MODE)
 
-    result = {"status": "ok", "points": POINTS, "width_m": width_m,
+    result = {"status": "ok", "points": points, "width_m": width_m,
               "distance": best["distance"], "wander": best["wander"],
               "route_km": best["metrics"]["route_km"], "upright_deg": upright}
     OUT_JSON.write_text(json.dumps(result, indent=2))
