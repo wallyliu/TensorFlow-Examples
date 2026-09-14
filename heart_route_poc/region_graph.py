@@ -33,7 +33,7 @@ from xml.sax.saxutils import quoteattr, unescape
 import networkx as nx
 import osmnx as ox
 
-from region_download import CACHE_ROOT, REGIONS
+from region_download import CACHE_ROOT, REGIONS, region_for
 
 MERGED_DIR = Path(__file__).with_name("_region_merged")
 # The stitch cache is a convenience, not data: every file in it can be rebuilt
@@ -235,9 +235,21 @@ MIN_COVERAGE = 0.98
 
 
 def region_graph(lat: float, lon: float, half_size_m: float,
-                 mode: str = "bike", region: str = "north",
+                 mode: str = "bike", region: str | None = None,
                  min_coverage: float = MIN_COVERAGE) -> nx.MultiDiGraph:
-    """The network around a point, stitched from the region cache."""
+    """The network around a point, stitched from the region cache.
+
+    The region is looked up from the point unless one is named. It used to
+    default to "north", which was harmless while north was the only region and
+    wrong the moment there were four: a request for Tainan would read the
+    northern cache, find nothing there, and report the map as missing rather
+    than looking in the cache that has it.
+    """
+    if region is None:
+        region = region_for(lat, lon)
+        if region is None:
+            raise RegionNotCovered(
+                f"{lat},{lon} is outside every downloaded region")
     box = box_around(lat, lon, half_size_m)
     paths = tiles_for(box, region, mode)
     if not paths:

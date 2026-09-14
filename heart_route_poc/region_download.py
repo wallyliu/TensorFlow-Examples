@@ -42,12 +42,45 @@ from osm_api_fallback import FILTERS, OSM_MAP_API, _parse_tile
 CACHE_ROOT = Path(__file__).with_name("_region_cache")
 
 # north = 北北基桃宜: Taipei, New Taipei, Keelung, Taoyuan, Yilan.
+# A non-overlapping partition of the main island, so no square is ever
+# downloaded twice into two different caches. Between them they span
+# 21.85-25.30 N, which is Taiwan from 鵝鑾鼻 to 富貴角.
+#
+# "north" keeps the bounds it was downloaded with rather than the tidier ones
+# this partition would give it: 515 tiles are already on disk under those
+# bounds and renaming them would throw the lot away. Its western edge at 121.00
+# leaves 新竹 outside, which is what "northwest" exists to cover.
 REGIONS = {
     "north": {"south": 24.60, "north": 25.30, "west": 121.00, "east": 122.05,
               "label": "北北基桃宜"},
+    "northwest": {"south": 24.60, "north": 25.30, "west": 120.50, "east": 121.00,
+                  "label": "竹苗北"},
+    "central": {"south": 23.30, "north": 24.60, "west": 120.00, "east": 122.05,
+                "label": "中彰投苗雲花北"},
+    "south": {"south": 21.85, "north": 23.30, "west": 120.00, "east": 121.70,
+              "label": "嘉南高屏東"},
     "taipei": {"south": 24.95, "north": 25.21, "west": 121.45, "east": 121.68,
                "label": "台北盆地"},
 }
+
+# Which regions make up the island, in the order a whole-country download
+# should take them. "taipei" is excluded: it is a subset of "north", kept only
+# because the early POCs used it.
+ISLAND = ("north", "northwest", "central", "south")
+
+
+def region_for(lat: float, lon: float) -> str | None:
+    """The island region containing a point, or None if it is off the map.
+
+    Needed because everything downstream defaulted to "north". With one region
+    that was merely redundant; with four it means a request for Tainan quietly
+    reads the Taipei cache, finds nothing, and reports the map as missing.
+    """
+    for name in ISLAND:
+        b = REGIONS[name]
+        if b["south"] <= lat <= b["north"] and b["west"] <= lon <= b["east"]:
+            return name
+    return None
 
 START_STEP = 0.08          # coarse enough that empty country costs one request
 MIN_STEP = 0.005           # finer than this and the densest blocks still fail
