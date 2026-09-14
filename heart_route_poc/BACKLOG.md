@@ -239,3 +239,20 @@ and runs out of city sideways before gaining any height.
 Nothing cheap is left. Stacked lines and a taller font would attack the aspect
 ratio, which is the real constraint, but both are guesses with no measurement
 behind them, on a feature that has already failed a rater round. Parked.
+
+## 11. DETOUR_RATIO is a best-of-thousands number (POC 23)
+
+1.25 +-15% was calibrated on 1-3 km shapes. At 12.3 km, Taipei 101 came in
+at 1.93 and a notch-free 101 at 2.18. Barriers, grid orientation and the
+outline's reversals were each tested and rejected, so what is left is that a
+small shape is chosen from thousands of viable placements and a large one from
+27. The constant is not retuned yet, because one shape is not a calibration.
+
+Measurement that settles it: hold the shape and its size fixed, vary the number
+of viable placements the search is allowed to choose from (1, 4, 16, 64, all),
+and plot achieved detour against it. If detour falls with choice, the constant
+has to become a function of the size-to-network ratio, and `Plan` has to widen
+its predicted range for big shapes instead of promising +-15%.
+
+Until then the sizing model understates a large route's length by about a third,
+and that is the number the product quotes to a rider.
