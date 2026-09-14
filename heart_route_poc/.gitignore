@@ -2,3 +2,4 @@
 _walk_*.osm
 _bike_*.osm
 __pycache__/
+_region_cache/
