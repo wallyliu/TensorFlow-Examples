@@ -63,6 +63,12 @@ LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
 # five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
 # linear time, and that is the whole trade.
 N_CANDIDATES = 6
+# How much wider than the shape the network is built. 1.0 gives half a shape
+# width of slack on every side.
+PLACEMENT_SLACK = 1.0
+# Beyond this the stitch, the street index and the search stop being worth
+# waiting for on a request. A 100 km heart is 24.9 km wide and lands here.
+MAX_HALF_SIZE_M = 20000.0
 
 # Two raters, seventeen of seventeen, preferred a shape with a feature amputated
 # over one of the same shape distance that wobbled everywhere (POC 18), and no
@@ -87,9 +93,17 @@ _networks: dict[tuple, dict] = {}
 _lock = threading.Lock()
 
 
-def network(lat: float, lon: float, mode: str) -> dict:
-    """The street network for one place and mode, loaded at most once."""
-    key = (round(lat, 4), round(lon, 4), mode)
+def network(lat: float, lon: float, mode: str,
+            half_size_m: float = NETWORK_HALF_SIZE_M) -> dict:
+    """The street network for one place, mode and size, loaded at most once.
+
+    The size has to be an argument. Fixed at NETWORK_HALF_SIZE_M the service
+    built the same 9 km box whatever was asked of it, so every shape wider than
+    about 6 km had nowhere to sit: a 50 km heart is 12.4 km across and came
+    back "no placement" after 19 seconds of stitching, while `plan` had already
+    answered "feasible". 30, 50 and 100 km are the distances this is for.
+    """
+    key = (round(lat, 4), round(lon, 4), mode, round(half_size_m))
     with _lock:
         if key not in _networks:
             t0 = time.time()
@@ -98,10 +112,10 @@ def network(lat: float, lon: float, mode: str) -> dict:
             # the user pick where they are" possible at all. Falls back to the
             # per-point downloader where the region has no tiles yet.
             try:
-                graph = region_graph(lat, lon, NETWORK_HALF_SIZE_M, mode=mode)
+                graph = region_graph(lat, lon, half_size_m, mode=mode)
                 source = "region cache"
             except FileNotFoundError:
-                graph = download_walk_graph(lat, lon, NETWORK_HALF_SIZE_M, mode=mode)
+                graph = download_walk_graph(lat, lon, half_size_m, mode=mode)
                 source = "per-point download"
             to_proj = Transformer.from_crs("EPSG:4326", graph.graph["crs"],
                                            always_xy=True)
@@ -185,14 +199,27 @@ def streets_near(net: dict, xy: np.ndarray, pad_m: float = 400.0) -> list:
 def plan(shape: str, target_km: float, mode: str) -> dict:
     """The feasibility answer, which needs no map and returns immediately."""
     p = rf.plan(shape, target_km, mode)
+    feasible, message = p.feasible, p.reason
+    # route_feasibility only knows the LOWER bound - the shape needs enough
+    # points to be recognisable. There is an upper bound too and it lives here,
+    # because it is a property of the served map rather than of the shape: a
+    # 200 km heart is 49.7 km across and no network we will build holds it. The
+    # service used to answer "feasible" to that and then spend 19 seconds
+    # stitching before returning "no placement", which is a worse answer than
+    # no for having taken longer.
+    if feasible and p.width_m and p.width_m * PLACEMENT_SLACK > MAX_HALF_SIZE_M:
+        max_km = target_km * MAX_HALF_SIZE_M / (p.width_m * PLACEMENT_SLACK)
+        feasible = False
+        message = (f"{p.width_m / 1000:.0f} km wide - too big to place. "
+                   f"This shape tops out near {max_km:.0f} km.")
     return {"shape": shape,
             "label": LABELS.get(shape, shape.replace("text_", "").replace("_", " ")),
             "is_text": is_text(shape), "mode": mode,
-            "target_km": target_km, "feasible": p.feasible,
+            "target_km": target_km, "feasible": feasible,
             "n_min": rf.n_min(shape), "points": p.points,
             "min_km": round(p.min_km, 1),
             "width_m": round(p.width_m) if p.width_m else None,
-            "message": p.reason,
+            "message": message,
             "estimate_km": ([round(x, 1) for x in p.range_km]
                             if p.range_km else None)}
 
@@ -204,12 +231,16 @@ def build_route(shape: str, target_km: float, mode: str,
     if not verdict["feasible"]:
         return {"status": "infeasible", **verdict}
 
-    net = network(lat, lon, mode)
     width_m = float(verdict["width_m"])
     points = int(verdict["points"])
+    # Room for the shape and room to move it: a network only as wide as the
+    # shape leaves one placement, and POC 23 found that a route with no choice
+    # of placement pays roughly double the detour of one chosen from thousands.
+    half_size = max(NETWORK_HALF_SIZE_M, width_m * PLACEMENT_SLACK)
+    net = network(lat, lon, mode, half_size)
     t0 = time.time()
 
-    margin = max(400.0, NETWORK_HALF_SIZE_M - width_m * 0.75)
+    margin = max(400.0, half_size - width_m * 0.75)
     centers, _, _ = build_center_grid(net["region"], margin, GRID_STEP_M)
     scored = coarse_scan(net["tree"], centers, shape, width_m,
                          rotations_for(shape))

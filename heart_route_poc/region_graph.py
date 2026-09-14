@@ -36,6 +36,29 @@ import osmnx as ox
 from region_download import CACHE_ROOT, REGIONS
 
 MERGED_DIR = Path(__file__).with_name("_region_merged")
+# The stitch cache is a convenience, not data: every file in it can be rebuilt
+# from the tiles. It had no bound, and now that the service sizes the network to
+# the shape there is a file per place AND per size, so it grows with every
+# distinct request. Writable disk here is a fixed allowance rather than a real
+# volume, and a full one fails writes while the tiles it was protecting are
+# still on disk.
+MERGED_CACHE_MB = 400.0
+
+
+def evict_stitches(keep: Path | None = None) -> None:
+    """Drop the least recently used stitches until the cache is under budget."""
+    if not MERGED_DIR.exists():
+        return
+    files = sorted((f for f in MERGED_DIR.glob("*.osm") if f != keep),
+                   key=lambda f: f.stat().st_mtime, reverse=True)
+    total = sum(f.stat().st_size for f in MERGED_DIR.glob("*.osm"))
+    budget = MERGED_CACHE_MB * 1e6
+    for f in reversed(files):
+        if total <= budget:
+            break
+        total -= f.stat().st_size
+        f.unlink(missing_ok=True)
+        print(f"  evicted stitch {f.name}", flush=True)
 TILE_NAME = re.compile(r"^(-?\d+\.\d+)_(-?\d+\.\d+)_(-?\d+\.\d+)_(-?\d+\.\d+)\.osm$")
 
 
@@ -261,6 +284,7 @@ def region_graph(lat: float, lon: float, half_size_m: float,
     # a metric CRS. Returning the raw lat/lon graph does not fail, it silently
     # makes every measurement degrees, and the first thing measured on top of
     # it read "3.8 km from the nearest street" across the whole region.
+    evict_stitches(keep=merged)
     projected = ox.project_graph(graph)
     print(f"  network: {projected.number_of_nodes():,} nodes, "
           f"{projected.number_of_edges():,} edges, CRS {projected.graph['crs']}",
