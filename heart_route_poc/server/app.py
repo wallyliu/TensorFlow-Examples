@@ -47,6 +47,7 @@ from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               select_candidates)
 from heart_route_poc3 import place_shape                          # noqa: E402
 from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
+from region_graph import region_graph                            # noqa: E402
 from poc15_wiggle import wander                                  # noqa: E402
 from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
@@ -92,7 +93,16 @@ def network(lat: float, lon: float, mode: str) -> dict:
     with _lock:
         if key not in _networks:
             t0 = time.time()
-            graph = download_walk_graph(lat, lon, NETWORK_HALF_SIZE_M, mode=mode)
+            # Prefer the regional cache: it covers anywhere in the region and
+            # costs a stitch rather than a download, which is what makes "let
+            # the user pick where they are" possible at all. Falls back to the
+            # per-point downloader where the region has no tiles yet.
+            try:
+                graph = region_graph(lat, lon, NETWORK_HALF_SIZE_M, mode=mode)
+                source = "region cache"
+            except FileNotFoundError:
+                graph = download_walk_graph(lat, lon, NETWORK_HALF_SIZE_M, mode=mode)
+                source = "per-point download"
             to_proj = Transformer.from_crs("EPSG:4326", graph.graph["crs"],
                                            always_xy=True)
             _networks[key] = {
@@ -101,9 +111,11 @@ def network(lat: float, lon: float, mode: str) -> dict:
                 "region": np.array(to_proj.transform(lon, lat)),
                 "crs": graph.graph["crs"],
                 "load_seconds": round(time.time() - t0, 1),
+                "source": source,
             }
-            print(f"  loaded {mode} network for {lat},{lon} in "
-                  f"{_networks[key]['load_seconds']}s", flush=True)
+            print(f"  loaded {mode} network for {lat},{lon} from {source} in "
+                  f"{_networks[key]['load_seconds']}s "
+                  f"({graph.number_of_nodes():,} nodes)", flush=True)
         return _networks[key]
 
 
