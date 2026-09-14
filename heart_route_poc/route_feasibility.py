@@ -80,17 +80,44 @@ DETOUR_UNCERTAINTY = 0.15   # +-10% covered 10 of 12 measured fits; +-15% covere
 # POC 24 ruled out the obvious confound - this is not placement scarcity, since
 # letting the search choose from twenty placements instead of one moves the
 # detour by 0.14 at 2.5 km and by nothing at 12.4 km.
-DETOUR_INTERCEPT = 1.024
-DETOUR_PER_KM = 0.0745
-DETOUR_RESIDUAL_SD = 0.159
+# ...and it is not only a function of size either. POC 26 fitted the same
+# 10 km heart in seven cities and Keelung came out at 1.82 where the
+# Taipei-fitted line predicts 1.22 - the single worst residual, 0.508. Adding
+# the city's own street scale as a second predictor over all sixteen fits cuts
+# the residual sd from 0.193 to 0.173 and the worst residual to 0.269.
+#
+# The coefficient below is expressed per metre of LOCAL street_scale rather
+# than per metre of the directional measurement it was fitted on, so that
+# callers pass the same quantity they size with; the two differ by Taipei's
+# 142/280, which is folded in. At Taipei's 280 m the pair reproduce the
+# width-only Taipei fit to three decimals (1.036 against 1.024), which is the
+# check that the second term is describing other cities and not quietly
+# re-describing Taipei.
+DETOUR_INTERCEPT = 0.4544
+DETOUR_PER_KM = 0.0734
+DETOUR_PER_SCALE_M = 0.002079
+DETOUR_RESIDUAL_SD = 0.173
+
+# Per-mode constants. Bicycle is the default: it is the mode the product is for,
+# and the walking numbers are kept because nine POCs of measurement rest on them.
+MODES = {
+    "walk": {"street_scale_m": 160.0, "detour": 1.25, "label": "walking"},
+    "bike": {"street_scale_m": 280.0, "detour": 1.26, "label": "cycling"},
+}
+DEFAULT_MODE = "bike"
 
 
-def detour_for(width_m: float, mode: str = None) -> float:
-    """The detour a shape this wide actually pays."""
-    return DETOUR_INTERCEPT + DETOUR_PER_KM * (width_m / 1000.0)
+def detour_for(width_m: float, street_scale_m: float | None = None,
+               mode: str = DEFAULT_MODE) -> float:
+    """The detour a shape this wide pays on streets this far apart."""
+    scale = street_scale_m or MODES[mode]["street_scale_m"]
+    return (DETOUR_INTERCEPT + DETOUR_PER_KM * (width_m / 1000.0)
+            + DETOUR_PER_SCALE_M * scale)
 
 
-def width_for(shape: str, target_km: float) -> float:
+def width_for(shape: str, target_km: float,
+              street_scale_m: float | None = None,
+              mode: str = DEFAULT_MODE) -> float:
     """
     How wide to draw a shape so the ride comes out at target_km.
 
@@ -100,17 +127,11 @@ def width_for(shape: str, target_km: float) -> float:
     made a 50 km request come back 22 km long.
     """
     per = perimeter(shape)
-    a, b = DETOUR_INTERCEPT, DETOUR_PER_KM
+    scale = street_scale_m or MODES[mode]["street_scale_m"]
+    a = DETOUR_INTERCEPT + DETOUR_PER_SCALE_M * scale
+    b = DETOUR_PER_KM
     w_km = (-per * a + math.sqrt((per * a) ** 2 + 4 * per * b * target_km)) / (2 * per * b)
     return w_km * 1000.0
-
-# Per-mode constants. Bicycle is the default: it is the mode the product is for,
-# and the walking numbers are kept because nine POCs of measurement rest on them.
-MODES = {
-    "walk": {"street_scale_m": 160.0, "detour": 1.25, "label": "walking"},
-    "bike": {"street_scale_m": 280.0, "detour": 1.26, "label": "cycling"},
-}
-DEFAULT_MODE = "bike"
 
 # Sampling loss must stay well under the ~0.10 gap at which a person reliably
 # sees a difference (POC 6), so that sampling is not itself eating the budget.
@@ -170,11 +191,21 @@ def n_min(shape: str, tolerance: float = SAMPLING_TOLERANCE, ceiling: int = 400)
     return ceiling
 
 
-def min_distance_km(shape: str, mode: str = DEFAULT_MODE) -> float:
-    """The shortest route this shape can produce in this mode and still be itself."""
+def min_distance_km(shape: str, mode: str = DEFAULT_MODE,
+                    street_scale_m: float | None = None) -> float:
+    """The shortest route this shape can produce in this mode and still be itself.
+
+    `street_scale_m` overrides the national constant for one place. POC 26
+    found the constant is not national: Keelung's streets are 223 m apart in a
+    given direction against Taipei's 142 m, and asking it for 280 m anchors
+    produced a 15.0 km route for a 10 km request at a shape distance of 0.266.
+    A sparse city needs a physically bigger shape to draw the same figure, and
+    that is what a larger scale here says.
+    """
     cfg = MODES[mode]
-    width = n_min(shape) * cfg["street_scale_m"] / perimeter(shape)
-    return perimeter(shape) * width * detour_for(width, mode) / 1000.0
+    scale = street_scale_m or cfg["street_scale_m"]
+    width = n_min(shape) * scale / perimeter(shape)
+    return perimeter(shape) * width * detour_for(width, scale, mode) / 1000.0
 
 
 # Where inside the window to sit. POC 9 swept this across five shapes, found the
@@ -197,7 +228,8 @@ def min_distance_km(shape: str, mode: str = DEFAULT_MODE) -> float:
 WINDOW_FRACTION = 1.0
 
 
-def contour_points(shape: str, width_m: float, mode: str = DEFAULT_MODE) -> int:
+def contour_points(shape: str, width_m: float, mode: str = DEFAULT_MODE,
+                   street_scale_m: float | None = None) -> int:
     """
     How many contour points to sample, for a shape drawn this wide.
 
@@ -209,7 +241,8 @@ def contour_points(shape: str, width_m: float, mode: str = DEFAULT_MODE) -> int:
     constrained at all - the sampled polygon is heart-shaped while the walk need
     not be.
     """
-    cap = max(1, int(perimeter(shape) * width_m / MODES[mode]["street_scale_m"]))
+    scale = street_scale_m or MODES[mode]["street_scale_m"]
+    cap = max(1, int(perimeter(shape) * width_m / scale))
     return max(n_min(shape), round(WINDOW_FRACTION * cap))
 
 
@@ -228,7 +261,8 @@ class Plan:
     reason: str
 
 
-def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE) -> Plan:
+def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE,
+         street_scale_m: float | None = None) -> Plan:
     """
     Size a shape to a distance, or explain why it does not fit.
 
@@ -237,15 +271,15 @@ def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE) -> Plan:
     the failure this whole project keeps running into: the metric cannot see a
     destroyed feature, so the check has to happen HERE, before anything is drawn.
     """
-    floor = min_distance_km(shape, mode)
+    floor = min_distance_km(shape, mode, street_scale_m)
     if target_km < floor:
         return Plan(shape, mode, False, target_km, floor, None, None, None, None,
                     f"needs at least {floor:.1f} km; too much detail to fit in "
                     f"{target_km:.1f} km of {MODES[mode]['label']}")
 
-    width = width_for(shape, target_km)
-    points = contour_points(shape, width, mode)
-    detour = detour_for(width, mode)
+    width = width_for(shape, target_km, street_scale_m, mode)
+    points = contour_points(shape, width, mode, street_scale_m)
+    detour = detour_for(width, street_scale_m, mode)
     predicted = perimeter(shape) * width * detour / 1000.0
     # The band comes from the fit's own residual scatter rather than a flat
     # percentage. +-2 sd covers every one of the nine measured fits; a flat

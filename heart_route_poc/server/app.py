@@ -25,6 +25,7 @@ import argparse
 import json
 import sys
 import threading
+from urllib.parse import parse_qs, urlparse
 import time
 import traceback
 import uuid
@@ -51,6 +52,7 @@ from region_graph import (MIN_COVERAGE, box_around, coverage,        # noqa: E40
                           fetched_bounds, region_graph,
                           regions_overlapping, tiles_for)
 from region_download import region_for                            # noqa: E402
+import street_scale as ss                                        # noqa: E402
 from poc15_wiggle import wander                                  # noqa: E402
 from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
@@ -239,9 +241,27 @@ def places() -> list[dict]:
     return out
 
 
-def plan(shape: str, target_km: float, mode: str) -> dict:
+# How close the route came to the shape asked for. The boundaries are the
+# discrimination threshold from POC 13/14 - the point at which raters see a
+# difference effortlessly - NOT a measured recognisability pass mark, which
+# BACKLOG #3 still has open. So the bands describe fidelity and decline to
+# promise that anyone will name the shape.
+QUALITY_BANDS = ((0.10, "good", "跟你選的圖案很接近"),
+                 (0.18, "marginal", "看得出輪廓，但有些地方被街道拉歪了"),
+                 (9e9, "poor", "這個地點的路網畫不出這個圖案"))
+
+
+def quality_for(distance: float) -> tuple[str, str]:
+    for limit, name, message in QUALITY_BANDS:
+        if distance < limit:
+            return name, message
+    return QUALITY_BANDS[-1][1], QUALITY_BANDS[-1][2]
+
+
+def plan(shape: str, target_km: float, mode: str,
+         street_scale_m: float | None = None) -> dict:
     """The feasibility answer, which needs no map and returns immediately."""
-    p = rf.plan(shape, target_km, mode)
+    p = rf.plan(shape, target_km, mode, street_scale_m)
     feasible, message = p.feasible, p.reason
     # route_feasibility only knows the LOWER bound - the shape needs enough
     # points to be recognisable. There is an upper bound too and it lives here,
@@ -261,6 +281,7 @@ def plan(shape: str, target_km: float, mode: str) -> dict:
             "target_km": target_km, "feasible": feasible,
             "n_min": rf.n_min(shape), "points": p.points,
             "min_km": round(p.min_km, 1),
+            "street_scale_m": round(street_scale_m) if street_scale_m else None,
             "width_m": round(p.width_m) if p.width_m else None,
             "message": message,
             "estimate_km": ([round(x, 1) for x in p.range_km]
@@ -270,7 +291,10 @@ def plan(shape: str, target_km: float, mode: str) -> dict:
 def build_route(shape: str, target_km: float, mode: str,
                 lat: float, lon: float) -> dict:
     """Search the city for the best placement, fit a route, keep the GPX."""
-    verdict = plan(shape, target_km, mode)
+    # The scale where the route will be drawn, not Taipei's. Cached per ~1 km,
+    # so this is a lookup after the first request near a place.
+    local_scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    verdict = plan(shape, target_km, mode, local_scale)
     if not verdict["feasible"]:
         return {"status": "infeasible", **verdict}
 
@@ -281,6 +305,18 @@ def build_route(shape: str, target_km: float, mode: str,
     # of placement pays roughly double the detour of one chosen from thousands.
     half_size = max(NETWORK_HALF_SIZE_M, width_m * PLACEMENT_SLACK)
     net = network(lat, lon, mode, half_size)
+    if ss.cached_directional(lat, lon, mode) is None:
+        # First visit to this place: measure it off the graph we just loaded and
+        # re-plan, so the sizing matches where the route is actually going.
+        measured = ss.scale_for(lat, lon, mode,
+                                rf.MODES[mode]["street_scale_m"], net["graph"])
+        if abs(measured - local_scale) > 1.0:
+            local_scale = measured
+            verdict = plan(shape, target_km, mode, local_scale)
+            if not verdict["feasible"]:
+                return {"status": "infeasible", **verdict}
+            width_m = float(verdict["width_m"])
+            points = int(verdict["points"])
     t0 = time.time()
 
     margin = max(400.0, half_size - width_m * 0.75)
@@ -338,6 +374,8 @@ def build_route(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
+            "quality": quality_for(float(best["distance"]))[0],
+            "quality_message": quality_for(float(best["distance"]))[1],
             "wander": round(float(best["wander"]), 3),
             "wander_limit": WANDER_LIMIT,
             "candidates_within_limit": sum(f["wander"] <= WANDER_LIMIT
@@ -379,12 +417,22 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, (HERE / "index.html").read_bytes(),
                        "text/html; charset=utf-8")
         elif path == "/api/shapes":
-            mode = "bike"
-            if "mode=" in self.path:
-                mode = self.path.split("mode=")[1].split("&")[0]
-            self._json(200, {"mode": mode, "shapes": [
+            q = parse_qs(urlparse(self.path).query)
+            mode = q.get("mode", ["bike"])[0]
+            # The floors are per place, not national: Keelung's streets are
+            # 439 m apart against Taipei's 280, so its smallest drawable heart
+            # is 7.8 km rather than 3.7. Reporting Taipei's floor on a Keelung
+            # card would offer a shape the planner then refuses.
+            try:
+                lat = float(q.get("lat", [SEARCH_LAT])[0])
+                lon = float(q.get("lon", [SEARCH_LON])[0])
+            except ValueError:
+                lat, lon = SEARCH_LAT, SEARCH_LON
+            scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+            self._json(200, {"mode": mode, "street_scale_m": round(scale),
+                             "shapes": [
                 {"name": s, "label": LABELS.get(s, s), "n_min": rf.n_min(s),
-                 "min_km": round(rf.min_distance_km(s, mode), 1)}
+                 "min_km": round(rf.min_distance_km(s, mode, scale), 1)}
                 for s in sorted(SHAPES, key=rf.n_min)]})
         elif path == "/api/places":
             self._json(200, {"places": places()})
@@ -438,7 +486,11 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             if path == "/api/plan":
-                self._json(200, plan(shape, target_km, mode))
+                lat = float(body.get("lat", SEARCH_LAT))
+                lon = float(body.get("lon", SEARCH_LON))
+                self._json(200, plan(shape, target_km, mode,
+                                     ss.scale_for(lat, lon, mode,
+                                                  rf.MODES[mode]["street_scale_m"])))
             elif path == "/api/route":
                 self._json(200, build_route(
                     shape, target_km, mode,

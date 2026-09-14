@@ -256,3 +256,51 @@ its predicted range for big shapes instead of promising +-15%.
 
 Until then the sizing model understates a large route's length by about a third,
 and that is the number the product quotes to a rider.
+
+## 5. Detour ratio as a constant — CLOSED by POC 25 and 26
+
+Replaced by a two-term fit over sixteen measured routes:
+
+    detour = 0.4544 + 0.0734 x width_km + 0.002079 x street_scale_m
+
+Residual sd 0.173 against 0.339 for the constant 1.25, which had a mean error
+of +0.412 — it understated, and it understated the number quoted to a rider.
+At Taipei's 280 m scale the pair reproduce the Taipei-only width fit to three
+decimals, which is the check that the second term describes other cities rather
+than re-describing Taipei.
+
+Sizing is now a solve, since width and detour each depend on the other.
+
+## 12. street_scale is per place — CLOSED by POC 26
+
+The directional street scale (median distance to the nearest street heading a
+chosen way) runs 141 m in Banqiao to 223 m in Keelung and predicts what the
+pipeline produces there: shape distance r = +0.74, detour r = +0.60. Cycling
+only; the walking constant rests on its own nine POCs and scaling it by a ratio
+measured on the bike graph would be a borrowed transfer.
+
+## 13. Sparse cities cannot draw small shapes, and now say so
+
+Keelung's local scale fixed its LENGTH — a 10 km request went from 15.4 km to
+8.4 — but not its FIDELITY: shape distance 0.266 -> 0.18, still far above the
+0.10 discrimination threshold. Its network has 4,743 nodes in a 10 km box
+against Taipei's 38,615 in a 12 km one, and a heart cannot be drawn on it.
+
+So the service reports fidelity instead of hiding it: good / marginal / poor,
+on the POC 13/14 discrimination boundaries. Note those are discrimination
+boundaries, NOT a measured recognisability pass mark — see #3, still open — so
+the bands describe how close the route came and decline to promise anyone will
+name the shape.
+
+What is still unfixed: nothing predicts the band before the route is built. A
+rider in Keelung waits a minute to be told it did not work. The coarse scan is
+the natural place for that and POC 17 showed it ranks nothing (#9).
+
+## 14. Fidelity degrades with size, unexplained
+
+Shape distance of the kept route, heart in Taipei: 0.053 at 2.5 km wide, 0.070
+at 5.0, 0.173 at 8.7, 0.127 at 12.4. The 50 km route lands at 0.109 — over the
+threshold. Same cause as the detour or not, it is not measured. Rotation is
+free and placement choice is ruled out (POC 24), so the candidates left are the
+anchor spacing rule (WINDOW_FRACTION) and genuine network heterogeneity at
+city scale.

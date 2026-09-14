@@ -283,6 +283,9 @@
       b.setAttribute("aria-pressed", String(b.textContent === pl.name));
     });
     $("place-note").textContent = "出發地：" + pl.name;
+    // The minimum size of every shape depends on how far apart the streets are
+    // here, so the cards have to be re-asked for, not just relabelled.
+    loadShapes();
   }
 
   function locate() {
@@ -300,6 +303,7 @@
       $("place-note").textContent = "出發地：目前位置 ("
         + pos.coords.latitude.toFixed(3) + ", "
         + pos.coords.longitude.toFixed(3) + ")";
+      loadShapes();
     }, function () {
       $("place-note").textContent = "拿不到位置，改用上面的城市。";
     });
