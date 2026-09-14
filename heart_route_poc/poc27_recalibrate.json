@@ -1,0 +1,114 @@
+{
+  "heart@10/\u53f0\u5317": {
+    "rate": 0.9958847736625515,
+    "placeable": 726,
+    "centers": 729,
+    "distance": 0.09751461219511262,
+    "one_rotation_rate": 0.8888888888888888
+  },
+  "heart@20/\u53f0\u5317": {
+    "rate": 1.0,
+    "placeable": 169,
+    "centers": 169,
+    "distance": 0.05624432327295997,
+    "one_rotation_rate": 0.8757396449704142
+  },
+  "heart@35/\u53f0\u5317": {
+    "rate": 0.9362880886426593,
+    "placeable": 338,
+    "centers": 361,
+    "distance": 0.1975006707785209,
+    "one_rotation_rate": 0.39058171745152354
+  },
+  "heart@50/\u53f0\u5317": {
+    "rate": 0.6059027777777778,
+    "placeable": 349,
+    "centers": 576,
+    "distance": 0.1880611592237758,
+    "one_rotation_rate": 0.09722222222222222
+  },
+  "star5@20/\u53f0\u5317": {
+    "rate": 1.0,
+    "placeable": 289,
+    "centers": 289,
+    "distance": 0.0971883672492449,
+    "one_rotation_rate": 0.9480968858131488
+  },
+  "star5@35/\u53f0\u5317": {
+    "rate": 1.0,
+    "placeable": 289,
+    "centers": 289,
+    "distance": 0.17100282392423036,
+    "one_rotation_rate": 0.6955017301038062
+  },
+  "triangle@10/\u53f0\u5317": {
+    "rate": 1.0,
+    "placeable": 676,
+    "centers": 676,
+    "distance": 0.08536415944298655,
+    "one_rotation_rate": 0.8875739644970414
+  },
+  "heart@10/\u677f\u6a4b": {
+    "rate": 0.9204389574759945,
+    "placeable": 671,
+    "centers": 729,
+    "distance": 0.11319648406390186,
+    "one_rotation_rate": 0.8203017832647462
+  },
+  "heart@10/\u6843\u5712": {
+    "rate": 0.9881093935790726,
+    "placeable": 831,
+    "centers": 841,
+    "distance": 0.08243881971301698,
+    "one_rotation_rate": 0.8870392390011891
+  },
+  "heart@10/\u65b0\u7af9": {
+    "rate": 0.923469387755102,
+    "placeable": 724,
+    "centers": 784,
+    "distance": 0.13225629455921542,
+    "one_rotation_rate": 0.7844387755102041
+  },
+  "heart@10/\u5b9c\u862d": {
+    "rate": 1.0,
+    "placeable": 961,
+    "centers": 961,
+    "distance": 0.12217084516950659,
+    "one_rotation_rate": 0.9947970863683663
+  },
+  "heart@10/\u57fa\u9686": {
+    "rate": 0.522372528616025,
+    "placeable": 502,
+    "centers": 961,
+    "distance": 0.32242240801523064,
+    "one_rotation_rate": 0.19250780437044746
+  },
+  "heart@20/\u57fa\u9686": {
+    "rate": 0.3734567901234568,
+    "placeable": 121,
+    "centers": 324,
+    "distance": 0.3216570658168146,
+    "one_rotation_rate": 0.05246913580246913
+  },
+  "heart@10/\u53f0\u4e2d": {
+    "rate": 1.0,
+    "placeable": 784,
+    "centers": 784,
+    "distance": 0.06943931198582932,
+    "one_rotation_rate": 0.9974489795918368
+  },
+  "heart@20/\u53f0\u4e2d": {
+    "rate": 1.0,
+    "placeable": 196,
+    "centers": 196,
+    "distance": 0.052761425433914516,
+    "one_rotation_rate": 0.9897959183673469
+  },
+  "triangle@10/\u57fa\u9686": {
+    "rate": 0.5955555555555555,
+    "placeable": 536,
+    "centers": 900,
+    "distance": 0.3191880806816319,
+    "one_rotation_rate": 0.22
+  }
+}

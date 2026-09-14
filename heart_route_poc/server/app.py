@@ -246,6 +246,15 @@ def places() -> list[dict]:
 # difference effortlessly - NOT a measured recognisability pass mark, which
 # BACKLOG #3 still has open. So the bands describe fidelity and decline to
 # promise that anyone will name the shape.
+# Below this share of placements fitting anywhere in the network, POC 27 found
+# the route comes out unusable. Over sixteen routes spanning three shapes, four
+# sizes and seven cities the five that scored 0.18 or worse had viable rates of
+# 5.2 / 9.7 / 19.3 / 22.0 / 39.1 percent and the other eleven ran 69.6 to 99.7 -
+# nothing in between, so this is the middle of a 30-point gap rather than a
+# tuned number. The same scan cannot GRADE a route (62% three-way, against 44%
+# for guessing "good"), only tell that it will fail.
+VIABLE_RATE_FLOOR = 0.50
+
 QUALITY_BANDS = ((0.10, "good", "跟你選的圖案很接近"),
                  (0.18, "marginal", "看得出輪廓，但有些地方被街道拉歪了"),
                  (9e9, "poor", "這個地點的路網畫不出這個圖案"))
@@ -289,7 +298,7 @@ def plan(shape: str, target_km: float, mode: str,
 
 
 def build_route(shape: str, target_km: float, mode: str,
-                lat: float, lon: float) -> dict:
+                lat: float, lon: float, force: bool = False) -> dict:
     """Search the city for the best placement, fit a route, keep the GPX."""
     # The scale where the route will be drawn, not Taipei's. Cached per ~1 km,
     # so this is a lookup after the first request near a place.
@@ -328,10 +337,38 @@ def build_route(shape: str, target_km: float, mode: str,
 
     margin = max(400.0, half_size - width_m * 0.75)
     centers, _, _ = build_center_grid(net["region"], margin, GRID_STEP_M)
-    scored = coarse_scan(net["tree"], centers, shape, width_m,
-                         rotations_for(shape))
-    if not np.isfinite(scored["score"]).any():
+    rotations = rotations_for(shape)
+    scored = coarse_scan(net["tree"], centers, shape, width_m, rotations)
+    viable = int(np.isfinite(scored["score"]).sum())
+    if viable == 0:
         return {"status": "no placement", **verdict}
+    # Stop here when the shape barely fits. The fitting that follows is half the
+    # wait and, at this rate, produces something the rider cannot use - so
+    # saying so now beats saying so in another twenty seconds. `force` exists
+    # because this is a prediction, not a law: the rider can insist.
+    # The probe is taken at ONE rotation, not across the sweep. Two wrong
+    # versions came before this one. Viable rows over centres ran up to twelve,
+    # because coarse_scan returns a row per centre AND rotation, so the check
+    # never fired and Keelung sailed through it. Centres placeable at ANY of
+    # twelve rotations then saturates - a shape that fits at some angle fits
+    # almost everywhere - and stops separating: the poor routes ran 37-94% and
+    # the good ones 92-100%, overlapping.
+    #
+    # At a single fixed rotation it is a measure of how much room the city has
+    # for a shape this size, and that is what POC 27 calibrated. The sweep is
+    # still what the search uses; these rows are already in `scored`, so the
+    # probe costs nothing.
+    probe = scored[scored["rotation"] == rotations[0]]
+    placeable = int(np.isfinite(probe["score"]).sum())
+    rate = placeable / max(1, len(probe))
+    if rate < VIABLE_RATE_FLOOR and not force:
+        return {"status": "unlikely", "viable_rate": round(rate, 3),
+                "placeable": placeable, "centers": len(centers),
+                "quality": "poor",
+                "quality_message": (
+                    f"這個圖案在這裡只有 {rate:.0%} 的位置擺得下，"
+                    f"畫出來大概認不出形狀。換一個城市，或把距離拉長讓圖案變大。"),
+                "seconds": round(time.time() - t0, 1), **verdict}
 
     dense_template = resample_by_arclength(shape, 4000)
     fitted = []
@@ -502,7 +539,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, build_route(
                     shape, target_km, mode,
                     float(body.get("lat", SEARCH_LAT)),
-                    float(body.get("lon", SEARCH_LON))))
+                    float(body.get("lon", SEARCH_LON)),
+                    bool(body.get("force", False))))
             else:
                 self._json(404, {"error": "no such endpoint"})
         except Exception:
