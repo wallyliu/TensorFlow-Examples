@@ -241,11 +241,21 @@ def places() -> list[dict]:
     return out
 
 
-# How close the route came to the shape asked for. The boundaries are the
-# discrimination threshold from POC 13/14 - the point at which raters see a
-# difference effortlessly - NOT a measured recognisability pass mark, which
-# BACKLOG #3 still has open. So the bands describe fidelity and decline to
-# promise that anyone will name the shape.
+# How close the route came to the shape asked for. The first two boundaries are
+# the POC 13/14 discrimination thresholds - where a difference is seen. The
+# third is now measured rather than inherited: POC 29 showed routes alone, with
+# no reference, to be named from all five shapes at once, and recognition sits
+# at chance (2 of 10, against 1 in 5) from 0.32 upward while the 0.22-0.32 band
+# came back 2 of 2. So a route past 0.32 is not "a poor likeness", it is not
+# identifiable, and the wording says so.
+#
+# The old text said the street network "cannot draw this shape" for anything
+# past 0.18. That was an overclaim: the same rater named a heart at 0.207 and a
+# five-pointed star at 0.330.
+#
+# One rater and 30 items. The threshold's bootstrap interval is 0.13 to 0.31 -
+# wide enough that these boundaries are provisional, and they are worded as
+# likelihoods rather than verdicts for that reason.
 # Below this share of placements fitting anywhere in the network, POC 27 found
 # the route comes out unusable. Over sixteen routes spanning three shapes, four
 # sizes and seven cities the five that scored 0.18 or worse had viable rates of
@@ -257,7 +267,8 @@ VIABLE_RATE_FLOOR = 0.50
 
 QUALITY_BANDS = ((0.10, "good", "跟你選的圖案很接近"),
                  (0.18, "marginal", "看得出輪廓，但有些地方被街道拉歪了"),
-                 (9e9, "poor", "這個地點的路網畫不出這個圖案"))
+                 (0.32, "poor", "形狀走樣得滿嚴重，大概一半的人認不出來"),
+                 (9e9, "unrecognisable", "認不出形狀了，換個城市或把距離拉長"))
 
 
 def quality_for(distance: float) -> tuple[str, str]:

@@ -304,3 +304,57 @@ threshold. Same cause as the detour or not, it is not measured. Rotation is
 free and placement choice is ruled out (POC 24), so the candidates left are the
 anchor spacing rule (WINDOW_FRACTION) and genuine network heterogeneity at
 city scale.
+
+## 3. The recognisability ceiling — MEASURED (POC 28/29), provisionally
+
+The oldest open item. 0.10 is where a difference is SEEN; this is where the
+shape stops being IDENTIFIABLE. Instrument: the route alone with no reference,
+named from all five shapes at once plus "none", options reshuffled each trial,
+no feedback, no score. 30 items, six per shape, 0.069–0.540. Chance 1/5.
+
+    overall 18/30 = 60%            binomial p = 1.8e-6 against chance
+    halfway point 0.220            bootstrap 95% [0.130, 0.314]
+    0.00–0.10  6/7     0.10–0.16  7/9     0.16–0.22  1/2
+    0.22–0.32  2/2     0.32–1.00  2/10  (= chance)
+
+So the recognisability ceiling is roughly TWICE the discrimination threshold,
+and past 0.32 there is nothing left to recognise.
+
+Two things this changes. The service's "poor" band used to say the street
+network cannot draw the shape, for anything past 0.18 — an overclaim, since the
+same rater named a heart at 0.207 and a star at 0.330. There is now a fourth
+band at 0.32 with wording that matches what was measured.
+
+And the failure mode is almost entirely "cannot tell": 11 of 12 errors. Only
+one was a different shape named (a triangle at 0.085, called a crescent). A
+degraded route does not turn into another shape, it turns into nothing.
+
+## 15. The threshold is not one number — it is per shape
+
+    star5     YYYYYY   right at every level, including 0.33
+    heart     YYYYnn   right to 0.21, gone by 0.33
+    crescent  YYYnnn   right to 0.16, gone by 0.22
+    trex      YYnnYn   erratic
+    triangle  XYnnYn   erratic, and the one misnaming was at 0.085
+
+star5 6/6 against triangle 2/6 is Fisher p = 0.061 — suggestive on one rater,
+not settled. The mechanism is plausible enough to state: a five-pointed star is
+unmistakable among the alternatives at any level of damage, while a triangle
+with wandering edges could be several of them.
+
+This is the same shape the project keeps finding: one constant applied where
+the quantity varies (detour by size, street scale by city, and now the
+recognition threshold by shape).
+
+## 16. What more raters would buy
+
+One rater, 30 items. The threshold interval is 0.13–0.31, wide enough that the
+service's 0.18 boundary sits inside it and cannot be called wrong. Three more
+raters on the same 30 items would roughly halve that interval and settle
+whether the per-shape effect in #15 is real.
+
+It also has a live dependency: the early-warning check (POC 27) is calibrated
+against "unusable = 0.18 or worse", where the viable-rate signal separates with
+a 30-point margin. Define unusable as 0.30 instead and the same signal stops
+separating (gap −12.3%), because Taipei's 50 km heart has a 9.7% viable rate at
+a distance of 0.188. Moving the boundary means recalibrating the warning.

@@ -1,0 +1,99 @@
+{
+  "n": 30,
+  "raters": [
+    "rmu17rx5is6oba"
+  ],
+  "accuracy": 0.6,
+  "chance": 0.2,
+  "bands": [
+    {
+      "lo": 0.0,
+      "hi": 0.1,
+      "n": 7,
+      "correct": 6,
+      "ci": [
+        0.48686549668097007,
+        0.9743210440510253
+      ],
+      "wrong_shape": 1,
+      "cannot_tell": 0
+    },
+    {
+      "lo": 0.1,
+      "hi": 0.16,
+      "n": 9,
+      "correct": 7,
+      "ci": [
+        0.4525833436728054,
+        0.9367762376877727
+      ],
+      "wrong_shape": 0,
+      "cannot_tell": 2
+    },
+    {
+      "lo": 0.16,
+      "hi": 0.22,
+      "n": 2,
+      "correct": 1,
+      "ci": [
+        0.09452865480086614,
+        0.9054713451991339
+      ],
+      "wrong_shape": 0,
+      "cannot_tell": 1
+    },
+    {
+      "lo": 0.22,
+      "hi": 0.32,
+      "n": 2,
+      "correct": 2,
+      "ci": [
+        0.34237195288961925,
+        1.0
+      ],
+      "wrong_shape": 0,
+      "cannot_tell": 0
+    },
+    {
+      "lo": 0.32,
+      "hi": 1.0,
+      "n": 10,
+      "correct": 2,
+      "ci": [
+        0.056680947980693314,
+        0.5098431532792765
+      ],
+      "wrong_shape": 0,
+      "cannot_tell": 8
+    }
+  ],
+  "threshold": 0.22049095398092297,
+  "threshold_ci": [
+    0.1304062972302775,
+    0.31367463649992716
+  ],
+  "per_shape": {
+    "crescent": {
+      "n": 6,
+      "correct": 3
+    },
+    "heart": {
+      "n": 6,
+      "correct": 4
+    },
+    "star5": {
+      "n": 6,
+      "correct": 6
+    },
+    "trex": {
+      "n": 6,
+      "correct": 3
+    },
+    "triangle": {
+      "n": 6,
+      "correct": 2
+    }
+  },
+  "wrong_shape_total": 1,
+  "cannot_tell_total": 11
+}
