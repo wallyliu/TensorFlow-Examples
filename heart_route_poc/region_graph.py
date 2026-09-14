@@ -33,7 +33,7 @@ from xml.sax.saxutils import quoteattr, unescape
 import networkx as nx
 import osmnx as ox
 
-from region_download import CACHE_ROOT, REGIONS, region_for
+from region_download import CACHE_ROOT, ISLAND, REGIONS, region_for
 
 MERGED_DIR = Path(__file__).with_name("_region_merged")
 # The stitch cache is a convenience, not data: every file in it can be rebuilt
@@ -90,7 +90,7 @@ class RegionNotCovered(FileNotFoundError):
     """
 
 
-def fetched_bounds(region: str, mode: str) -> list:
+def fetched_bounds(region: str | list | tuple, mode: str) -> list:
     """
     Every tile the downloader has actually retrieved, file or no file.
 
@@ -103,18 +103,20 @@ def fetched_bounds(region: str, mode: str) -> list:
     simply beside the sea. Since half of Taiwan's cities are coastal, that
     false refusal would have followed us to every one of them.
     """
-    state = CACHE_ROOT / f"{region}_{mode}" / "_state.json"
-    if not state.exists():
-        return []
+    names = [region] if isinstance(region, str) else list(region)
     out = []
-    for key in json.loads(state.read_text()):
-        parts = key.split("_")
-        if len(parts) != 4:
+    for name in names:
+        state = CACHE_ROOT / f"{name}_{mode}" / "_state.json"
+        if not state.exists():
             continue
-        try:
-            out.append(tuple(float(v) for v in parts))
-        except ValueError:
-            continue
+        for key in json.loads(state.read_text()):
+            parts = key.split("_")
+            if len(parts) != 4:
+                continue
+            try:
+                out.append(tuple(float(v) for v in parts))
+            except ValueError:
+                continue
     return out
 
 
@@ -147,19 +149,44 @@ def coverage(box, tiles: list[Path], cells: int = 40,
     return inside / (cells * cells)
 
 
-def tiles_for(box, region: str, mode: str) -> list[Path]:
-    """Every cached tile whose own box overlaps the one asked for."""
+def regions_overlapping(box) -> list[str]:
+    """Every island region whose bounds meet this box.
+
+    A box does not respect the partition. 新竹 sits at 120.97 and its region
+    stops at 121.00, so a box of any useful size crosses into `north` - and
+    reading one region's cache left that eastern sliver empty, scored the place
+    at under 98% and refused it, with all the tiles it needed on disk the whole
+    time. Every city near a region edge had the same problem, silently.
+    """
     south, west, north, east = box
-    cache = CACHE_ROOT / f"{region}_{mode}"
-    if not cache.exists():
-        return []
+    out = []
+    for name in ISLAND:
+        b = REGIONS[name]
+        if (b["south"] <= north and b["north"] >= south
+                and b["west"] <= east and b["east"] >= west):
+            out.append(name)
+    return out
+
+
+def tiles_for(box, region: str | None, mode: str) -> list[Path]:
+    """Every cached tile whose own box overlaps the one asked for.
+
+    `region` is a hint, not a restriction: the search covers every region the
+    box reaches, so a box straddling two of them is stitched from both.
+    """
+    south, west, north, east = box
+    names = regions_overlapping(box) or ([region] if region else [])
     hits = []
-    for path in sorted(cache.glob("*.osm")):
-        b = tile_bounds(path)
-        if b is None:
+    for name in names:
+        cache = CACHE_ROOT / f"{name}_{mode}"
+        if not cache.exists():
             continue
-        if b[0] <= north and b[2] >= south and b[1] <= east and b[3] >= west:
-            hits.append(path)
+        for path in sorted(cache.glob("*.osm")):
+            b = tile_bounds(path)
+            if b is None:
+                continue
+            if b[0] <= north and b[2] >= south and b[1] <= east and b[3] >= west:
+                hits.append(path)
     return hits
 
 
@@ -256,7 +283,9 @@ def region_graph(lat: float, lon: float, half_size_m: float,
         raise RegionNotCovered(
             f"no cached tiles cover {lat},{lon} +-{half_size_m:.0f} m in "
             f"{region}/{mode}; run region_download.py first")
-    covered = coverage(box, paths, fetched=fetched_bounds(region, mode))
+    covered = coverage(box, paths,
+                       fetched=fetched_bounds(regions_overlapping(box)
+                                              or [region], mode))
     if covered < min_coverage:
         raise RegionNotCovered(
             f"{region}/{mode} covers only {covered:.0%} of the box at "

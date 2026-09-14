@@ -25,6 +25,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 
+import math
+
 import numpy as np
 
 from shape_library import SHAPES, resample_by_arclength
@@ -59,6 +61,48 @@ TAIPEI_STREET_SCALE_M = 160.0
 # of quiet lie this project keeps finding in its own metrics.
 DETOUR_RATIO = 1.25
 DETOUR_UNCERTAINTY = 0.15   # +-10% covered 10 of 12 measured fits; +-15% covered all 12
+
+# ...and it is not a constant. POC 25 measured the detour of the route the
+# pipeline actually keeps, over two shapes and four sizes, and added the large
+# fits from POC 21, 23 and 24:
+#
+#     2.5 km 1.29   4.2 km 1.21   5.0 km 1.32   7.3 km 1.54   8.7 km 1.92
+#    12.3 km 1.93   12.3 km 2.18  12.4 km 1.75  12.4 km 1.82
+#
+# A straight line in width fits with a residual sd of 0.159 and no residual
+# worse than 0.250. Against those same nine, the constant 1.25 has a residual sd
+# of 0.339 and a MEAN error of +0.412 - it does not merely scatter, it
+# understates, and it understates the thing the product promises a rider. The
+# 50 km heart was quoted 42.5-57.5 km and measured 72.2.
+#
+# Deliberately a straight line and nothing richer: nine points over two shapes
+# cannot support more parameters, and the quantity being replaced had one.
+# POC 24 ruled out the obvious confound - this is not placement scarcity, since
+# letting the search choose from twenty placements instead of one moves the
+# detour by 0.14 at 2.5 km and by nothing at 12.4 km.
+DETOUR_INTERCEPT = 1.024
+DETOUR_PER_KM = 0.0745
+DETOUR_RESIDUAL_SD = 0.159
+
+
+def detour_for(width_m: float, mode: str = None) -> float:
+    """The detour a shape this wide actually pays."""
+    return DETOUR_INTERCEPT + DETOUR_PER_KM * (width_m / 1000.0)
+
+
+def width_for(shape: str, target_km: float) -> float:
+    """
+    How wide to draw a shape so the ride comes out at target_km.
+
+    Not a division any more. The route is perimeter x width x detour, and the
+    detour is itself a function of width, so the two have to be solved together:
+    P.b.w^2 + P.a.w - T = 0 with w in km. Dividing by a fixed detour is what
+    made a 50 km request come back 22 km long.
+    """
+    per = perimeter(shape)
+    a, b = DETOUR_INTERCEPT, DETOUR_PER_KM
+    w_km = (-per * a + math.sqrt((per * a) ** 2 + 4 * per * b * target_km)) / (2 * per * b)
+    return w_km * 1000.0
 
 # Per-mode constants. Bicycle is the default: it is the mode the product is for,
 # and the walking numbers are kept because nine POCs of measurement rest on them.
@@ -129,7 +173,8 @@ def n_min(shape: str, tolerance: float = SAMPLING_TOLERANCE, ceiling: int = 400)
 def min_distance_km(shape: str, mode: str = DEFAULT_MODE) -> float:
     """The shortest route this shape can produce in this mode and still be itself."""
     cfg = MODES[mode]
-    return n_min(shape) * cfg["street_scale_m"] * cfg["detour"] / 1000.0
+    width = n_min(shape) * cfg["street_scale_m"] / perimeter(shape)
+    return perimeter(shape) * width * detour_for(width, mode) / 1000.0
 
 
 # Where inside the window to sit. POC 9 swept this across five shapes, found the
@@ -192,17 +237,21 @@ def plan(shape: str, target_km: float, mode: str = DEFAULT_MODE) -> Plan:
     the failure this whole project keeps running into: the metric cannot see a
     destroyed feature, so the check has to happen HERE, before anything is drawn.
     """
-    detour = MODES[mode]["detour"]
     floor = min_distance_km(shape, mode)
     if target_km < floor:
         return Plan(shape, mode, False, target_km, floor, None, None, None, None,
                     f"needs at least {floor:.1f} km; too much detail to fit in "
                     f"{target_km:.1f} km of {MODES[mode]['label']}")
 
-    width = target_km * 1000.0 / (perimeter(shape) * detour)
+    width = width_for(shape, target_km)
     points = contour_points(shape, width, mode)
+    detour = detour_for(width, mode)
     predicted = perimeter(shape) * width * detour / 1000.0
-    span = (predicted * (1 - DETOUR_UNCERTAINTY), predicted * (1 + DETOUR_UNCERTAINTY))
+    # The band comes from the fit's own residual scatter rather than a flat
+    # percentage. +-2 sd covers every one of the nine measured fits; a flat
+    # +-15% did not, and was widest exactly where the estimate was best.
+    slack = perimeter(shape) * width * 2 * DETOUR_RESIDUAL_SD / 1000.0
+    span = (max(0.0, predicted - slack), predicted + slack)
     return Plan(shape, mode, True, target_km, floor, width, points, predicted, span,
                 f"{width / 1000:.1f} km wide, {points} contour points")
 

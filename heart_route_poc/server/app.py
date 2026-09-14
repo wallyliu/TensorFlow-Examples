@@ -47,7 +47,10 @@ from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               select_candidates)
 from heart_route_poc3 import place_shape                          # noqa: E402
 from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
-from region_graph import region_graph                            # noqa: E402
+from region_graph import (MIN_COVERAGE, box_around, coverage,        # noqa: E402
+                          fetched_bounds, region_graph,
+                          regions_overlapping, tiles_for)
+from region_download import region_for                            # noqa: E402
 from poc15_wiggle import wander                                  # noqa: E402
 from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
@@ -69,6 +72,23 @@ PLACEMENT_SLACK = 1.0
 # Beyond this the stitch, the street index and the search stop being worth
 # waiting for on a request. A 100 km heart is 24.9 km wide and lands here.
 MAX_HALF_SIZE_M = 20000.0
+
+# Somewhere to start from. Not a list of everywhere that works - any lat/lon in
+# a downloaded region is routable - just the places worth offering as a first
+# click. /api/places reports which of them the map actually reaches, so the
+# page never offers a city whose tiles are not on disk.
+PLACES = [
+    ("台北", 25.0400, 121.5400), ("板橋", 25.0143, 121.4672),
+    ("基隆", 25.1283, 121.7419), ("桃園", 24.9937, 121.3010),
+    ("新竹", 24.8039, 120.9715), ("宜蘭", 24.7570, 121.7530),
+    ("台中", 24.1477, 120.6736), ("彰化", 24.0809, 120.5387),
+    ("嘉義", 23.4801, 120.4491), ("台南", 22.9908, 120.2133),
+    ("高雄", 22.6273, 120.3014), ("屏東", 22.6690, 120.4880),
+    ("花蓮", 23.9872, 121.6015), ("台東", 22.7583, 121.1444),
+]
+# The size a place is judged routable at. A place that cannot hold the smallest
+# useful shape is not worth offering, and one that holds this holds most.
+PLACE_PROBE_M = 4500.0
 
 # Two raters, seventeen of seventeen, preferred a shape with a feature amputated
 # over one of the same shape distance that wobbled everywhere (POC 18), and no
@@ -193,6 +213,29 @@ def streets_near(net: dict, xy: np.ndarray, pad_m: float = 400.0) -> list:
             continue
         lons, lats = to_wgs.transform(xs, ys)
         out.append([[round(a, 5), round(b, 5)] for a, b in zip(lats, lons)])
+    return out
+
+
+def places() -> list[dict]:
+    """The starting points on offer, each marked with whether the map has it.
+
+    Coverage is checked rather than assumed. The regions download over hours
+    and a half-finished one would otherwise be offered as ready, sending the
+    rider into a 'no placement' after a minute of stitching.
+    """
+    out = []
+    for name, lat, lon in PLACES:
+        region = region_for(lat, lon)
+        covered = False
+        if region:
+            box = box_around(lat, lon, PLACE_PROBE_M)
+            names = regions_overlapping(box) or [region]
+            tiles = tiles_for(box, region, rf.DEFAULT_MODE)
+            covered = bool(tiles) and coverage(
+                box, tiles, fetched=fetched_bounds(names, rf.DEFAULT_MODE)
+            ) >= MIN_COVERAGE
+        out.append({"name": name, "lat": lat, "lon": lon,
+                    "region": region, "ready": covered})
     return out
 
 
@@ -343,6 +386,9 @@ class Handler(BaseHTTPRequestHandler):
                 {"name": s, "label": LABELS.get(s, s), "n_min": rf.n_min(s),
                  "min_km": round(rf.min_distance_km(s, mode), 1)}
                 for s in sorted(SHAPES, key=rf.n_min)]})
+        elif path == "/api/places":
+            self._json(200, {"places": places()})
+
         elif path.startswith("/api/route/") and path.endswith(".gpx"):
             route_id = path[len("/api/route/"):-len(".gpx")]
             entry = ROUTES.get(route_id)

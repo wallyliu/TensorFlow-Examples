@@ -112,6 +112,22 @@
   }
   .status { color: var(--muted); font-size: 14px; }
   .status.bad { color: var(--warn); }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .presets button, .places button {
+    font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+    border: 1px solid var(--rule); border-radius: 999px;
+    background: transparent; color: var(--ink);
+  }
+  .presets button[aria-pressed="true"], .places button[aria-pressed="true"] {
+    background: var(--ink); color: var(--panel); border-color: var(--ink);
+  }
+  .places { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .places button[disabled] { opacity: .4; cursor: not-allowed; }
+  .ghost {
+    font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+    border: 1px dashed var(--rule); border-radius: 999px;
+    background: transparent; color: var(--muted);
+  }
   .note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
 </style>
 </head>
@@ -119,7 +135,7 @@
 <div class="wrap">
   <p class="eyebrow">形狀路線產生器</p>
   <h1>把圖案騎出來</h1>
-  <p class="lede">選一個圖案和你想騎的距離，它會在台北的單車路網上找一個擺得下的位置，
+  <p class="lede">選一個地點、一個圖案和你想騎的距離，它會在真實的單車路網上找一個擺得下的位置，
     沿著真實道路把圖案畫出來，然後給你一個可以匯入 Garmin 或 Komoot 的 GPX 檔。</p>
 
   <div class="card">
@@ -129,8 +145,16 @@
     </div>
     <label class="field" for="km">你想騎多遠</label>
     <div class="km"><span id="km-value">10.0</span> km</div>
-    <input type="range" id="km" min="2" max="40" step="0.5" value="10">
-    <div class="scale"><span>2 km</span><span>20 km</span><span>40 km</span></div>
+    <input type="range" id="km" min="2" max="120" step="0.5" value="10">
+    <div class="scale"><span>2 km</span><span>60 km</span><span>120 km</span></div>
+    <div class="presets" id="km-presets"></div>
+  </div>
+
+  <div class="card">
+    <p class="eyebrow" style="margin-bottom:12px">從哪裡出發</p>
+    <div class="places" id="places"></div>
+    <button class="ghost" id="locate" type="button">用我目前的位置</button>
+    <p class="verdict" id="place-note"></p>
   </div>
 
   <div class="card">
@@ -184,7 +208,15 @@
   state.view = "map";
   state.last = null;
   state.upright = true;
+  // Where the shape gets drawn. Taipei until /api/places says otherwise or the
+  // rider picks somewhere else; the server takes any lat/lon in a downloaded
+  // region, so this is a convenience and not a whitelist.
+  state.place = { name: "台北", lat: 25.04, lon: 121.54 };
   var $ = function (id) { return document.getElementById(id); };
+
+  // The distances the product is about. The slider still reaches anything in
+  // between; these are just the ones worth one click.
+  var KM_PRESETS = [10, 30, 50, 100];
 
   function api(path, body) {
     return fetch(path, body ? {
@@ -198,6 +230,79 @@
     $("mode-bike").setAttribute("aria-pressed", String(mode === "bike"));
     $("mode-walk").setAttribute("aria-pressed", String(mode === "walk"));
     loadShapes();
+  }
+
+  function renderPresets() {
+    var box = $("km-presets");
+    box.innerHTML = "";
+    KM_PRESETS.forEach(function (km) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = km + " km";
+      b.setAttribute("aria-pressed", String(Math.abs(state.km - km) < 0.01));
+      b.onclick = function () { setKm(km); };
+      box.appendChild(b);
+    });
+  }
+
+  function setKm(km) {
+    state.km = km;
+    $("km").value = String(km);
+    $("km-value").textContent = km.toFixed(1);
+    renderPresets();
+    renderShapes();
+  }
+
+  function loadPlaces() {
+    api("/api/places").then(function (data) {
+      var box = $("places");
+      box.innerHTML = "";
+      var ready = 0;
+      data.places.forEach(function (pl) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = pl.name;
+        b.disabled = !pl.ready;
+        // A place whose region is still downloading is shown but not
+        // selectable. Hiding it would read as "we do not do Tainan"; greying it
+        // reads as "not yet", which is the truth.
+        b.title = pl.ready ? "" : "這個區域的地圖還在下載";
+        b.setAttribute("aria-pressed", String(state.place.name === pl.name));
+        b.onclick = function () { setPlace(pl); };
+        box.appendChild(b);
+        if (pl.ready) ready += 1;
+      });
+      $("place-note").textContent = ready < data.places.length
+        ? "灰色的城市地圖還在下載。" : "";
+    });
+  }
+
+  function setPlace(pl) {
+    state.place = { name: pl.name, lat: pl.lat, lon: pl.lon };
+    Array.prototype.forEach.call($("places").children, function (b) {
+      b.setAttribute("aria-pressed", String(b.textContent === pl.name));
+    });
+    $("place-note").textContent = "出發地：" + pl.name;
+  }
+
+  function locate() {
+    if (!navigator.geolocation) {
+      $("place-note").textContent = "這個瀏覽器不支援定位。";
+      return;
+    }
+    $("place-note").textContent = "定位中…";
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      state.place = { name: "目前位置", lat: pos.coords.latitude,
+                      lon: pos.coords.longitude };
+      Array.prototype.forEach.call($("places").children, function (b) {
+        b.setAttribute("aria-pressed", "false");
+      });
+      $("place-note").textContent = "出發地：目前位置 ("
+        + pos.coords.latitude.toFixed(3) + ", "
+        + pos.coords.longitude.toFixed(3) + ")";
+    }, function () {
+      $("place-note").textContent = "拿不到位置，改用上面的城市。";
+    });
   }
 
   function loadShapes() {
@@ -329,7 +434,8 @@
     $("go").disabled = true;
     $("status").textContent = "計算中…（第一次會等路網載入，之後只要幾秒）";
     $("status").className = "status";
-    var body = { target_km: state.km, mode: state.mode };
+    var body = { target_km: state.km, mode: state.mode,
+                 lat: state.place.lat, lon: state.place.lon };
     if (state.text) body.text = state.text; else body.shape = state.shape;
     api("/api/route", body)
       .then(function (r) {
@@ -408,13 +514,17 @@
   $("view-shape").addEventListener("click", function () { setView("shape"); });
   $("mode-bike").addEventListener("click", function () { setMode("bike"); });
   $("mode-walk").addEventListener("click", function () { setMode("walk"); });
+  $("locate").addEventListener("click", locate);
   $("km").addEventListener("input", function (e) {
     state.km = parseFloat(e.target.value);
     $("km-value").textContent = state.km.toFixed(1);
+    renderPresets();
     renderShapes();
     if (state.text || $("text").value.trim()) checkText();
   });
   $("go").addEventListener("click", go);
+  renderPresets();
+  loadPlaces();
   loadShapes();
 })();
 </script>

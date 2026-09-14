@@ -1,0 +1,84 @@
+{
+  "heart@10": {
+    "status": "ok",
+    "width_m": 2485.804114816049,
+    "points": 28,
+    "template_km": 7.936507936507938,
+    "viable": 1358,
+    "n_fits": 4,
+    "kept_detour": 1.2862819503341032,
+    "kept_distance": 0.052938592433888675,
+    "detour_mean": 1.3414539929354896,
+    "detour_min": 1.2862819503341032,
+    "detour_max": 1.3766265911335775
+  },
+  "star5@10": {
+    "status": "infeasible",
+    "reason": "needs at least 12.7 km; too much detail to fit in 10.0 km of cycling"
+  },
+  "heart@20": {
+    "status": "ok",
+    "width_m": 4971.608229632098,
+    "points": 56,
+    "template_km": 15.873015873015875,
+    "viable": 389,
+    "n_fits": 4,
+    "kept_detour": 1.316733787303585,
+    "kept_distance": 0.06958781835493255,
+    "detour_mean": 1.4050933245641277,
+    "detour_min": 1.316733787303585,
+    "detour_max": 1.5240782995811732
+  },
+  "star5@20": {
+    "status": "ok",
+    "width_m": 4155.723774892633,
+    "points": 56,
+    "template_km": 15.873015873015872,
+    "viable": 646,
+    "n_fits": 4,
+    "kept_detour": 1.210373095590085,
+    "kept_distance": 0.07327210129011011,
+    "detour_mean": 1.3023905725587874,
+    "detour_min": 1.210373095590085,
+    "detour_max": 1.4462604086401563
+  },
+  "heart@35": {
+    "status": "ok",
+    "width_m": 8700.314401856172,
+    "points": 99,
+    "template_km": 27.777777777777782,
+    "viable": 115,
+    "n_fits": 3,
+    "kept_detour": 1.9218214818873764,
+    "kept_distance": 0.17265413617079606,
+    "detour_mean": 1.7332979114449178,
+    "detour_min": 1.60255575183643,
+    "detour_max": 1.9218214818873764
+  },
+  "star5@35": {
+    "status": "ok",
+    "width_m": 7272.516606062108,
+    "points": 99,
+    "template_km": 27.77777777777778,
+    "viable": 314,
+    "n_fits": 4,
+    "kept_detour": 1.540118868138864,
+    "kept_distance": 0.15128921267331363,
+    "detour_mean": 1.5624625330110105,
+    "detour_min": 1.540118868138864,
+    "detour_max": 1.6031837831206845
+  },
+  "heart@50": {
+    "status": "ok",
+    "width_m": 12429.020574080247,
+    "points": 141,
+    "template_km": 39.68253968253969,
+    "viable": 144,
+    "n_fits": 3,
+    "kept_detour": 1.7517500590103685,
+    "kept_distance": 0.12716256153600852,
+    "detour_mean": 1.98534157783768,
+    "detour_min": 1.7517500590103685,
+    "detour_max": 2.2232851667973477
+  }
+}
