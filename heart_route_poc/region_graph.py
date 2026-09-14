@@ -24,6 +24,7 @@ Run:  python region_graph.py --lat 25.04 --lon 121.54 --half-size 7000
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import re
 from pathlib import Path
@@ -66,17 +67,51 @@ class RegionNotCovered(FileNotFoundError):
     """
 
 
-def coverage(box, tiles: list[Path], cells: int = 40) -> float:
+def fetched_bounds(region: str, mode: str) -> list:
     """
-    What fraction of the box some cached tile actually contains.
+    Every tile the downloader has actually retrieved, file or no file.
+
+    region_download only writes a .osm when the tile contained rideable ways,
+    so sea, reservoir and steep forest come back empty and leave nothing on
+    disk. Judging coverage by the files alone cannot tell "fetched, and there
+    is nothing there" from "never fetched", and the two mean opposite things:
+    the first is complete, the second is a gap. Off the files alone the gate
+    refused Luodong at 68% and Tamsui at 88% - both fully downloaded, both
+    simply beside the sea. Since half of Taiwan's cities are coastal, that
+    false refusal would have followed us to every one of them.
+    """
+    state = CACHE_ROOT / f"{region}_{mode}" / "_state.json"
+    if not state.exists():
+        return []
+    out = []
+    for key in json.loads(state.read_text()):
+        parts = key.split("_")
+        if len(parts) != 4:
+            continue
+        try:
+            out.append(tuple(float(v) for v in parts))
+        except ValueError:
+            continue
+    return out
+
+
+def coverage(box, tiles: list[Path], cells: int = 40,
+             fetched: list | None = None) -> float:
+    """
+    What fraction of the box the downloader has been over.
 
     Sampled on a grid rather than computed as a union of rectangles: the tiles
     overlap and subdivide at four different sizes, so the exact union is
     fiddly and the answer only has to be good enough to tell "covered" from
     "one tile clipping the corner".
+
+    Pass `fetched` (from fetched_bounds) to count the empty tiles too. Without
+    it this measures where the data is, which is the stricter and wrong
+    question - see fetched_bounds.
     """
     south, west, north, east = box
     bounds = [b for b in (tile_bounds(p) for p in tiles) if b]
+    bounds += list(fetched or [])
     if not bounds:
         return 0.0
     lats = [south + (north - south) * (i + 0.5) / cells for i in range(cells)]
@@ -186,7 +221,7 @@ def region_graph(lat: float, lon: float, half_size_m: float,
         raise RegionNotCovered(
             f"no cached tiles cover {lat},{lon} +-{half_size_m:.0f} m in "
             f"{region}/{mode}; run region_download.py first")
-    covered = coverage(box, paths)
+    covered = coverage(box, paths, fetched=fetched_bounds(region, mode))
     if covered < min_coverage:
         raise RegionNotCovered(
             f"{region}/{mode} covers only {covered:.0%} of the box at "
