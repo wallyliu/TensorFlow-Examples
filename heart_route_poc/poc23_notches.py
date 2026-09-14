@@ -46,6 +46,16 @@ That makes the constant's +-15% uncertainty a claim about small shapes only.
 Nothing here fixes it; the next measurement to take is detour against viable
 placement count at fixed size, which separates the two for good.
 
+POSTSCRIPT - the placement explanation above is WRONG. POC 24 took that
+measurement and choice buys almost nothing: at a 10 km target the detour of the
+kept route falls only from 1.44 to 1.30 between best-of-1 and best-of-20, and at
+50 km it does not fall at all (2.11 to 2.21 over seven). The two curves lie 0.8
+apart at every value of k, so they do not overlay and size is the variable.
+Everything above the paragraph beginning "The likely mechanism" stands - the
+three rejections are sound, and the smooth outline really is worse. The
+inference drawn from them was not, and it is left here as written rather than
+quietly edited, because the guess reads as plausible as the ones that held.
+
 Run:  python poc23_notches.py
 Out:  poc23_notches.png, poc23_notches.json
 """
