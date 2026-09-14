@@ -1,43 +1,34 @@
 {
-  "New Taipei Banqiao": {
-    "status": "incomplete coverage",
-    "nodes": 88,
-    "fraction_near_street": 0.0
-  },
   "Keelung": {
     "lat": 25.128,
     "lon": 121.741,
-    "nodes": 2528,
-    "median_m": 254.14394527541486,
-    "p90_m": 2592.3271251129354,
-    "implied_scale_m": 508.28789055082973,
-    "heart_min_km": 7.685312905128546
+    "nodes": 5384,
+    "median_m": 83.707115606044,
+    "p90_m": 435.6308904470128,
+    "fraction_near_street": 0.782
   },
   "Taoyuan Zhongli": {
     "lat": 24.955,
     "lon": 121.225,
-    "nodes": 7002,
-    "median_m": 316.9417185847967,
-    "p90_m": 3824.3213618540103,
-    "implied_scale_m": 633.8834371695934,
-    "heart_min_km": 9.584317570004252
+    "nodes": 17447,
+    "median_m": 25.04443859973569,
+    "p90_m": 89.04469945382556,
+    "fraction_near_street": 0.9997
   },
   "Yilan Luodong": {
     "lat": 24.677,
     "lon": 121.767,
     "nodes": 9190,
-    "median_m": 30.67573754884495,
-    "p90_m": 107.18065169464403,
-    "implied_scale_m": 61.3514750976899,
-    "heart_min_km": 0.9276343034770713
+    "median_m": 31.169276521253202,
+    "p90_m": 107.68149162678627,
+    "fraction_near_street": 0.9707
   },
   "Yilan Toucheng": {
     "lat": 24.856,
     "lon": 121.823,
     "nodes": 3314,
-    "median_m": 177.87727469754532,
-    "p90_m": 2618.879036751664,
-    "implied_scale_m": 355.75454939509063,
-    "heart_min_km": 5.37900878685377
+    "median_m": 185.49460416586834,
+    "p90_m": 2553.93842082124,
+    "fraction_near_street": 0.5406
   }
 }

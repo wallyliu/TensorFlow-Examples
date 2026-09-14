@@ -14,9 +14,12 @@ because the ideal contour strays further from the network than the 250 m
 admissibility gap allows. The answer was confidently wrong, which is the
 failure mode this project keeps hitting and the one it is least able to notice.
 
-This measures the street scale directly wherever the region cache reaches:
-sample random points, take the distance to the nearest piece of network. The
-median is what `street_scale_m` is supposed to be.
+This measures how far a random point is from a rideable street, wherever the
+region cache actually covers the box. It does NOT yet convert that into a
+street scale: Taipei's own figure has never been taken with this instrument,
+the download has not reached Taipei, and without it there is no baseline to
+scale against. An earlier version printed a "x Taipei" column derived from a
+halving I invented; it is gone.
 
 Run:  python poc22_constants.py
 Out:  poc22_constants.png, poc22_constants.json
@@ -61,11 +64,9 @@ OUT_JSON = Path(__file__).with_name("poc22_constants.json")
 
 def main() -> None:
     rng = np.random.default_rng(0)
-    taipei_scale = rf.MODES["bike"]["street_scale_m"]
     results = {}
 
-    print(f"{'place':<20}{'nodes':>9}{'median':>10}{'p90':>8}"
-          f"{'vs Taipei':>10}{'heart min':>11}")
+    print(f"{'place':<20}{'nodes':>9}{'median':>10}{'p90':>8}{'covered':>11}")
     for label, (lat, lon) in PLACES.items():
         try:
             graph = region_graph(lat, lon, HALF_SIZE_M, mode="bike")
@@ -93,19 +94,20 @@ def main() -> None:
                               "nodes": graph.number_of_nodes(),
                               "fraction_near_street": covered}
             continue
-        # street_scale_m is defined as the spacing the network can resolve, and
-        # the Taipei value was derived the same way, so the ratio is the factor
-        # every feasibility answer is out by here.
-        ratio = median / (taipei_scale / 2)   # Taipei's own median is ~half its scale
-        scale = taipei_scale * ratio
-        heart_km = rf.n_min("heart") * scale * rf.MODES["bike"]["detour"] / 1000
+        # Deliberately no "x Taipei" column and no implied street scale. The
+        # first version had both, computed as median / (taipei_scale / 2) - and
+        # that halving was something I made up, not a relationship anyone
+        # measured. Taipei's own median has never been taken with this
+        # instrument, and it cannot be until the download reaches it, so there
+        # is nothing to compare against yet. Reporting a ratio to an invented
+        # baseline is how a feasibility check comes to be confidently wrong,
+        # which is the failure this file exists to catch.
         results[label] = {"lat": lat, "lon": lon,
                           "nodes": graph.number_of_nodes(),
                           "median_m": median, "p90_m": p90,
-                          "implied_scale_m": scale,
-                          "heart_min_km": heart_km}
+                          "fraction_near_street": covered}
         print(f"{label:<20}{graph.number_of_nodes():>9,}{median:>9.0f}m{p90:>7.0f}m"
-              f"{ratio:>9.2f}x{heart_km:>9.1f} km")
+              f"{covered:>11.0%}")
 
     measured = {k: v for k, v in results.items() if "median_m" in v}
     if not measured:

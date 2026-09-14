@@ -59,21 +59,30 @@ def tile_key(bbox) -> str:
 
 
 def fetch(bbox, timeout: int = 180):
-    """Return the tile's bytes, or None when the API says it holds too much."""
+    """
+    Return the tile's bytes, or None when the API says the box holds too much.
+
+    Only 400 means "too big, split it". 509 is the bandwidth limiter and 429 is
+    the rate limiter - both mean "come back later", and splitting on them makes
+    it worse: one refusal becomes four requests, then sixteen, and the ground
+    underneath is abandoned at MIN_STEP having never been fetched. They wait
+    instead, and so do 5xx, which used to be fatal because HTTPError was
+    re-raised while socket errors retried.
+    """
     url = (f"{OSM_MAP_API}?bbox={bbox[0]:.5f},{bbox[1]:.5f},"
            f"{bbox[2]:.5f},{bbox[3]:.5f}")
     delay = 3.0
-    for attempt in range(4):
+    for attempt in range(5):
         try:
             resp = requests.get(url, timeout=timeout)
-            if resp.status_code in (400, 509):
-                return None            # too big, or bandwidth-limited: split it
+            if resp.status_code == 400:
+                return None                       # too big: split it
+            if resp.status_code in (429, 509) or resp.status_code >= 500:
+                raise requests.HTTPError(f"HTTP {resp.status_code}")
             resp.raise_for_status()
             return resp.content
-        except requests.HTTPError:
-            raise
-        except Exception as exc:       # noqa: BLE001 - transport errors retry
-            if attempt == 3:
+        except Exception as exc:       # noqa: BLE001 - everything else retries
+            if attempt == 4:
                 raise
             print(f"      retry in {delay:.0f}s ({exc})", flush=True)
             time.sleep(delay)
@@ -134,18 +143,25 @@ def run(region: str, mode: str) -> None:
             continue
         raw = fetch(bbox)
         if raw is None:
-            step = (bbox[2] - bbox[0]) / 2
-            if step < MIN_STEP:
-                print(f"    giving up on {key}: still too big at {step:.4f} deg",
-                      flush=True)
+            # Two steps, not one. A tile clipped at the region edge is not
+            # square, and using the longitude half-width for latitude as well
+            # either leaves a band of it unfetched or overshoots the region.
+            # On the real tile (121.61, 25.03)-(121.68, 25.11) the single-step
+            # version missed 1.1 km of latitude across the whole width.
+            lon_step = (bbox[2] - bbox[0]) / 2
+            lat_step = (bbox[3] - bbox[1]) / 2
+            if min(lon_step, lat_step) < MIN_STEP:
+                print(f"    giving up on {key}: still too big at "
+                      f"{min(lon_step, lat_step):.4f} deg", flush=True)
                 done.add(key)
+                state_path.write_text(json.dumps(sorted(done)))
                 continue
             split += 1
             for dx in (0, 1):
                 for dy in (0, 1):
-                    queue.append((bbox[0] + dx * step, bbox[1] + dy * step,
-                                  bbox[0] + (dx + 1) * step,
-                                  bbox[1] + (dy + 1) * step))
+                    queue.append((bbox[0] + dx * lon_step, bbox[1] + dy * lat_step,
+                                  bbox[0] + (dx + 1) * lon_step,
+                                  bbox[1] + (dy + 1) * lat_step))
             continue
 
         nodes: dict = {}

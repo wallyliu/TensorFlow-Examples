@@ -27,7 +27,7 @@ import argparse
 import math
 import re
 from pathlib import Path
-from xml.sax.saxutils import quoteattr
+from xml.sax.saxutils import quoteattr, unescape
 
 import networkx as nx
 import osmnx as ox
@@ -51,6 +51,42 @@ def box_around(lat: float, lon: float, half_size_m: float):
     d_lat = half_size_m / 111_320.0
     d_lon = half_size_m / (111_320.0 * math.cos(math.radians(lat)))
     return lat - d_lat, lon - d_lon, lat + d_lat, lon + d_lon
+
+
+class RegionNotCovered(FileNotFoundError):
+    """
+    The cache reaches this box but does not fill it.
+
+    A subclass of FileNotFoundError so every caller that already falls back on
+    a missing region falls back on a half-present one too. That distinction is
+    the whole point: overlapping ONE tile is not coverage, and treating it as
+    coverage is how the service came to serve central Taipei as a 153-node
+    graph - against 42,146 for the same box downloaded directly - and log it as
+    a success.
+    """
+
+
+def coverage(box, tiles: list[Path], cells: int = 40) -> float:
+    """
+    What fraction of the box some cached tile actually contains.
+
+    Sampled on a grid rather than computed as a union of rectangles: the tiles
+    overlap and subdivide at four different sizes, so the exact union is
+    fiddly and the answer only has to be good enough to tell "covered" from
+    "one tile clipping the corner".
+    """
+    south, west, north, east = box
+    bounds = [b for b in (tile_bounds(p) for p in tiles) if b]
+    if not bounds:
+        return 0.0
+    lats = [south + (north - south) * (i + 0.5) / cells for i in range(cells)]
+    lons = [west + (east - west) * (i + 0.5) / cells for i in range(cells)]
+    inside = 0
+    for la in lats:
+        for lo in lons:
+            if any(b[0] <= la <= b[2] and b[1] <= lo <= b[3] for b in bounds):
+                inside += 1
+    return inside / (cells * cells)
 
 
 def tiles_for(box, region: str, mode: str) -> list[Path]:
@@ -97,9 +133,13 @@ def merge_tiles(paths: list[Path], box, out_path: Path) -> Path:
             elif "<nd ref=" in line and way_id:
                 refs.append(re.search(r'<nd ref="(\d+)"', line).group(1))
             elif "<tag k=" in line and way_id:
-                m = re.search(r'<tag k="([^"]*)" v="([^"]*)"', line)
+                # quoteattr emits SINGLE quotes when the value contains a
+                # double quote, so a regex fixed on double quotes drops those
+                # tags silently. Both forms, and unescape once so re-stitching
+                # does not turn & into &amp;amp;.
+                m = re.search(r'<tag k=(["\'])(.*?)\1 v=(["\'])(.*?)\3', line)
                 if m:
-                    tags.append((m.group(1), m.group(2)))
+                    tags.append((unescape(m.group(2)), unescape(m.group(4))))
             elif "</way>" in line and way_id:
                 ways.setdefault(way_id, (refs, tags))
                 way_id = None
@@ -133,28 +173,54 @@ def merge_tiles(paths: list[Path], box, out_path: Path) -> Path:
     return out_path
 
 
+MIN_COVERAGE = 0.98
+
+
 def region_graph(lat: float, lon: float, half_size_m: float,
-                 mode: str = "bike", region: str = "north") -> nx.MultiDiGraph:
+                 mode: str = "bike", region: str = "north",
+                 min_coverage: float = MIN_COVERAGE) -> nx.MultiDiGraph:
     """The network around a point, stitched from the region cache."""
     box = box_around(lat, lon, half_size_m)
     paths = tiles_for(box, region, mode)
     if not paths:
-        raise FileNotFoundError(
+        raise RegionNotCovered(
             f"no cached tiles cover {lat},{lon} +-{half_size_m:.0f} m in "
             f"{region}/{mode}; run region_download.py first")
+    covered = coverage(box, paths)
+    if covered < min_coverage:
+        raise RegionNotCovered(
+            f"{region}/{mode} covers only {covered:.0%} of the box at "
+            f"{lat},{lon} +-{half_size_m:.0f} m; the download has not finished "
+            f"here")
 
     MERGED_DIR.mkdir(exist_ok=True)
     merged = MERGED_DIR / (f"{region}_{mode}_{lat:.4f}_{lon:.4f}_"
                            f"{half_size_m:.0f}m.osm")
-    if not merged.exists():
-        print(f"  stitching {len(paths)} tiles from {region}/{mode}", flush=True)
+    # Restitch when any source tile is newer than the stitch. Without this a
+    # stitch made while the download was still running is frozen for good, and
+    # the cache filled up with exactly that: central Taipei at 335 KB beside
+    # rural Yilan at 3.8 MB.
+    newest = max((p.stat().st_mtime for p in paths), default=0.0)
+    if not merged.exists() or merged.stat().st_mtime < newest:
+        print(f"  stitching {len(paths)} tiles from {region}/{mode} "
+              f"({covered:.0%} coverage)", flush=True)
         merge_tiles(paths, box, merged)
     else:
         print(f"  using stitched network {merged.name}", flush=True)
     # Cyclists obey one-way restrictions; pedestrians do not. Same rule as
     # download_walk_graph, and getting it wrong sends the route up 8,000
     # one-way streets.
-    graph = ox.graph_from_xml(merged, bidirectional=(mode == "walk"), simplify=True)
+    try:
+        graph = ox.graph_from_xml(merged, bidirectional=(mode == "walk"),
+                                  simplify=True)
+    except Exception as exc:      # noqa: BLE001 - osmnx raises its own type here
+        # An empty or unusable stitch is a gap in the cache, not a crash. Remove
+        # the file too: leaving it means the mtime check above thinks the point
+        # is cached and it stays broken for good.
+        merged.unlink(missing_ok=True)
+        raise RegionNotCovered(
+            f"{region}/{mode} has tiles around {lat},{lon} but they yield no "
+            f"usable network ({type(exc).__name__})") from exc
     # And project, which download_walk_graph also does. Everything downstream -
     # the street index, the placement grid, every distance in metres - assumes
     # a metric CRS. Returning the raw lat/lon graph does not fail, it silently
