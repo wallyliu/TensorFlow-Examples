@@ -122,17 +122,34 @@ def cover(bounds: dict, step: float) -> list:
     return tiles
 
 
-def run(region: str, mode: str) -> None:
+def run(region: str, mode: str, near: tuple[float, float] | None = None) -> None:
     bounds = REGIONS[region]
     keep_way = FILTERS[mode]
     cache = CACHE_ROOT / f"{region}_{mode}"
     cache.mkdir(parents=True, exist_ok=True)
     state_path = cache / "_state.json"
     done = set(json.loads(state_path.read_text())) if state_path.exists() else set()
+    # Tiles already known to be too big. Without this every restart re-issues
+    # the request for each split ancestor just to be told 400 again, and those
+    # are the slowest requests there are - the server evaluates the whole box
+    # before rejecting it. This container gets recycled often, so restarts are
+    # the common case, not the rare one.
+    splits_path = cache / "_splits.json"
+    known_split = (set(json.loads(splits_path.read_text()))
+                   if splits_path.exists() else set())
 
     queue = cover(bounds, START_STEP)
+    if near:
+        # Row-major from the south-west corner is an arbitrary order that
+        # happens to leave the cities late: central Taipei is coarse tile 76 of
+        # 126. Sorting by distance from a point of interest costs nothing and
+        # makes the region usable around that point first.
+        queue.sort(key=lambda b: (((b[1] + b[3]) / 2 - near[0]) ** 2
+                                  + ((b[0] + b[2]) / 2 - near[1]) ** 2))
     print(f"{bounds['label']} ({region}), {mode}: starting from "
-          f"{len(queue)} coarse tiles, {len(done)} already cached", flush=True)
+          f"{len(queue)} coarse tiles, {len(done)} already cached"
+          + (f", nearest first around {near[0]},{near[1]}" if near else ""),
+          flush=True)
 
     fetched = split = 0
     t0 = time.time()
@@ -141,7 +158,7 @@ def run(region: str, mode: str) -> None:
         key = tile_key(bbox)
         if key in done:
             continue
-        raw = fetch(bbox)
+        raw = None if key in known_split else fetch(bbox)
         if raw is None:
             # Two steps, not one. A tile clipped at the region edge is not
             # square, and using the longitude half-width for latitude as well
@@ -156,12 +173,22 @@ def run(region: str, mode: str) -> None:
                 done.add(key)
                 state_path.write_text(json.dumps(sorted(done)))
                 continue
-            split += 1
-            for dx in (0, 1):
-                for dy in (0, 1):
-                    queue.append((bbox[0] + dx * lon_step, bbox[1] + dy * lat_step,
-                                  bbox[0] + (dx + 1) * lon_step,
-                                  bbox[1] + (dy + 1) * lat_step))
+            if key not in known_split:
+                split += 1
+                known_split.add(key)
+                splits_path.write_text(json.dumps(sorted(known_split)))
+            # Depth first: the children go to the FRONT. Appending them sent a
+            # dense area to the back of the queue once per subdivision level,
+            # and the densest areas subdivide the most - Taipei was demoted
+            # behind the whole region three times over, which is why the city
+            # that matters most arrived last. Front-loading also keeps the
+            # queue short and leaves the finished part contiguous, so coverage
+            # becomes usable somewhere instead of thin everywhere.
+            children = [(bbox[0] + dx * lon_step, bbox[1] + dy * lat_step,
+                         bbox[0] + (dx + 1) * lon_step,
+                         bbox[1] + (dy + 1) * lat_step)
+                        for dx in (0, 1) for dy in (0, 1)]
+            queue[:0] = children
             continue
 
         nodes: dict = {}
@@ -193,11 +220,16 @@ def main() -> None:
     ap.add_argument("--region", default="north", choices=sorted(REGIONS))
     ap.add_argument("--mode", default="bike", choices=sorted(FILTERS))
     ap.add_argument("--status", action="store_true")
+    ap.add_argument("--near", help="lat,lon to fetch outward from, e.g. 25.04,121.54")
     args = ap.parse_args()
     if args.status:
         status(args.region, args.mode)
     else:
-        run(args.region, args.mode)
+        near = None
+        if args.near:
+            lat, lon = (float(v) for v in args.near.split(","))
+            near = (lat, lon)
+        run(args.region, args.mode, near)
 
 
 if __name__ == "__main__":
