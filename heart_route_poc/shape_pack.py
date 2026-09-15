@@ -178,15 +178,63 @@ def cup() -> np.ndarray:
     return np.array(body + handle + rest)
 
 
-def leaf() -> np.ndarray:
-    """A pointed leaf with a stem - two smooth arcs meeting at two cusps."""
-    pts = []
-    for t in np.linspace(0, 1, 26):
-        pts.append((t - 0.5, 0.34 * math.sin(math.pi * t) ** 1.2))
-    for t in np.linspace(1, 0, 26):
-        pts.append((t - 0.5, -0.34 * math.sin(math.pi * t) ** 1.2))
-    pts.append((-0.62, -0.10))
-    return np.array(pts)
+def leaf(veins: int = 0) -> np.ndarray:
+    """A leaf WITH its midrib and side veins, as one closed route.
+
+    Without veins this was just a pointed ellipse and read as an eye or a
+    lens - the first version was rejected on exactly that. A leaf's identity is
+    the venation, not the silhouette, which is the one case where POC 20's rule
+    points inward: the inside marks ARE the outline here, not shading.
+
+    A closed route can draw an interior line by going out along it and back,
+    which costs twice its length and nothing else - the same out-and-back
+    `multi_contour.merge` uses for its connectors. So the path runs the whole
+    blade, then walks the midrib tip to tip, branching off to each vein root
+    and returning, and comes back to where it started.
+
+    The price is steep and it is the reason `leaf` ships with the midrib alone:
+
+        midrib only   n_min  56   >= 21 km
+        1 pair        n_min 136   >= 61 km
+        2 pairs       n_min 188   >= 90 km
+
+    The midrib by itself is already enough to stop it reading as an eye, for a
+    distance somebody will actually ride. The full venation was built, fitted
+    and dropped: a 2-pair leaf asked for at 100 km came back 79.7 km at a shape
+    distance of 0.250, with the side veins landing as blobs - past the pooled
+    recognition threshold, so the street network cannot draw them and shipping
+    it would only sell a 90 km ride that does not work.
+
+    Note the 2-pairs-but-shorter variant costs MORE, not less - n_min 208
+    against 188, 107 km against 90 - because a shorter vein is a FINER feature,
+    and n_min tracks the finest feature rather than the total amount of ink.
+    """
+    def edge(t, sign):
+        return (t - 0.5, sign * 0.34 * math.sin(math.pi * t) ** 1.2)
+
+    blade = [edge(t, 1) for t in np.linspace(0, 1, 26)]
+    blade += [edge(t, -1) for t in np.linspace(1, 0, 26)]
+    stem = [(-0.62, -0.10), (-0.5, 0.0)]
+
+    # Midrib left tip to right tip, dropping a vein each side on the way.
+    path = list(blade) + stem
+    for i in range(veins + 1 if veins else 0):
+        t = 0.12 + 0.72 * i / veins
+        base = (t - 0.5, 0.0)
+        path.append(base)
+        if i == veins:
+            break
+        for sign in (1, -1):
+            # Out to the blade and back: a vein reaching about two thirds of
+            # the way to the edge, angled forward the way a real one runs.
+            tip_t = min(0.97, t + 0.13)
+            ex, ey = edge(tip_t, sign)
+            path.append((base[0] + (ex - base[0]) * 0.72,
+                         base[1] + (ey - base[1]) * 0.72))
+            path.append(base)
+    path.append((0.47, 0.0))          # midrib reaches the tip
+    path += [(t - 0.5, 0.0) for t in np.linspace(0.97, 0.0, 8)]   # and back
+    return np.array(path)
 
 
 def plane() -> np.ndarray:
