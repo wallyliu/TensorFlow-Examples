@@ -68,11 +68,27 @@ def recognition_rate(shape: str, distance: float) -> float:
 # Bands on the measured rate rather than on raw shape distance, so the same
 # words mean the same thing for a star and for a triangle.
 def band(shape: str, distance: float) -> tuple[str, str]:
+    """A name for how well this came out, and a sentence saying so.
+
+    A shape nobody has rated gets hedged wording. The rate is computed from the
+    pooled threshold, which is an average across a 2.7x spread, so quoting "約
+    100%" for it as if raters had produced that number is the same overclaim
+    this module was written to remove - just one level further back.
+    """
     p = recognition_rate(shape, distance)
+    if measured(shape):
+        if p >= 0.90:
+            return "good", f"幾乎一定認得出來（約 {p:.0%}）"
+        if p >= 0.60:
+            return "marginal", f"多數人認得出來（約 {p:.0%}）"
+        if p >= 0.35:
+            return "poor", f"大約一半的人認不出來（約 {p:.0%} 認得出）"
+        return "unrecognisable", "認不出形狀了，換個城市或把距離拉長"
+    # Unmeasured: same bands, but said as an estimate.
     if p >= 0.90:
-        return "good", f"幾乎一定認得出來（約 {p:.0%}）"
+        return "good", "應該認得出來（這個圖案還沒找人實測過）"
     if p >= 0.60:
-        return "marginal", f"多數人認得出來（約 {p:.0%}）"
+        return "marginal", "大概認得出來（這個圖案還沒找人實測過）"
     if p >= 0.35:
-        return "poor", f"大約一半的人認不出來（約 {p:.0%} 認得出）"
-    return "unrecognisable", "認不出形狀了，換個城市或把距離拉長"
+        return "poor", "可能認不出來（這個圖案還沒找人實測過）"
+    return "unrecognisable", "大概認不出形狀，換個城市或把距離拉長"

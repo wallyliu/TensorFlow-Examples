@@ -406,3 +406,34 @@ one city, so there is nothing to recalibrate on. Removed rather than retuned.
 This leaves the original problem open again: a rider still waits for the fit
 before learning the result is poor. What would settle it is unusable routes
 from more than one city — every one in hand is Keelung.
+
+## 18. Twelve more shapes — and the floors they carry
+
+taiwan 2.4, leaf 5.2, house 7.9, lightning 10.4, cup 10.7, cat 12.1, fish 14.7,
+music_note 14.9, plane 16.9, crown 21.0, umbrella 23.9, butterfly 26.0 km.
+
+All twelve were fitted in Taipei (POC 30) at 1.6x their own floor and came out
+between 0.050 and 0.146, so none of them is a shape that only works on paper.
+
+Three were redrawn after being looked at rather than after being measured. The
+umbrella crossed itself twice, the quaver's stem cut through its head, and the
+key needed a hole - a ring is a second contour and a single closed outline
+cannot carry one, so the key became a cat. The rule POC 20 found for portraits
+is the same rule: if the identity is not in the silhouette it does not belong.
+
+What is NOT known about them: their recognition thresholds. All twelve use the
+pooled 0.201, which POC 29 showed is an average over a 2.7x spread, so the
+service hedges the wording for them and /api/shapes reports which shapes are
+measured. A pack of 30 items like POC 28's would settle six of them at a time.
+
+## 19. n_min is a sampling floor, not a recognition floor
+
+Taiwan comes out at n_min 8, so route_feasibility says a 2.4 km ride can draw
+it. It cannot draw anything anyone would call Taiwan - the island is a smooth
+blob whose sampling loss converges early, and n_min measures exactly that
+convergence and nothing about whether the result is identifiable.
+
+For the five measured shapes the gap was hidden because they happen to have
+enough detail that the two floors are close. The pack makes it visible. The
+honest floor for a shape is whichever is larger, and the second one is only
+known after raters see it.

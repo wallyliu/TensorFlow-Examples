@@ -59,9 +59,16 @@ from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
 from route_export import to_gpx                                  # noqa: E402
 from shape_library import SHAPES, register                       # noqa: E402
+import shape_pack                                                # noqa: E402
+
+# The wider library. Registered at import so /api/shapes lists them and the
+# search treats them exactly like the original five - POC 30 fitted every one
+# in Taipei and they came out 0.050 to 0.146.
+shape_pack.install()
 
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
           "triangle": "三角形", "trex": "恐龍"}
+LABELS.update(shape_pack.LABELS)
 # POC 17 fitted six candidates per shape and found the coarse scan's rank
 # uncorrelated with the final result (Spearman -0.024 over thirty candidates).
 # The pre-ranking says which placements are routable, not which are good, so the
@@ -448,7 +455,12 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"mode": mode, "street_scale_m": round(scale),
                              "shapes": [
                 {"name": s, "label": LABELS.get(s, s), "n_min": rf.n_min(s),
-                 "min_km": round(rf.min_distance_km(s, mode, scale), 1)}
+                 "min_km": round(rf.min_distance_km(s, mode, scale), 1),
+                 # Only the original five have had raters name them. The rest
+                 # carry the pooled threshold, which POC 29 showed is an
+                 # average over a 2.7x spread - so the page can say which
+                 # number it is quoting rather than implying they are alike.
+                 "recognition_measured": rc.measured(s)}
                 for s in sorted(SHAPES, key=rf.n_min)]})
         elif path == "/api/places":
             self._json(200, {"places": places()})
