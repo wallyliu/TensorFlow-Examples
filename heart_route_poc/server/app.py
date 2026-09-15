@@ -53,6 +53,7 @@ from region_graph import (MIN_COVERAGE, box_around, coverage,        # noqa: E40
                           regions_overlapping, tiles_for)
 from region_download import region_for                            # noqa: E402
 import street_scale as ss                                        # noqa: E402
+import recognition as rc                                         # noqa: E402
 from poc15_wiggle import wander                                  # noqa: E402
 from shape_library import resample_by_arclength                  # noqa: E402
 from shape_metrics import alignment_angle                        # noqa: E402
@@ -241,41 +242,15 @@ def places() -> list[dict]:
     return out
 
 
-# How close the route came to the shape asked for. The first two boundaries are
-# the POC 13/14 discrimination thresholds - where a difference is seen. The
-# third is now measured rather than inherited: POC 29 showed routes alone, with
-# no reference, to be named from all five shapes at once, and recognition sits
-# at chance (2 of 10, against 1 in 5) from 0.32 upward while the 0.22-0.32 band
-# came back 2 of 2. So a route past 0.32 is not "a poor likeness", it is not
-# identifiable, and the wording says so.
-#
-# The old text said the street network "cannot draw this shape" for anything
-# past 0.18. That was an overclaim: the same rater named a heart at 0.207 and a
-# five-pointed star at 0.330.
-#
-# One rater and 30 items. The threshold's bootstrap interval is 0.13 to 0.31 -
-# wide enough that these boundaries are provisional, and they are worded as
-# likelihoods rather than verdicts for that reason.
-# Below this share of placements fitting anywhere in the network, POC 27 found
-# the route comes out unusable. Over sixteen routes spanning three shapes, four
-# sizes and seven cities the five that scored 0.18 or worse had viable rates of
-# 5.2 / 9.7 / 19.3 / 22.0 / 39.1 percent and the other eleven ran 69.6 to 99.7 -
-# nothing in between, so this is the middle of a 30-point gap rather than a
-# tuned number. The same scan cannot GRADE a route (62% three-way, against 44%
-# for guessing "good"), only tell that it will fail.
-VIABLE_RATE_FLOOR = 0.50
-
-QUALITY_BANDS = ((0.10, "good", "跟你選的圖案很接近"),
-                 (0.18, "marginal", "看得出輪廓，但有些地方被街道拉歪了"),
-                 (0.32, "poor", "形狀走樣得滿嚴重，大概一半的人認不出來"),
-                 (9e9, "unrecognisable", "認不出形狀了，換個城市或把距離拉長"))
+# Fidelity is reported as a measured recognition rate, per shape, from POC 29:
+# 120 judgements by four raters naming real routes with no reference shown.
+# See recognition.py - the thresholds are per shape because one threshold fits
+# the same data far worse (chi2(4) = 28.7, p = 9.1e-06) and the 50% points run
+# 0.120 to 0.321 across the five shapes.
 
 
-def quality_for(distance: float) -> tuple[str, str]:
-    for limit, name, message in QUALITY_BANDS:
-        if distance < limit:
-            return name, message
-    return QUALITY_BANDS[-1][1], QUALITY_BANDS[-1][2]
+def quality_for(distance: float, shape: str = "") -> tuple[str, str]:
+    return rc.band(shape, distance)
 
 
 def plan(shape: str, target_km: float, mode: str,
@@ -353,33 +328,17 @@ def build_route(shape: str, target_km: float, mode: str,
     viable = int(np.isfinite(scored["score"]).sum())
     if viable == 0:
         return {"status": "no placement", **verdict}
-    # Stop here when the shape barely fits. The fitting that follows is half the
-    # wait and, at this rate, produces something the rider cannot use - so
-    # saying so now beats saying so in another twenty seconds. `force` exists
-    # because this is a prediction, not a law: the rider can insist.
-    # The probe is taken at ONE rotation, not across the sweep. Two wrong
-    # versions came before this one. Viable rows over centres ran up to twelve,
-    # because coarse_scan returns a row per centre AND rotation, so the check
-    # never fired and Keelung sailed through it. Centres placeable at ANY of
-    # twelve rotations then saturates - a shape that fits at some angle fits
-    # almost everywhere - and stops separating: the poor routes ran 37-94% and
-    # the good ones 92-100%, overlapping.
-    #
-    # At a single fixed rotation it is a measure of how much room the city has
-    # for a shape this size, and that is what POC 27 calibrated. The sweep is
-    # still what the search uses; these rows are already in `scored`, so the
-    # probe costs nothing.
-    probe = scored[scored["rotation"] == rotations[0]]
-    placeable = int(np.isfinite(probe["score"]).sum())
-    rate = placeable / max(1, len(probe))
-    if rate < VIABLE_RATE_FLOOR and not force:
-        return {"status": "unlikely", "viable_rate": round(rate, 3),
-                "placeable": placeable, "centers": len(centers),
-                "quality": "poor",
-                "quality_message": (
-                    f"這個圖案在這裡只有 {rate:.0%} 的位置擺得下，"
-                    f"畫出來大概認不出形狀。換一個城市，或把距離拉長讓圖案變大。"),
-                "seconds": round(time.time() - t0, 1), **verdict}
+    # POC 27 stopped here when fewer than half the placements fitted, on the
+    # basis that such routes came out at 0.18 or worse and 0.18 meant unusable.
+    # POC 29 then MEASURED unusable and it is not 0.18, it is per shape - and
+    # under that criterion this check blocked Taipei's 35 km and 50 km hearts,
+    # which are recognised by essentially everyone, while the three genuinely
+    # unrecognisable routes do not separate from them by viable rate at all
+    # (worst unusable 22.0%, lowest usable 9.7%, gap -12.3%). The signal itself
+    # is real - log viable rate against shape distance is r = -0.85 - but it
+    # cannot carry a gate, and all three unusable cases came from one city, so
+    # there is nothing here to recalibrate on either. Removed rather than
+    # retuned; `force` is still accepted and ignored.
 
     dense_template = resample_by_arclength(shape, 4000)
     fitted = []
@@ -429,8 +388,10 @@ def build_route(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
-            "quality": quality_for(float(best["distance"]))[0],
-            "quality_message": quality_for(float(best["distance"]))[1],
+            "quality": quality_for(float(best["distance"]), shape)[0],
+            "quality_message": quality_for(float(best["distance"]), shape)[1],
+            "recognition": round(rc.recognition_rate(shape, float(best["distance"])), 2),
+            "recognition_measured": rc.measured(shape),
             "wander": round(float(best["wander"]), 3),
             "wander_limit": WANDER_LIMIT,
             "candidates_within_limit": sum(f["wander"] <= WANDER_LIMIT

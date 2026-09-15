@@ -358,3 +358,51 @@ against "unusable = 0.18 or worse", where the viable-rate signal separates with
 a 30-point margin. Define unusable as 0.30 instead and the same signal stops
 separating (gap −12.3%), because Taipei's 50 km heart has a 9.7% viable rate at
 a distance of 0.188. Moving the boundary means recalibrating the warning.
+
+
+## 3 (revised). The recognisability ceiling — MEASURED on four raters
+
+120 judgements, 30 real routes, no reference shown, named from all five shapes
+at once. Overall 70/120 = 58% against chance of 20%.
+
+    pooled halfway point 0.201    bootstrap 95% [0.161, 0.237]
+    0.00-0.10  27/28      0.10-0.16  29/36     0.16-0.22  4/8
+    0.22-0.32   5/8       0.32-1.00   5/40  (= chance)
+
+Four raters scored 60/60/57/57% — all four gave the same answer on 22 of 30
+items and at least three agreed on 28 of 30, so the instrument is stable.
+
+48 of the 50 errors were "cannot tell". Only two named a different shape. A
+degraded route does not become another shape, it becomes nothing.
+
+## 15 (revised). The threshold is per shape — SETTLED
+
+    triangle 0.120    crescent 0.166    trex 0.169    heart 0.286    star5 0.321
+
+One threshold for all five fits the same 120 judgements at log-likelihood
+-48.1; one per shape gives -33.7. chi2(4) = 28.7, p = 9.1e-06. A factor of 2.7
+between the ends.
+
+Nothing predicts it from geometry, so a new shape must be measured. Distance to
+the nearest other shape in the library: r = -0.20, Spearman p = 0.75, and the
+crescent refutes it outright — the most distinctive shape in the library at
+0.513 from its nearest neighbour, with nearly the lowest threshold. n_min:
+r = -0.05. Unmeasured shapes get the pooled 0.201 and the service says so.
+
+## 17. The POC 27 early warning is withdrawn
+
+It stopped a request when fewer than half the placements fitted, calibrated
+against "unusable = shape distance 0.18 or worse". POC 29 measured unusable and
+it is not 0.18 and not one number. Under the measured criterion the check
+blocked Taipei's 35 km and 50 km hearts — recognised by essentially everyone —
+and the three genuinely unrecognisable routes do not separate from the usable
+ones by viable rate at all: worst unusable 22.0%, lowest usable 9.7%, gap
+-12.3%.
+
+The underlying signal is real (log viable rate against shape distance,
+r = -0.85) but it cannot carry a gate, and all three unusable cases came from
+one city, so there is nothing to recalibrate on. Removed rather than retuned.
+
+This leaves the original problem open again: a rider still waits for the fit
+before learning the result is poor. What would settle it is unusable routes
+from more than one city — every one in hand is Keelung.

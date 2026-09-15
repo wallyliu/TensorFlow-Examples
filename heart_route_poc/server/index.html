@@ -437,35 +437,16 @@
     $("svg").innerHTML = svg;
   }
 
-  function go(force) {
+  function go() {
     $("go").disabled = true;
     $("status").textContent = "計算中…（第一次會等路網載入，之後只要幾秒）";
     $("status").className = "status";
     var body = { target_km: state.km, mode: state.mode,
                  lat: state.place.lat, lon: state.place.lon };
-    if (force) body.force = true;
     if (state.text) body.text = state.text; else body.shape = state.shape;
     api("/api/route", body)
       .then(function (r) {
         $("go").disabled = false;
-        if (r.status === "unlikely") {
-          // Stopped early on purpose, at about half the wait. It is a
-          // prediction, so it offers to be overruled rather than refusing.
-          $("status").innerHTML = "";
-          var msg = document.createElement("span");
-          msg.textContent = r.quality_message;
-          var anyway = document.createElement("button");
-          anyway.type = "button";
-          anyway.className = "ghost";
-          anyway.style.marginLeft = "10px";
-          anyway.textContent = "還是畫畫看";
-          anyway.onclick = function () { go(true); };
-          $("status").appendChild(msg);
-          $("status").appendChild(anyway);
-          $("status").className = "status bad";
-          $("result-card").hidden = true;
-          return;
-        }
         if (r.status !== "ok") {
           $("status").textContent = r.message || ("失敗：" + (r.status || r.error));
           $("status").className = "status bad";
@@ -549,7 +530,7 @@
     renderShapes();
     if (state.text || $("text").value.trim()) checkText();
   });
-  $("go").addEventListener("click", function () { go(false); });
+  $("go").addEventListener("click", go);
   renderPresets();
   loadPlaces();
   loadShapes();
