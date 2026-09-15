@@ -77,6 +77,9 @@ LABELS.update(shape_pack.LABELS)
 # five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
 # linear time, and that is the whole trade.
 N_CANDIDATES = 6
+# Good enough to stop fitting more placements. Expressed as a recognition rate
+# rather than a shape distance so it means the same thing for every shape.
+EARLY_STOP_RECOGNITION = 0.97
 # How much wider than the shape the network is built. 1.0 gives half a shape
 # width of slack on every side.
 PLACEMENT_SLACK = 1.0
@@ -330,9 +333,29 @@ def plan(shape: str, target_km: float, mode: str,
 def build_route(shape: str, target_km: float, mode: str,
                 lat: float, lon: float, force: bool = False) -> dict:
     """Search the city for the best placement, fit a route, keep the GPX."""
-    # The scale where the route will be drawn, not Taipei's. Cached per ~1 km,
-    # so this is a lookup after the first request near a place.
-    local_scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    # MEASURE FIRST, then size. The street scale decides how wide the shape is
+    # drawn, and the width decides how big a network to load - so measuring
+    # after loading gets the order backwards. It did: a first visit to a new
+    # place downloaded the full-size network on the national default scale,
+    # THEN downloaded a 5 km probe to measure, then re-planned. A rider in
+    # Xinyi waited 58.5s and then another 35.7s for that, and the big download
+    # was sized on a number already known to be provisional.
+    #
+    # It also closes a latent bug: the old code kept using the network it had
+    # already loaded after re-planning to a different width, which was only
+    # safe because measured scales happen to come out at or above the default.
+    #
+    # The probe is a FIXED 5 km box, so it is not always the smaller of the two
+    # - for a small shape it is the larger, and for those the shape's own box
+    # fits inside it and is reused rather than loaded again.
+    probe = None
+    if not ss.is_measured(lat, lon, mode):
+        probe = network(lat, lon, mode, ss.MEASURE_HALF_M)
+        local_scale = ss.scale_for(lat, lon, mode,
+                                   rf.MODES[mode]["street_scale_m"], probe["graph"])
+    else:
+        local_scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+
     verdict = plan(shape, target_km, mode, local_scale)
     if not verdict["feasible"]:
         return {"status": "infeasible", **verdict}
@@ -343,26 +366,9 @@ def build_route(shape: str, target_km: float, mode: str,
     # shape leaves one placement, and POC 23 found that a route with no choice
     # of placement pays roughly double the detour of one chosen from thousands.
     half_size = max(NETWORK_HALF_SIZE_M, width_m * PLACEMENT_SLACK)
-    net = network(lat, lon, mode, half_size)
-    if not ss.is_measured(lat, lon, mode):
-        # First visit to this place: measure it and re-plan, so the sizing
-        # matches where the route is actually going.
-        #
-        # Measured on its OWN fixed-size box, not on `net`. net is as wide as
-        # whatever distance this caller asked for, and the reference 142 m for
-        # Taipei was taken over a 5 km box; measuring one place over a 25 km box
-        # and another over a 9 km one compares two different quantities, and the
-        # answer is then cached for that place for good.
-        probe = network(lat, lon, mode, ss.MEASURE_HALF_M)
-        measured = ss.scale_for(lat, lon, mode,
-                                rf.MODES[mode]["street_scale_m"], probe["graph"])
-        if abs(measured - local_scale) > 1.0:
-            local_scale = measured
-            verdict = plan(shape, target_km, mode, local_scale)
-            if not verdict["feasible"]:
-                return {"status": "infeasible", **verdict}
-            width_m = float(verdict["width_m"])
-            points = int(verdict["points"])
+    # Same centre, so a probe at least as wide already contains this box.
+    net = (probe if probe is not None and ss.MEASURE_HALF_M >= half_size
+           else network(lat, lon, mode, half_size))
     t0 = time.time()
 
     margin = max(400.0, half_size - width_m * 0.75)
@@ -399,6 +405,24 @@ def build_route(shape: str, target_km: float, mode: str,
             place_shape(np.vstack([dense_template, dense_template[:1]]),
                         np.array([row["x"], row["y"]]), width_m, 0.0))
         fitted.append(fit)
+        # Stop once one candidate is comfortably recognisable. Fitting is the
+        # whole cost of a request - six candidates on a 55 km Taiwan took 144
+        # seconds - and POC 24 measured what the extra ones buy: going from
+        # three to six moves the shape distance by 0.009 at 10 km and 0.008 at
+        # 50 km, against a 0.10 threshold at which a person first sees any
+        # difference at all. Roughly a twelfth of the smallest visible change,
+        # for double the wait.
+        #
+        # Stopping on the RESULT rather than on a fixed count, because POC 17
+        # showed the coarse scan cannot say which placement will be good: the
+        # first candidate is effectively random, so the saving only appears
+        # when one happens to come out well, and a hard case still uses all
+        # six. The bar is the per-shape recognition curve from POC 29, so a
+        # triangle has to come out tighter than a star to qualify.
+        if (fit["wander"] <= WANDER_LIMIT
+                and rc.recognition_rate(shape, float(fit["distance"]))
+                >= EARLY_STOP_RECOGNITION):
+            break
 
     if not fitted:
         return {"status": "no route", **verdict}
