@@ -150,9 +150,14 @@ def download_walk_graph(
     bidirectional = mode == "walk"
     # Key the cache on the actual area, so changing --lat/--lon fetches a new
     # network instead of silently reusing the previous one.
-    cache_xml = CACHE_DIR / f"_{mode}_{center_lat:.4f}_{center_lon:.4f}_{half_size_m:.0f}m.osm"
+    stem = f"_{mode}_{center_lat:.4f}_{center_lon:.4f}_{half_size_m:.0f}m"
+    cache_xml = CACHE_DIR / f"{stem}.osm"          # what the fallback tiler writes
+    cache_graphml = CACHE_DIR / f"{stem}.graphml"  # what the Overpass path writes
 
-    if cache_xml.exists():
+    if cache_graphml.exists():
+        print(f"  using cached network file {cache_graphml.name}")
+        graph = ox.load_graphml(cache_graphml)
+    elif cache_xml.exists():
         print(f"  using cached network file {cache_xml.name}")
         graph = ox.graph_from_xml(cache_xml, bidirectional=bidirectional, simplify=True)
     else:
@@ -164,6 +169,23 @@ def download_walk_graph(
                 network_type=mode,
                 simplify=True,
             )
+            # Save it. Only the FALLBACK path used to write a cache file, so
+            # wherever Overpass works - which is most places, just not the
+            # sandbox this was built in - every restart re-downloaded the same
+            # network from scratch. The bug hid because the one environment
+            # that could have seen it never took this branch.
+            #
+            # GraphML, not OSM XML: save_graph_xml refuses a SIMPLIFIED graph
+            # and this one is simplified, so the obvious fix would have raised
+            # every time and cached nothing while looking like it worked.
+            # GraphML round-trips this graph exactly - same nodes, same edges,
+            # still projects - and reloads in a fraction of a second.
+            try:
+                ox.save_graphml(graph, cache_graphml)
+                print(f"  cached network to {cache_graphml.name}")
+            except Exception as exc:      # noqa: BLE001 - a cache miss is slow, not wrong
+                print(f"  could not cache the network ({type(exc).__name__}): "
+                      f"it will be downloaded again next time")
         except Exception as exc:  # noqa: BLE001 - Overpass unreachable, not a bug
             print(f"  Overpass unavailable ({type(exc).__name__}: {exc})")
             print("  falling back to the OSM Map API tiler")
