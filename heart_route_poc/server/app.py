@@ -38,29 +38,29 @@ from pyproj import Transformer
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-import multi_contour as mc                                      # noqa: E402
-import route_feasibility as rf                                   # noqa: E402
-from heart_route_poc import download_walk_graph                  # noqa: E402
-from heart_route_poc2 import NoRouteFoundError                   # noqa: E402
-from heart_route_poc3 import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
+import routeshape.shapes.multi_contour as mc                                      # noqa: E402
+import routeshape.feasibility as rf                                   # noqa: E402
+from routeshape.network import download_walk_graph                  # noqa: E402
+from routeshape.matching import NoRouteFoundError                   # noqa: E402
+from routeshape.placement import (GRID_STEP_M, MIN_SEPARATION_M,     # noqa: E402
                               NETWORK_HALF_SIZE_M, SEARCH_LAT, SEARCH_LON,
                               build_center_grid, build_street_index,
                               select_candidates)
-from heart_route_poc3 import place_shape                          # noqa: E402
-from poc6_shapes import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
-from region_graph import (MIN_COVERAGE, box_around, coverage,        # noqa: E402
+from routeshape.placement import place_shape                          # noqa: E402
+from routeshape.search import ROTATIONS_DEG, coarse_scan, refine       # noqa: E402
+from routeshape.region.graph import (MIN_COVERAGE, box_around, coverage,        # noqa: E402
                           fetched_bounds, region_graph,
                           regions_overlapping, tiles_for)
-from region_download import region_for                            # noqa: E402
-import street_scale as ss                                        # noqa: E402
-import recognition as rc                                         # noqa: E402
-from poc15_wiggle import wander                                  # noqa: E402
-from shape_library import resample_by_arclength                  # noqa: E402
-from shape_metrics import alignment_angle                        # noqa: E402
-from route_export import to_gpx                                  # noqa: E402
-from shape_library import SHAPES, register                       # noqa: E402
-import shape_pack                                                # noqa: E402
-import describe_shape                                            # noqa: E402
+from routeshape.region.download import region_for                            # noqa: E402
+import routeshape.street_scale as ss                                        # noqa: E402
+import routeshape.recognition as rc                                         # noqa: E402
+from routeshape.wander import wander                                  # noqa: E402
+from routeshape.shapes.library import resample_by_arclength                  # noqa: E402
+from routeshape.metrics import alignment_angle                        # noqa: E402
+from routeshape.export import to_gpx                                  # noqa: E402
+from routeshape.shapes.library import SHAPES, register                       # noqa: E402
+import routeshape.shapes.pack as shape_pack                                                # noqa: E402
+import routeshape.describe as describe_shape                                            # noqa: E402
 
 # The wider library. Registered at import so /api/shapes lists them and the
 # search treats them exactly like the original five - POC 30 fitted every one
