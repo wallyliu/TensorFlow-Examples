@@ -115,10 +115,26 @@ def music_note() -> np.ndarray:
         a = math.radians(deg)
         return (cx + rx * math.cos(a), cy + ry * math.sin(a))
     head = [on_head(d) for d in np.linspace(60, 350, 26)]
-    stem_up = [on_head(350), (on_head(350)[0], 0.46)]
-    flag = [(0.20, 0.40), (0.31, 0.24), (0.33, 0.04), (0.25, -0.08),
-            (0.29, 0.08), (0.25, 0.24), (0.15, 0.34), (on_head(60)[0], 0.40)]
-    return np.array(head + stem_up + flag)
+    x_r = on_head(350)[0]
+    x_l = on_head(60)[0]
+    # The flag leaves and rejoins the RIGHT edge below the stem's top, then the
+    # stem continues up and caps across to the left edge. Returning from the
+    # flag straight to the left edge instead draws a line from x=+0.17 to
+    # x=-0.04 that passes through the stem at x=+0.076 - a real crossing,
+    # invisible at render size and found only by the checker.
+    stem_a = [on_head(350), (x_r, 0.20)]
+    # The flag's two edges must not cross EACH OTHER either: the first rewrite
+    # fixed the flag-through-stem crossing and left the outward and return
+    # edges meeting near the base. Outward runs along the flag's lower edge to
+    # the tip, the return along its upper edge, and the return rejoins the stem
+    # ABOVE where the outward left it, so the two never share a y range.
+    flag = [(0.22, 0.16), (0.33, 0.04), (0.30, -0.10),          # lower edge, tip
+            (0.36, 0.02), (0.34, 0.20), (0.24, 0.30), (x_r, 0.30)]   # upper edge
+    top = [(x_r, 0.50), (x_l, 0.50)]
+    return np.array(head + stem_a + flag + top)
+
+
+
 
 
 def cat() -> np.ndarray:
@@ -237,6 +253,36 @@ def leaf(veins: int = 0) -> np.ndarray:
     return np.array(path)
 
 
+def rabbit() -> np.ndarray:
+    """Two long ears, a round body, a scut. Came out of POC 31 as a stand-in
+    for a model proposal, passed the same checks as everything else here, and
+    fitted in Taipei at 15.8 km, so it is a shape rather than a test fixture."""
+    return np.array([
+        (-0.10, 0.10), (-0.17, 0.44), (-0.12, 0.62), (-0.04, 0.60),
+        (-0.02, 0.40), (0.03, 0.16), (0.08, 0.40), (0.12, 0.62),
+        (0.20, 0.64), (0.22, 0.44), (0.17, 0.10), (0.26, -0.02),
+        (0.30, -0.20), (0.26, -0.38), (0.12, -0.46), (-0.14, -0.46),
+        (-0.30, -0.36), (-0.40, -0.40), (-0.46, -0.30), (-0.38, -0.24),
+        (-0.30, -0.28), (-0.26, -0.16), (-0.22, -0.02),
+    ])
+
+
+def gear(teeth: int = 16) -> np.ndarray:
+    """Sixteen teeth, no crossings. Built to test the distance rule and it did
+    not trip it - a gear costs 21.9 km, which is an ordinary ride - so it is
+    here as a shape instead. Fitted at 30.1 km and 0.089."""
+    pts = []
+    for k in range(teeth):
+        a0 = 2 * math.pi * k / teeth
+        a1 = 2 * math.pi * (k + 0.5) / teeth
+        a2 = 2 * math.pi * (k + 1) / teeth
+        pts.append((0.34 * math.cos(a0), 0.34 * math.sin(a0)))
+        pts.append((0.50 * math.cos(a0), 0.50 * math.sin(a0)))
+        pts.append((0.50 * math.cos(a1), 0.50 * math.sin(a1)))
+        pts.append((0.34 * math.cos(a2), 0.34 * math.sin(a2)))
+    return np.array(pts)
+
+
 def plane() -> np.ndarray:
     """From above: fuselage, swept wings, tailplane."""
     right = [(0.05, 0.50), (0.09, 0.22), (0.50, -0.06), (0.50, -0.16),
@@ -251,13 +297,14 @@ PACK = {
     "taiwan": taiwan, "fish": fish, "butterfly": butterfly,
     "umbrella": umbrella, "lightning": lightning, "music_note": music_note,
     "house": house, "crown": crown, "cup": cup, "cat": cat,
-    "leaf": leaf, "plane": plane,
+    "leaf": leaf, "rabbit": rabbit, "gear": gear, "plane": plane,
 }
 
 LABELS = {
     "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶", "umbrella": "雨傘",
     "lightning": "閃電", "music_note": "音符", "house": "房子",
     "crown": "皇冠", "cup": "咖啡杯", "cat": "貓", "leaf": "葉子",
+    "rabbit": "兔子", "gear": "齒輪",
     "plane": "飛機",
 }
 

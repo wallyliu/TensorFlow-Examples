@@ -437,3 +437,46 @@ For the five measured shapes the gap was hidden because they happen to have
 enough detail that the two floors are close. The pack makes it visible. The
 honest floor for a shape is whichever is larger, and the second one is only
 known after raters see it.
+
+## 20. Description → outline: built, validated, and untested against the API
+
+A user types 一隻兔子 and gets a shape. Claude proposes the outline;
+`describe_shape.check` decides whether it is rideable, and a failure goes back
+to the model with the reason rather than being repaired locally.
+
+The checks are the record of real failures: self-intersection (three of the
+twelve hand-drawn shapes crossed themselves), one contour only (a key needs its
+hole; a closed curve cannot have one), and the distance floor (the veined leaf
+died here — 204 km).
+
+WHAT IS NOT TESTED: the API call. This sandbox has no Anthropic credentials, so
+`/api/describe` reports `unavailable` and POC 31 exercises the loop with
+hand-written proposals standing in for model output. That establishes the
+checker catches the failures and the survivors draw. It establishes NOTHING
+about whether the model returns good proposals or how often it needs a retry.
+Both need a key.
+
+Two of POC 31's three test cases were rebuilt after they failed to test what
+they were aimed at — the "broken" boat did not actually cross (its mast was an
+out-and-back, which is legal) and the over-detailed shape was rejected for
+crossing rather than for cost.
+
+## 21. The checker found three defects in shapes I had already shipped
+
+Written to catch the model's mistakes, run first against my own: the butterfly,
+leaf, music_note and umbrella each repeated their first vertex as their last
+(a zero-length segment), and the quaver's flag genuinely crossed its stem — and
+after that was fixed, its two flag edges crossed each other. All invisible at
+render size.
+
+Two rules in the checker itself were wrong before they were right. Counting
+collinear overlap as a crossing banned the out-and-back that lets a closed
+route draw any interior line at all — the leaf's midrib, every multi_contour
+connector. Then `d1 != d2` treated a zero orientation as different from a
+non-zero one, so a vertex lying exactly ON another segment read as a crossing:
+the leaf's tip is visited by the blade, the stem and the midrib, and that
+produced ten phantom crossings in a sound shape.
+
+And `rf.n_min` is memoised on the shape NAME, so registering every candidate as
+`_candidate` returned the first one's answer for all of them — a cat, Taiwan
+and an aeroplane all came back n_min 36. Plausible numbers, all wrong.

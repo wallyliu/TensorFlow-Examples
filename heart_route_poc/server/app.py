@@ -60,6 +60,7 @@ from shape_metrics import alignment_angle                        # noqa: E402
 from route_export import to_gpx                                  # noqa: E402
 from shape_library import SHAPES, register                       # noqa: E402
 import shape_pack                                                # noqa: E402
+import describe_shape                                            # noqa: E402
 
 # The wider library. Registered at import so /api/shapes lists them and the
 # search treats them exactly like the original five - POC 30 fitted every one
@@ -224,6 +225,41 @@ def streets_near(net: dict, xy: np.ndarray, pad_m: float = 400.0) -> list:
         lons, lats = to_wgs.transform(xs, ys)
         out.append([[round(a, 5), round(b, 5)] for a, b in zip(lats, lons)])
     return out
+
+
+def describe(body: dict) -> dict:
+    """Turn a typed description into a shape the rest of the pipeline can draw.
+
+    Claude proposes the outline; describe_shape.check decides whether it is
+    rideable, and a failure goes back to the model with the reason rather than
+    being repaired here. A shape that passes is registered under its own name,
+    so the search and the fit treat it exactly like a built-in.
+    """
+    text = (body.get("description") or "").strip()
+    if not text:
+        return {"status": "error", "reason": "no description"}
+    if len(text) > 200:
+        return {"status": "error", "reason": "description too long"}
+    mode = body.get("mode", rf.DEFAULT_MODE)
+    lat = float(body.get("lat", SEARCH_LAT))
+    lon = float(body.get("lon", SEARCH_LON))
+    scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    try:
+        result = describe_shape.propose(text, mode, scale)
+    except Exception as exc:      # noqa: BLE001 - missing key, network, quota
+        # No credentials is the normal case for a local run, so it is reported
+        # as a plain state rather than a 500 - the page keeps working on the
+        # built-in library.
+        return {"status": "unavailable", "reason": type(exc).__name__,
+                "detail": str(exc)[:200]}
+    if result.get("status") != "ok":
+        return result
+    name = "gen_" + re.sub(r"[^a-z0-9_]", "", result["name"].lower())[:24]
+    register(name, np.asarray(result["points"], dtype=float))
+    LABELS[name] = result.get("label") or text[:12]
+    return {**result, "shape": name,
+            "min_km": round(rf.min_distance_km(name, mode, scale), 1),
+            "recognition_measured": False}
 
 
 def places() -> list[dict]:
@@ -513,6 +549,10 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         try:
+            if path == "/api/describe":
+                self._json(200, describe(body))
+                return
+
             if path == "/api/plan":
                 lat = float(body.get("lat", SEARCH_LAT))
                 lon = float(body.get("lon", SEARCH_LON))
