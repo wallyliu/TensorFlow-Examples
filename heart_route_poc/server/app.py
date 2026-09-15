@@ -244,14 +244,15 @@ def describe(body: dict) -> dict:
     lat = float(body.get("lat", SEARCH_LAT))
     lon = float(body.get("lon", SEARCH_LON))
     scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    backend = body.get("backend", describe_shape.DEFAULT_BACKEND)
     try:
-        result = describe_shape.propose(text, mode, scale)
+        result = describe_shape.propose(text, mode, scale, backend=backend)
     except Exception as exc:      # noqa: BLE001 - missing key, network, quota
         # No credentials is the normal case for a local run, so it is reported
         # as a plain state rather than a 500 - the page keeps working on the
         # built-in library.
-        return {"status": "unavailable", "reason": type(exc).__name__,
-                "detail": str(exc)[:200]}
+        return {"status": "unavailable", "backend": backend,
+                "reason": type(exc).__name__, "detail": str(exc)[:300]}
     if result.get("status") != "ok":
         return result
     name = "gen_" + re.sub(r"[^a-z0-9_]", "", result["name"].lower())[:24]

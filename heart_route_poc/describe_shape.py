@@ -31,9 +31,23 @@ What is NOT checked: whether anyone will recognise the result. POC 29 measured
 that per shape and found nothing predicts it from geometry, so a generated shape
 carries the pooled threshold and the service says it is unmeasured.
 
-Credentials come from the environment the usual way (ANTHROPIC_API_KEY, or an
-`ant auth login` profile). Without them `propose` raises and the caller falls
-back to the built-in library.
+WHICH MODEL draws the outline is a swappable back end, because none of the
+above depends on it. Two are wired:
+
+  copilot   the GitHub Copilot SDK (`pip install github-copilot-sdk`), which
+            works off a GitHub account with Copilot - including Copilot Free -
+            and downloads its own runtime. This is the DEFAULT.
+  anthropic the Anthropic SDK, needing ANTHROPIC_API_KEY or an `ant auth
+            login` profile.
+
+Note for anyone tempted: pointing this at the private endpoint behind the
+Copilot IDE extensions is against GitHub's terms, which license Copilot for use
+in Copilot products. The SDK below is the supported route and needs no scraped
+token. GitHub Models, which used to be the free option, was retired on
+2026-07-30.
+
+Without credentials `propose` raises and the caller falls back to the built-in
+library.
 """
 
 from __future__ import annotations
@@ -44,7 +58,9 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-MODEL = "claude-opus-5"
+DEFAULT_BACKEND = "copilot"
+ANTHROPIC_MODEL = "claude-opus-5"
+COPILOT_TIMEOUT_S = 180.0
 MAX_POINTS = 160
 MIN_POINTS = 6
 # A shape nobody will ride is not a shape we have. 120 km is already a long day.
@@ -196,26 +212,94 @@ def check(points, mode: str = "bike", street_scale_m: float | None = None) -> Ch
     return Check(not problems, problems, metrics)
 
 
+def _ask_anthropic(system: str, messages: list, client=None) -> str:
+    import anthropic
+    client = client or anthropic.Anthropic()
+    response = client.messages.create(
+        model=ANTHROPIC_MODEL, max_tokens=8000, system=system,
+        thinking={"type": "adaptive"}, output_config={"effort": "medium"},
+        messages=messages)
+    return "".join(b.text for b in response.content if b.type == "text")
+
+
+def _ask_copilot(system: str, messages: list, client=None) -> str:
+    """One turn through the Copilot SDK.
+
+    The SDK drives an agent, not a bare completion, so the session is stripped
+    down to a plain text turn: no tools, no config discovery, no skills. The
+    system prompt is installed in "replace" mode because the default appends to
+    the SDK's own coding-assistant guardrails, which have nothing to say about
+    drawing outlines and crowd out the instructions that do.
+
+    Conversation is re-sent as one prompt rather than as turns: the retry loop
+    here is short and the alternative is holding a live session open across
+    validations.
+    """
+    import asyncio
+
+    import copilot
+
+    parts = []
+    for m in messages:
+        parts.append(("USER:\n" if m["role"] == "user" else "YOUR PREVIOUS REPLY:\n")
+                     + m["content"])
+    prompt = "\n\n".join(parts)
+
+    async def run() -> str:
+        cl = copilot.CopilotClient(log_level="error")
+        await cl.start()
+        try:
+            status = await cl.get_auth_status()
+            if not getattr(status, "isAuthenticated", False):
+                raise RuntimeError(
+                    "Copilot is not authenticated. Run `copilot` once and sign "
+                    "in, or set GH_TOKEN / GITHUB_TOKEN to a token on an "
+                    "account with Copilot.")
+            session = await cl.create_session(
+                available_tools=[],
+                system_message={"mode": "replace", "content": system},
+                enable_config_discovery=False,
+                enable_skills=False,
+                skip_custom_instructions=True,
+            )
+            event = await session.send_and_wait(prompt, timeout=COPILOT_TIMEOUT_S)
+            # assistant.message carries AssistantMessageData.content - read off
+            # the SDK's own generated types rather than guessed.
+            data = getattr(event, "data", None)
+            text = getattr(data, "content", None)
+            if not isinstance(text, str):
+                raise RuntimeError(
+                    f"unexpected Copilot event {getattr(event, 'type', '?')}; "
+                    f"no text content")
+            return text
+        finally:
+            try:
+                await cl.stop()
+            except Exception:      # noqa: BLE001 - shutdown must not mask the real error
+                pass
+
+    return asyncio.run(run())
+
+
+BACKENDS = {"copilot": _ask_copilot, "anthropic": _ask_anthropic}
+
+
 def propose(description: str, mode: str = "bike",
-            street_scale_m: float | None = None, client=None) -> dict:
+            street_scale_m: float | None = None, client=None,
+            backend: str = DEFAULT_BACKEND) -> dict:
     """Ask Claude for an outline, and keep asking until it passes the checks.
 
     Failures go back as text rather than being silently repaired: the model
     that drew a crossing knows how to redraw it, and a repair here would be
     this file inventing shape design, which is the model's job.
     """
-    import anthropic
-    client = client or anthropic.Anthropic()
+    ask = BACKENDS.get(backend)
+    if ask is None:
+        raise ValueError(f"unknown backend {backend!r}; have {sorted(BACKENDS)}")
     messages = [{"role": "user", "content": f"Design an outline for: {description}"}]
     last = None
     for attempt in range(ATTEMPTS):
-        response = client.messages.create(
-            model=MODEL, max_tokens=8000, system=SYSTEM,
-            thinking={"type": "adaptive"},
-            output_config={"effort": "medium"},
-            messages=messages,
-        )
-        text = "".join(b.text for b in response.content if b.type == "text")
+        text = ask(SYSTEM, messages, client)
         try:
             data = json.loads(text[text.index("{"):text.rindex("}") + 1])
         except (ValueError, json.JSONDecodeError):

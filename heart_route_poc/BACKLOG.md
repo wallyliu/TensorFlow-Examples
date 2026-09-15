@@ -480,3 +480,25 @@ produced ten phantom crossings in a sound shape.
 And `rf.n_min` is memoised on the shape NAME, so registering every candidate as
 `_candidate` returned the first one's answer for all of them — a cat, Taiwan
 and an aeroplane all came back n_min 36. Plausible numbers, all wrong.
+
+## 22. The outline back end is swappable; Copilot is the default
+
+Nothing in the description → outline loop depends on which model draws the
+outline, so the model call is one function behind `BACKENDS`:
+
+    copilot    github-copilot-sdk. Works off a GitHub account with Copilot,
+               including Copilot Free. Downloads its own runtime. DEFAULT.
+    anthropic  anthropic SDK, ANTHROPIC_API_KEY or an `ant auth login` profile.
+
+Two dead ends checked rather than assumed. GitHub Models, the old free API for
+exactly this, was RETIRED on 2026-07-30. And the private endpoint behind the
+Copilot IDE extensions is against GitHub's terms, which license Copilot for use
+in Copilot products — the SDK is the supported route and needs no scraped token.
+
+Verified here: the SDK installs, downloads its runtime, starts, and reports
+`isAuthenticated=False`. Backend selection, the unknown-backend error and the
+endpoint's `unavailable` response are all exercised. The authenticated call is
+NOT exercised — this sandbox has no GitHub credential — so the response
+extraction (`assistant.message` → `AssistantMessageData.content`) is read off
+the SDK's own generated types rather than observed on a live reply. First real
+run may need that adjusted.
