@@ -366,11 +366,26 @@
     state.last = result;
     var coords = result.coordinates;
     var streets = (state.view === "map" && result.streets) ? result.streets : [];
-    var all = streets.length ? [].concat.apply(coords, streets) : coords;
-    var lats = all.map(function (c) { return c[0]; });
-    var lons = all.map(function (c) { return c[1]; });
-    var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
-    var minLon = Math.min.apply(null, lons), maxLon = Math.max.apply(null, lons);
+    // Flattened and scanned with loops, never with .apply(). Both
+    // `[].concat.apply` and `Math.min.apply` spread an array into ARGUMENTS,
+    // and the engine has a hard limit on how many a call may take - a 60 km
+    // dinosaur with the street basemap is hundreds of thousands of points, and
+    // the page died with "Maximum call stack size exceeded" while the route
+    // itself was perfectly fine on the server. Nothing below may use .apply on
+    // a data array.
+    var all = coords.slice();
+    for (var si = 0; si < streets.length; si++) {
+      var seg = streets[si];
+      for (var pi = 0; pi < seg.length; pi++) all.push(seg[pi]);
+    }
+    var minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+    for (var i = 0; i < all.length; i++) {
+      var la = all[i][0], lo = all[i][1];
+      if (la < minLat) minLat = la;
+      if (la > maxLat) maxLat = la;
+      if (lo < minLon) minLon = lo;
+      if (lo > maxLon) maxLon = lo;
+    }
     // A degree of longitude is shorter than a degree of latitude away from the
     // equator; without this the shape comes out stretched sideways.
     var k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
@@ -393,10 +408,14 @@
       return [x * cos - y * sin, x * sin + y * cos];
     }
 
-    var xs = [], ys = [];
-    all.forEach(function (c) { var q = project(c); xs.push(q[0]); ys.push(q[1]); });
-    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
-    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (var j = 0; j < all.length; j++) {
+      var q = project(all[j]);
+      if (q[0] < minX) minX = q[0];
+      if (q[0] > maxX) maxX = q[0];
+      if (q[1] < minY) minY = q[1];
+      if (q[1] > maxY) maxY = q[1];
+    }
     var w = maxX - minX, h = maxY - minY;
     var pad = Math.max(w, h) * 0.03;
     var unit = Math.max(w, h);
