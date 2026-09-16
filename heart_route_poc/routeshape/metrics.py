@@ -356,3 +356,63 @@ def turning_upright(
             offset = 2 * np.pi * np.round(difference.mean() / (2 * np.pi))
         best = min(best, float(np.sqrt(((difference - offset) ** 2).mean())))
     return best
+
+
+# ---------------------------------------------------------------------------
+# Thinness
+# ---------------------------------------------------------------------------
+THINNESS_ARC_SEPARATION = 0.08
+# Below this, every feature that vanished on a real route so far scores lower
+# than every shape raters have identified. It is a WARNING LINE, not a gate -
+# see `thinness` for why it cannot be one yet.
+THINNESS_WARN = 0.10
+
+
+def thinness(xy: np.ndarray, n: int = 512,
+             separation: float = THINNESS_ARC_SEPARATION) -> float:
+    """
+    How thin the thinnest sliver of an outline is: min chord over arc.
+
+    A butterfly's antenna, a leaf's midrib and a cat's tail-as-a-stroke all
+    disappeared when the route was drawn, and the shared property is that the
+    two sides of the feature run close together for a long stretch of the
+    boundary. Straight-line distance alone does not find them, because a sharp
+    CORNER also puts two boundary points close together and a corner draws
+    perfectly well - measured on distance alone the five shapes raters have
+    actually identified score 0.053 to 0.121, overlapping the failures
+    completely. Dividing by the boundary distance between the two points
+    separates them: a corner of interior angle t scores sin(t/2), which stays
+    high however sharp it is, while a sliver scores its own width over its own
+    length.
+
+    WHAT THIS IS NOT. It is not a pass/fail rule, and one was tried: "no
+    feature smaller than 10% of the width" was proposed here and the
+    measurement refused it, failing heart, star, crescent, T-rex and Taiwan -
+    every one of which raters identify. On this measure the identified shapes
+    bottom out at 0.130 (crescent) and 0.132 (T-rex), but a cat at 0.070 drew
+    its tail correctly at 30 km and lost it at 50 km, so the number that
+    matters is a floor on DISTANCE, not a yes or no, and nothing here has
+    measured that relationship yet. Reported, not enforced.
+
+    One reading to get right: an interior line drawn as an out-and-back stroke
+    is zero-width ON PURPOSE - the leaf's midrib scores 0.001 because the route
+    is meant to retrace the same street, not to draw two. A low score says
+    "this feature has no width", which is a defect for an antenna and the
+    whole design for a vein.
+    """
+    curve = resample_closed(np.asarray(xy, dtype=float), n)
+    closed = np.vstack([curve, curve[:1]])
+    perimeter = float(np.hypot(*np.diff(closed, axis=0).T).sum())
+    if perimeter <= 0:
+        return float("inf")
+
+    index = np.arange(n)
+    apart = np.abs(index[:, None] - index[None, :])
+    apart = np.minimum(apart, n - apart)
+    chord = np.hypot(curve[:, 0][:, None] - curve[:, 0][None, :],
+                     curve[:, 1][:, None] - curve[:, 1][None, :])
+    arc = apart * (perimeter / n)
+    far_enough = apart >= max(1, int(round(separation * n)))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ratio = np.where(far_enough, chord / arc, np.inf)
+    return float(np.min(ratio))

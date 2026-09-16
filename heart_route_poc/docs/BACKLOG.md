@@ -502,3 +502,88 @@ NOT exercised — this sandbox has no GitHub credential — so the response
 extraction (`assistant.message` → `AssistantMessageData.content`) is read off
 the SDK's own generated types rather than observed on a live reply. First real
 run may need that adjusted.
+
+## 23. The shape metric is blind to the features that carry identity
+
+`shape_distance` is an RMS over the whole contour, so it is dominated by the
+gross outline. Ears, teeth and tails are a small fraction of arc length, and
+losing them costs almost nothing. Measured by low-passing each outline to k
+Fourier harmonics and scoring the result against itself:
+
+| shape    | k=3 (a smooth blob) | k=8 | k=20 |
+|----------|--------------------:|----:|-----:|
+| gear     | 0.125 | 0.125 | 0.026 |
+| cat      | 0.248 | 0.073 | 0.024 |
+| triangle | 0.073 | 0.021 | 0.008 |
+
+A gear with **no teeth at all** — an ellipse — scores 0.125, which the
+recognition curve reports as 98.5% recognisable. The real 30 km gear came out
+at 0.101 with sixteen teeth missing and was reported "應該認得出來".
+
+Two consequences. The thresholds in `recognition.py` were measured on five
+shapes whose identity IS their gross outline (triangle, heart, star, crescent,
+T-rex), so applying the pooled 0.201 to a detailed shape uses the wrong ruler.
+And `n_min` is computed from the same blind metric, so `min_km` permits sizes
+at which the features are physically smaller than a city block.
+
+Proposed fix, not yet built: a second distance computed on the HIGH-FREQUENCY
+residual of the contour, reported alongside the first, so that losing the teeth
+is expensive. Measure before wiring it into the search.
+
+## 24. Seven of fourteen shapes were wrong, and the validator passed all of them
+
+`describe.check()` validates a polygon: no self-crossings, sane aspect ratio, a
+floor somebody will ride. It has no opinion on whether the drawing looks like
+its name, and there is no mechanical test that does. Every shape in the pack
+passed it; the first person to look at them rejected half.
+
+Nothing was geometrically wrong. Each failure was a CONVENTION failure — the
+outline did not match the picture a reader would draw:
+
+| shape | read as | what was actually missing |
+|---|---|---|
+| cat | Pikachu | a neck notch and a muzzle |
+| crown | mountain range | vertical sides, a band, balls on the points |
+| gear | the sun | flat tooth tops and flat valleys, half as many teeth |
+| fish | a leaf with a thorn | a caudal fin at a fish's proportion |
+| butterfly | — | the local convention; the first two redraws read as a bat and a heart |
+| rabbit | nothing | face-on symmetry instead of a profile |
+| house | generic | eaves, a chimney, a door |
+
+And the convention is local: a butterfly was rejected as 跟台灣的習慣畫法差很多.
+
+Redrawing for legibility also made every one of them cheaper to ride, because
+the features that do not read are exactly the ones that cost distance:
+
+| shape | floor before | after |
+|---|---:|---:|
+| gear | 22.0 km | 10.5 km |
+| butterfly | 26.0 km | 21.3 km |
+| crown | 21.1 km | 14.7 km |
+| fish | 14.7 km | 11.0 km |
+| rabbit | 9.0 km | 8.9 km |
+
+Still open: the twelve pack shapes have no measured recognition threshold, and
+nobody has yet seen any of them WITHOUT its label. That test is the only thing
+that would have caught the cat.
+
+## 25. "No feature smaller than 10% of the width" — proposed, measured, refused
+
+The rule looked obvious and it is wrong. Measured as the smallest distance
+between two boundary points far apart along the boundary, over the shape's
+width, the five shapes raters actually identify score 0.098 (heart), 0.095
+(star), 0.053 (crescent), 0.074 (T-rex), 0.057 (Taiwan) — a 10% gate throws out
+all of them. The measure conflates a sharp CORNER, which draws perfectly well,
+with a thin sliver, which does not.
+
+`metrics.thinness` is the version that survives: minimum chord over arc between
+the same pairs. A corner of interior angle t scores sin(t/2) however sharp it
+is; a sliver scores its own width over its own length. On that scale the
+identified shapes bottom out at 0.130 and the features that have actually
+vanished (butterfly antennae 0.041, lightning 0.031, leaf midrib 0.001) sit far
+below.
+
+It is still NOT a gate, and `check()` reports it as a note rather than a
+problem: a cat at 0.070 drew its tail correctly at 30 km and lost it at 50 km,
+so what a low score buys is a longer ride, not a refusal — and how much longer
+is unmeasured. An uncalibrated signal that rejects work is worse than none.

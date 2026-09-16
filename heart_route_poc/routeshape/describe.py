@@ -58,6 +58,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+import routeshape.metrics as sm
+
 DEFAULT_BACKEND = "copilot"
 ANTHROPIC_MODEL = "claude-opus-5"
 COPILOT_TIMEOUT_S = 180.0
@@ -107,6 +109,10 @@ class Check:
     ok: bool
     problems: list = field(default_factory=list)
     metrics: dict = field(default_factory=dict)
+    # Things worth saying that are NOT grounds for refusal. Kept apart from
+    # `problems` on purpose: an uncalibrated signal that rejects work is worse
+    # than no signal, and the one here has already been wrong once.
+    notes: list = field(default_factory=list)
 
 
 def _segments_cross(p1, p2, p3, p4) -> bool:
@@ -144,8 +150,17 @@ def self_intersections(points: np.ndarray) -> list:
 
 
 def check(points, mode: str = "bike", street_scale_m: float | None = None) -> Check:
-    """Everything the project knows about what makes an outline unusable."""
-    problems = []
+    """Everything the project knows about what makes an outline unusable.
+
+    What it does NOT check is whether the outline looks like the thing it is
+    named after. Every shape in the pack passed this function and seven of the
+    fourteen were then rejected on sight - a cat that everybody read as
+    Pikachu, a crown that everybody read as mountains. This validates a
+    polygon, not a likeness, and nothing but a person looking at it can do the
+    second job.
+    """
+    problems: list = []
+    notes: list = []
     try:
         pts = np.asarray(points, dtype=float)
     except (TypeError, ValueError):
@@ -209,7 +224,20 @@ def check(points, mode: str = "bike", street_scale_m: float | None = None) -> Ch
                 f"too much fine detail: this needs a {floor:.0f} km ride "
                 f"(n_min {n_min}). Simplify until it fits in {MAX_FLOOR_KM:.0f} km "
                 f"- remove small features, not overall size.")
-    return Check(not problems, problems, metrics)
+        # Reported, never refused. See metrics.thinness: the pass/fail version
+        # of this was tried and the measurement threw out five shapes raters
+        # identify without trouble.
+        thin = sm.thinness(pts)
+        metrics["thinness"] = round(float(thin), 3)
+        if thin < sm.THINNESS_WARN:
+            notes.append(
+                f"thinness {thin:.3f}: something here is a long thin sliver "
+                f"(an antenna, a stroke, a narrow slot). Every feature that "
+                f"has vanished on a real route so far scored below "
+                f"{sm.THINNESS_WARN:.2f}. It is not a refusal - a cat at 0.070 "
+                f"drew its tail at 30 km - but it will need a longer ride "
+                f"than the {metrics.get('min_km', '?')} km floor suggests.")
+    return Check(not problems, problems, metrics, notes)
 
 
 def _ask_anthropic(system: str, messages: list, client=None) -> str:

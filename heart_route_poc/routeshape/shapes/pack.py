@@ -21,6 +21,27 @@ n_min comes from the outline's own detail. Anything needing more distance than
 a person will ride is not a shape this product has, however good it looks. The
 floors are printed by running this module, and that is the filter.
 
+DRAW THE CONVENTION, NOT THE OBJECT. Seven of the fourteen here were rejected
+on sight by the first person to look at them, and not one was rejected for
+being geometrically wrong. The cat was a correct cat and everybody read
+Pikachu, because tall pointed ears on a round body with no neck is somebody
+else's silhouette. The crown was a correct heraldic crown and everybody read a
+mountain range, because a zigzag on a trapezoid IS a mountain range - what
+makes a crown is vertical sides, a band, and balls on the points. The gear had
+sixteen correct involute-ish teeth and read as a sun. The reader is matching
+against the picture they would draw, so that is the target: a butterfly drawn
+the way it is drawn here, not the way one photographs.
+
+Which also means the convention is LOCAL. The first butterfly was rejected with
+"跟台灣的習慣畫法差很多" - the shape was fine, the convention was the wrong
+one. Anything added here should be checked against the people who will ride it.
+
+THE VALIDATOR CANNOT DO THIS JOB. Every shape in this file passed
+describe.check() before any of the above was noticed. It validates a polygon -
+no self-crossings, a sane aspect ratio, a floor a person will ride - and there
+is no mechanical test for whether a drawing looks like its name. A person
+looking at it is not a nice-to-have step here, it is the only step that works.
+
 Coordinates are plain polygons, y up, any scale: shape_library normalises.
 """
 
@@ -43,33 +64,61 @@ _TAIWAN_LONLAT = [
 ]
 
 
+def _sym(right: list, top: tuple, bottom: tuple) -> np.ndarray:
+    """A left-right symmetric outline from its right half.
+
+    Hand-mirroring is how three of these shapes grew self-crossings: the
+    reversed half was pasted in the wrong direction and the boundary tied a
+    knot. Building both halves from one list cannot do that.
+    """
+    return np.array([top] + right + [bottom]
+                    + [(-x, y) for x, y in reversed(right)])
+
+
 def taiwan() -> np.ndarray:
     k = math.cos(math.radians(23.5))
     return np.array([(lon * k, lat) for lon, lat in _TAIWAN_LONLAT])
 
 
 def fish() -> np.ndarray:
-    """Body, tail fin, dorsal and lower fin. No eye - an eye is not an outline."""
+    """A deep body, a tall dorsal fin and a caudal fin a quarter of the length.
+
+    The first version was a diamond with a small forked spur for a tail and
+    read as a leaf with a thorn. The tail is what says fish, so it is drawn at
+    the size a fish's tail actually occupies rather than at the size that fits
+    neatly beside the body.
+    """
     return np.array([
-        (0.00, 0.00), (0.18, 0.22), (0.42, 0.30), (0.52, 0.46), (0.62, 0.30),
-        (0.86, 0.20), (1.02, 0.06), (1.10, 0.14), (1.06, 0.00), (1.10, -0.14),
-        (1.02, -0.06), (0.86, -0.20), (0.62, -0.28), (0.52, -0.44),
-        (0.42, -0.26), (0.18, -0.20),
+        (0.50, 0.00), (0.40, 0.18), (0.22, 0.28), (0.04, 0.30),
+        (-0.10, 0.48), (-0.20, 0.26),                   # dorsal fin
+        (-0.30, 0.14),                                  # peduncle, top
+        (-0.56, 0.34), (-0.42, 0.00), (-0.56, -0.30),   # caudal fin
+        (-0.30, -0.12),                                 # peduncle, bottom
+        (-0.14, -0.24),
+        (0.00, -0.28), (0.06, -0.46), (0.18, -0.28),    # pelvic fin
+        (0.34, -0.20), (0.44, -0.10),
     ])
 
 
 def butterfly() -> np.ndarray:
-    """Two wing pairs meeting at a narrow body, plus antennae."""
-    right = [
-        (0.03, 0.06), (0.30, 0.44), (0.52, 0.50), (0.56, 0.30), (0.44, 0.14),
-        (0.56, 0.04), (0.52, -0.22), (0.36, -0.44), (0.16, -0.40), (0.04, -0.16),
-    ]
-    pts = [(0.00, 0.62), (0.10, 0.74), (0.06, 0.60)]          # right antenna
-    pts += right
-    pts += [(0.00, -0.30)]                                     # abdomen tip
-    pts += [(-x, y) for x, y in reversed(right)]
-    pts += [(-0.06, 0.60), (-0.10, 0.74), (0.00, 0.62)]        # left antenna
-    return np.array(pts)
+    """A swallowtail: upper wings swept up and out, lower wings with tails.
+
+    Two earlier versions were rejected by eye and each taught something. The
+    first carried hair-thin antennae, 3% of the width, which no street network
+    can draw - they cost distance and rendered as nothing. The second dropped
+    them but left the notch between the upper wings shallow, and the two wings
+    fused into what everybody read as a heart.
+
+    This one is the shape a person here would draw if asked for a butterfly,
+    which is not the same shape as a photograph of one. That difference is the
+    point: the target has to match the reader's convention, not the object.
+    """
+    return _sym([
+        (0.10, 0.40), (0.30, 0.62), (0.50, 0.52), (0.44, 0.24), (0.22, 0.08),
+        (0.10, 0.02),                                   # waist
+        (0.28, -0.10), (0.40, -0.26), (0.30, -0.40), (0.34, -0.56),
+        (0.16, -0.40), (0.08, -0.32),                   # lower wing + tail
+    ], (0.00, 0.20), (0.00, -0.42))
 
 
 def umbrella() -> np.ndarray:
@@ -138,29 +187,29 @@ def music_note() -> np.ndarray:
 
 
 def cat() -> np.ndarray:
-    """A cat sitting in profile: two ears, a back curve, a tail up the side.
+    """A cat sitting in profile: neck, muzzle, short ears, a curled tail.
 
-    Replaces a key, which needs its hole to read as a key - and a hole is a
-    second contour, which a single closed outline cannot carry. The rule is the
-    same one POC 20 found for portraits: if the identity is not in the silhouette
-    it does not belong here.
+    The version this replaces was read by everyone who saw it as Pikachu, and
+    the diagnosis is exact: tall pointed ears on a round body with no neck.
+    None of the three is wrong for a cat on its own; together they are somebody
+    else. What was missing is the neck notch and the muzzle - the two places a
+    cat's silhouette steps in - so those are drawn deep enough to survive.
     """
-    pts = [
-        (-0.16, 0.18), (-0.22, 0.46), (-0.04, 0.34),            # left ear
-        (0.10, 0.36), (0.22, 0.48), (0.24, 0.26),               # right ear
-        (0.30, 0.14), (0.28, 0.00),                             # cheek, neck
-        (0.36, -0.16), (0.40, -0.40), (0.34, -0.54),            # chest, front paw
-        (0.10, -0.58), (-0.20, -0.56),                          # base
-        # Tail as a TAPERING stroke - the outward edge curls up and the return
-        # edge comes back strictly inside it. Drawn as a single wandering line
-        # the return crossed the haunch and the cat grew a loop through its own
-        # back.
-        (-0.34, -0.54), (-0.50, -0.48), (-0.62, -0.30),
-        (-0.64, -0.06), (-0.55, 0.10),                          # tail tip
-        (-0.50, 0.00), (-0.54, -0.22), (-0.44, -0.38), (-0.32, -0.44),
-        (-0.34, -0.20), (-0.30, 0.02),                          # back
-    ]
-    return np.array(pts)
+    return np.array([
+        (0.02, 0.32),
+        (0.02, 0.46), (0.13, 0.36),                     # rear ear
+        (0.19, 0.36), (0.27, 0.48), (0.31, 0.30),       # front ear
+        (0.36, 0.22), (0.42, 0.15), (0.35, 0.09),       # brow, muzzle, chin
+        (0.25, 0.03),                                   # neck
+        (0.33, -0.09),                                  # chest
+        (0.35, -0.28), (0.42, -0.37), (0.33, -0.41),    # foreleg, paw
+        (0.06, -0.41), (-0.12, -0.41), (-0.28, -0.42),  # base
+        (-0.43, -0.38), (-0.52, -0.25), (-0.47, -0.08), # tail, curling
+        (-0.35, -0.01),                                 # tail tip
+        (-0.36, -0.11), (-0.42, -0.23), (-0.35, -0.32), # tail, returning
+        (-0.25, -0.34), (-0.17, -0.32),
+        (-0.20, -0.12), (-0.16, 0.09), (-0.07, 0.24),   # rump, back
+    ])
 
 
 def lightning() -> np.ndarray:
@@ -171,18 +220,40 @@ def lightning() -> np.ndarray:
 
 
 def house() -> np.ndarray:
+    """Overhanging eaves, a chimney and a door.
+
+    The plain pentagon it replaces was not wrong, it was generic - a house
+    shares its outline with a great many things until it has the parts people
+    draw on a house.
+    """
     return np.array([
-        (-0.50, -0.20), (-0.50, 0.14), (-0.34, 0.14), (-0.34, 0.26),
-        (0.00, 0.50), (0.50, 0.14), (0.50, -0.20), (0.16, -0.20),
-        (0.16, -0.02), (-0.10, -0.02), (-0.10, -0.20),
+        (-0.46, -0.36), (-0.10, -0.36), (-0.10, -0.06),
+        (0.12, -0.06), (0.12, -0.36), (0.46, -0.36),    # door
+        (0.46, 0.06), (0.56, 0.10),                     # eave
+        (0.00, 0.46),                                   # ridge
+        (-0.26, 0.28), (-0.26, 0.48), (-0.40, 0.48), (-0.40, 0.18),
+        (-0.56, 0.10), (-0.46, 0.06),                   # chimney, eave
     ])
 
 
 def crown() -> np.ndarray:
-    return np.array([
-        (-0.50, -0.26), (-0.42, 0.20), (-0.24, -0.02), (-0.08, 0.34),
-        (0.08, -0.02), (0.26, 0.20), (0.34, -0.26),
-    ])
+    """A banded crown with a ball on each of three points.
+
+    The version this replaces was a zigzag on a trapezoid and every reader
+    called it a mountain range, correctly: mountains are exactly a zigzag on a
+    trapezoid. Two things separate a crown from a skyline and neither is the
+    zigzag - the sides are VERTICAL and there is a band across the bottom. The
+    balls are the third, and they are what a person here pictures first.
+    """
+    return _sym([
+        (0.09, 0.44), (0.12, 0.36), (0.08, 0.28),          # centre ball
+        (0.06, 0.18), (0.16, -0.08),                       # stem, valley
+        (0.25, 0.14), (0.27, 0.23),                        # side point
+        (0.20, 0.30), (0.24, 0.40), (0.34, 0.41),
+        (0.39, 0.33), (0.35, 0.23),                        # side ball
+        (0.34, 0.08), (0.36, -0.14),                       # outer edge
+        (0.48, -0.18), (0.48, -0.44),                      # band, base
+    ], (0.00, 0.48), (0.00, -0.44))
 
 
 def cup() -> np.ndarray:
@@ -254,32 +325,40 @@ def leaf(veins: int = 0) -> np.ndarray:
 
 
 def rabbit() -> np.ndarray:
-    """Two long ears, a round body, a scut. Came out of POC 31 as a stand-in
-    for a model proposal, passed the same checks as everything else here, and
-    fitted in Taipei at 15.8 km, so it is a shape rather than a test fixture."""
-    return np.array([
-        (-0.10, 0.10), (-0.17, 0.44), (-0.12, 0.62), (-0.04, 0.60),
-        (-0.02, 0.40), (0.03, 0.16), (0.08, 0.40), (0.12, 0.62),
-        (0.20, 0.64), (0.22, 0.44), (0.17, 0.10), (0.26, -0.02),
-        (0.30, -0.20), (0.26, -0.38), (0.12, -0.46), (-0.14, -0.46),
-        (-0.30, -0.36), (-0.40, -0.40), (-0.46, -0.30), (-0.38, -0.24),
-        (-0.30, -0.28), (-0.26, -0.16), (-0.22, -0.02),
-    ])
+    """Face on: two long ears, a round head, a body and two feet.
+
+    Drawn in profile it was unreadable - not wrong in any part, just not
+    recognisable, which is the only test that counts. Face on it is symmetric,
+    and a symmetric animal is far easier to name than a silhouette of the same
+    animal side on.
+    """
+    return _sym([
+        (0.07, 0.40), (0.13, 0.62), (0.21, 0.74), (0.28, 0.66),  # ear
+        (0.26, 0.42), (0.20, 0.28),
+        (0.27, 0.16), (0.27, 0.02),                              # cheek
+        (0.19, -0.06),                                           # neck
+        (0.33, -0.16), (0.37, -0.34),                            # body
+        (0.31, -0.46), (0.17, -0.50), (0.11, -0.40),             # foot
+    ], (0.00, 0.26), (0.00, -0.34))
 
 
-def gear(teeth: int = 16) -> np.ndarray:
-    """Sixteen teeth, no crossings. Built to test the distance rule and it did
-    not trip it - a gear costs 21.9 km, which is an ordinary ride - so it is
-    here as a shape instead. Fitted at 30.1 km and 0.089."""
+def gear(teeth: int = 8) -> np.ndarray:
+    """Eight square teeth with flat tops and flat valleys.
+
+    Sixteen pointed teeth over a V-shaped valley is the outline of a sun, not
+    of a gear, and at any distance a person will ride the teeth came out as
+    noise indistinguishable from the street grid. Halving the count and
+    squaring the profile doubles the width of every tooth and costs nothing
+    that reads: the floor drops from 22.0 km to 10.5 km.
+    """
     pts = []
+    pitch = 2 * math.pi / teeth
     for k in range(teeth):
-        a0 = 2 * math.pi * k / teeth
-        a1 = 2 * math.pi * (k + 0.5) / teeth
-        a2 = 2 * math.pi * (k + 1) / teeth
-        pts.append((0.34 * math.cos(a0), 0.34 * math.sin(a0)))
-        pts.append((0.50 * math.cos(a0), 0.50 * math.sin(a0)))
-        pts.append((0.50 * math.cos(a1), 0.50 * math.sin(a1)))
-        pts.append((0.34 * math.cos(a2), 0.34 * math.sin(a2)))
+        a = pitch * k
+        for radius, fraction in ((0.32, 0.05), (0.50, 0.15),
+                                 (0.50, 0.35), (0.32, 0.45)):
+            angle = a + fraction * pitch
+            pts.append((radius * math.cos(angle), radius * math.sin(angle)))
     return np.array(pts)
 
 
