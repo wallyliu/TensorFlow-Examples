@@ -1,0 +1,276 @@
+{
+  "answers": [
+    {
+      "at": 1789546854659,
+      "chosen": "plane",
+      "correct": true,
+      "distance": 0.0696,
+      "item": "plane_28",
+      "route_km": 23.5,
+      "shape": "plane"
+    },
+    {
+      "at": 1789546857644,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2789,
+      "item": "taiwan_1",
+      "route_km": 25.8,
+      "shape": "taiwan"
+    },
+    {
+      "at": 1789546859270,
+      "chosen": "fish",
+      "correct": true,
+      "distance": 0.0683,
+      "item": "fish_2",
+      "route_km": 19.5,
+      "shape": "fish"
+    },
+    {
+      "at": 1789546864062,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1202,
+      "item": "house_13",
+      "route_km": 20.1,
+      "shape": "house"
+    },
+    {
+      "at": 1789546865307,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0443,
+      "item": "cat_head_20",
+      "route_km": 20.4,
+      "shape": "cat_head"
+    },
+    {
+      "at": 1789546866650,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.056,
+      "item": "cat_18",
+      "route_km": 19.1,
+      "shape": "cat"
+    },
+    {
+      "at": 1789546867858,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1744,
+      "item": "umbrella_7",
+      "route_km": 34.8,
+      "shape": "umbrella"
+    },
+    {
+      "at": 1789546872168,
+      "chosen": "plane",
+      "correct": true,
+      "distance": 0.1559,
+      "item": "plane_29",
+      "route_km": 25,
+      "shape": "plane"
+    },
+    {
+      "at": 1789546875349,
+      "chosen": "house",
+      "correct": true,
+      "distance": 0.0719,
+      "item": "house_12",
+      "route_km": 19.8,
+      "shape": "house"
+    },
+    {
+      "at": 1789546876677,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0902,
+      "item": "umbrella_6",
+      "route_km": 30.9,
+      "shape": "umbrella"
+    },
+    {
+      "at": 1789546878101,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1176,
+      "item": "rabbit_25",
+      "route_km": 23.4,
+      "shape": "rabbit"
+    },
+    {
+      "at": 1789546880538,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1419,
+      "item": "leaf_23",
+      "route_km": 30,
+      "shape": "leaf"
+    },
+    {
+      "at": 1789546884739,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0613,
+      "item": "lightning_8",
+      "route_km": 20.5,
+      "shape": "lightning"
+    },
+    {
+      "at": 1789546887116,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0751,
+      "item": "gear_26",
+      "route_km": 19.8,
+      "shape": "gear"
+    },
+    {
+      "at": 1789546889201,
+      "chosen": "cup",
+      "correct": true,
+      "distance": 0.0653,
+      "item": "cup_16",
+      "route_km": 19.5,
+      "shape": "cup"
+    },
+    {
+      "at": 1789546890801,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1916,
+      "item": "lightning_9",
+      "route_km": 22.9,
+      "shape": "lightning"
+    },
+    {
+      "at": 1789546892014,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2636,
+      "item": "cat_head_21",
+      "route_km": 23.7,
+      "shape": "cat_head"
+    },
+    {
+      "at": 1789546894197,
+      "chosen": "music_note",
+      "correct": true,
+      "distance": 0.0833,
+      "item": "music_note_10",
+      "route_km": 21,
+      "shape": "music_note"
+    },
+    {
+      "at": 1789546895644,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0647,
+      "item": "crown_14",
+      "route_km": 23.2,
+      "shape": "crown"
+    },
+    {
+      "at": 1789546897571,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0629,
+      "item": "rabbit_24",
+      "route_km": 21.2,
+      "shape": "rabbit"
+    },
+    {
+      "at": 1789546902379,
+      "chosen": "taiwan",
+      "correct": true,
+      "distance": 0.0423,
+      "item": "taiwan_0",
+      "route_km": 20,
+      "shape": "taiwan"
+    },
+    {
+      "at": 1789546903534,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1775,
+      "item": "crown_15",
+      "route_km": 22.6,
+      "shape": "crown"
+    },
+    {
+      "at": 1789546905446,
+      "chosen": "fish",
+      "correct": true,
+      "distance": 0.1182,
+      "item": "fish_3",
+      "route_km": 19.5,
+      "shape": "fish"
+    },
+    {
+      "at": 1789546908176,
+      "chosen": "butterfly",
+      "correct": true,
+      "distance": 0.2265,
+      "item": "butterfly_5",
+      "route_km": 36.7,
+      "shape": "butterfly"
+    },
+    {
+      "at": 1789546912609,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0974,
+      "item": "cat_19",
+      "route_km": 20.6,
+      "shape": "cat"
+    },
+    {
+      "at": 1789546914267,
+      "chosen": "cup",
+      "correct": true,
+      "distance": 0.1386,
+      "item": "cup_17",
+      "route_km": 21.3,
+      "shape": "cup"
+    },
+    {
+      "at": 1789546916216,
+      "chosen": "music_note",
+      "correct": true,
+      "distance": 0.1582,
+      "item": "music_note_11",
+      "route_km": 22,
+      "shape": "music_note"
+    },
+    {
+      "at": 1789546917559,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1633,
+      "item": "gear_27",
+      "route_km": 19.2,
+      "shape": "gear"
+    },
+    {
+      "at": 1789546920228,
+      "chosen": "butterfly",
+      "correct": true,
+      "distance": 0.0639,
+      "item": "butterfly_4",
+      "route_km": 31,
+      "shape": "butterfly"
+    },
+    {
+      "at": 1789546921406,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0676,
+      "item": "leaf_22",
+      "route_km": 30.3,
+      "shape": "leaf"
+    }
+  ],
+  "finished": "2026-09-16T08:22:01.407Z",
+  "session": "mu3tzi94wr4ksk"
+}

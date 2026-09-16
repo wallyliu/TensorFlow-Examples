@@ -629,3 +629,57 @@ with a scar through it. Dropped.
 
 `cat` and `cat_head` both ship. Which is actually more recognisable is a
 question for raters, not for whoever drew them, and both go into the blind test.
+
+## 27. Recognition is a property of the DRAWING, not of the shape distance
+
+Two raters, 30 items each, 15 shapes. They agree on 25 of 30 items (kappa
+0.67), so the splits below are about the shapes rather than about the people.
+
+Per-shape accuracy does not look like the same answers dealt out at random:
+variance 0.177, permutation p < 0.0001 over 20,000 shuffles. It is close to
+trimodal.
+
+| | shapes |
+|---|---|
+| 4/4 correct | butterfly, cup, fish, music_note, plane |
+| 0/4 correct | cat_head, crown, lightning, rabbit, umbrella |
+| mixed | leaf 0.50, taiwan 0.50, cat 0.25, gear 0.25, house 0.25 |
+
+Accuracy against shape distance, over the same answers: 50% below 0.07, 50% to
+0.10, 50% to 0.14, 36% to 0.20, 33% above. Flat where the per-shape split is
+sharp.
+
+THIS BREAKS recognition.py's model. It gives every shape a logistic curve over
+shape distance with a per-shape threshold, and fits the five original shapes
+well - POC 29 measured 96% below 0.10 falling to 12% above 0.32. For the pack
+the curve is the wrong object: five of these shapes are never recognised at
+any distance the router can reach, and five always are. A threshold describes
+a shape whose identity IS its gross outline. For the rest the question is
+binary and settled before any route is fitted.
+
+Do not repair the curve by fitting per-shape thresholds to four answers each.
+What the service should say is which of the three groups a shape is in, and it
+should say "unmeasured" until raters have seen it.
+
+AND THE SAME DISTANCE MEANS DIFFERENT THINGS. Below 0.10 - the closest this
+project fits - the original five scored 27/28 and this pack 16/32 (Fisher
+p = 0.00005, odds ratio 27). This is BACKLOG 23 appearing in human data: 0.07
+on a triangle is a triangle anybody names, 0.07 on an umbrella is nothing.
+Confounded, though: POC 29 offered five options against this task's sixteen,
+and the raters differ. Anchor items - the original five inside THIS task, same
+options, same raters - would settle it, and are the next thing to build.
+
+THE REDRAWS DID NOT ALL WORK, and the record is mixed in both directions:
+
+  redrawn, now recognised     butterfly, fish
+  redrawn, still not          crown, rabbit, cat_head
+  redrawn, mixed              cat, house, gear
+  never redrawn, recognised   cup, music_note, plane
+  never redrawn, not          lightning, umbrella
+
+Four of the five failures had been redrawn and approved by eye in the round
+before this one. That is the whole argument for the task: knowing the answer
+and then looking is a different act from looking.
+
+31 of the 33 errors were "cannot tell". Routes do not become the wrong thing;
+they become nothing. Same as POC 29's 48 of 50.

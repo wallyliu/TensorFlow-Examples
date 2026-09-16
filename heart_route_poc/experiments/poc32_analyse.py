@@ -23,10 +23,15 @@ Run:  python -m experiments.poc32_analyse <dir of response .json files>
 
 from __future__ import annotations
 
+import collections
 import json
 import math
+import random
 import sys
 from pathlib import Path
+
+import numpy as np
+from scipy.stats import fisher_exact
 
 CHANCE = 1.0 / 16.0          # fifteen shapes plus "cannot tell"
 POOLED_THRESHOLD = 0.201     # what recognition.py currently assumes
@@ -49,6 +54,96 @@ def load(folder: Path) -> list:
         for a in doc.get("answers", []):
             rows.append(dict(a, session=doc.get("session", f.stem)))
     return rows
+
+
+
+def agreement(rows: list) -> None:
+    """Do the raters see the same thing? Without this a split is unreadable."""
+    by_item: dict = collections.defaultdict(dict)
+    for r in rows:
+        by_item[r["item"]][r["session"]] = r
+    pairs = [d for d in by_item.values() if len(d) >= 2]
+    if not pairs:
+        return
+    both_right = sum(all(x["correct"] for x in d.values()) for d in pairs)
+    both_wrong = sum(not any(x["correct"] for x in d.values()) for d in pairs)
+    n = len(pairs)
+    observed = (both_right + both_wrong) / n
+    rates = []
+    for session in sorted({r["session"] for r in rows}):
+        mine = [r["correct"] for r in rows if r["session"] == session]
+        rates.append(sum(mine) / len(mine))
+    expected = rates[0] * rates[1] + (1 - rates[0]) * (1 - rates[1])
+    kappa = (observed - expected) / (1 - expected) if expected < 1 else float("nan")
+    print(f"\ninter-rater: agree on {both_right + both_wrong}/{n} items "
+          f"({both_right} both right, {both_wrong} both wrong), "
+          f"disagree on {n - both_right - both_wrong}")
+    print(f"             observed {observed:.0%}, chance {expected:.0%}, "
+          f"kappa {kappa:.2f}")
+
+
+def between_shapes(rows: list, shuffles: int = 20000) -> None:
+    """Is recognition a property of the SHAPE or of the shape distance?
+
+    recognition.py answers "the distance": every shape gets a logistic curve
+    over it. If that is right, per-shape accuracy should look like what you get
+    by dealing the same answers out at random. This deals them out and checks.
+    """
+    by_shape: dict = collections.defaultdict(list)
+    for r in rows:
+        by_shape[r["shape"]].append(bool(r["correct"]))
+    sizes = [len(v) for v in by_shape.values()]
+    observed = float(np.var([np.mean(v) for v in by_shape.values()]))
+
+    flat = [bool(r["correct"]) for r in rows]
+    random.seed(0)
+    hits = 0
+    for _ in range(shuffles):
+        deck = flat[:]
+        random.shuffle(deck)
+        groups, at = [], 0
+        for size in sizes:
+            groups.append(np.mean(deck[at:at + size]))
+            at += size
+        if np.var(groups) >= observed:
+            hits += 1
+    p = (hits + 1) / (shuffles + 1)
+    print(f"\nper-shape accuracy variance {observed:.3f}, "
+          f"permutation p = {p:.4f} ({shuffles:,} shuffles)")
+    acc = {k: float(np.mean(v)) for k, v in by_shape.items()}
+    print("  always:", ", ".join(sorted(k for k, v in acc.items() if v == 1.0)) or "-")
+    print("  never: ", ", ".join(sorted(k for k, v in acc.items() if v == 0.0)) or "-")
+    print("  mixed: ", ", ".join(f"{k} {v:.2f}"
+                                 for k, v in sorted(acc.items()) if 0 < v < 1) or "-")
+
+
+def against_poc29(rows: list, folder: Path) -> None:
+    """The same distance band, the old shapes and the new ones.
+
+    Below 0.10 a route is about as close to its target as this project gets, so
+    if the drawing is any good this is where it reads.
+    """
+    old = folder.parent
+    for candidate in (Path("results/poc29_recognisability.json"),
+                      old / "poc29_recognisability.json"):
+        if candidate.exists():
+            band = json.loads(candidate.read_text())["bands"][0]
+            break
+    else:
+        return
+    new = [r for r in rows if r["distance"] < 0.10]
+    hits = sum(r["correct"] for r in new)
+    odds, p = fisher_exact([[band["correct"], band["n"] - band["correct"]],
+                            [hits, len(new) - hits]])
+    print(f"\nbelow d={band['hi']:.2f}, the closest this project fits:")
+    print(f"  the original five  {band['correct']:2d}/{band['n']:2d} = "
+          f"{band['correct'] / band['n']:.0%}   (POC 29)")
+    print(f"  this pack          {hits:2d}/{len(new):2d} = "
+          f"{hits / len(new):.0%}")
+    print(f"  Fisher exact p = {p:.5f}, odds ratio {odds:.1f}")
+    print("  CONFOUNDED: POC 29 offered five options and this task sixteen, "
+          "and the raters differ. Anchor items - the original shapes inside "
+          "THIS task - would settle it; this comparison only motivates them.")
 
 
 def main() -> None:
@@ -136,6 +231,10 @@ def main() -> None:
                            f"{'right' if r['correct'] else r['chosen']}"
                            for r in sorted(group, key=lambda r: r["distance"]))
         print(f"{shape:9s} {h}/{len(group)} [{lo:.0%}-{hi:.0%}]  {detail}")
+
+    agreement(rows)
+    between_shapes(rows)
+    against_poc29(rows, folder)
 
     if len(sessions) < 3:
         print(f"\nCAVEAT: {len(sessions)} rater. Nothing above separates "
