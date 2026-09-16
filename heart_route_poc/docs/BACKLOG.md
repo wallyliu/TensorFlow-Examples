@@ -587,3 +587,45 @@ It is still NOT a gate, and `check()` reports it as a note rather than a
 problem: a cat at 0.070 drew its tail correctly at 30 km and lost it at 50 km,
 so what a low score buys is a longer ride, not a refusal — and how much longer
 is unmeasured. An uncalibrated signal that rejects work is worse than none.
+
+## 26. A tail cannot be drawn, and a cat is its head
+
+Four cats were drawn before one survived, and the sequence is the argument:
+
+1. tall pointed ears, round body, no neck — read as Pikachu by everyone.
+2. a sitting profile with a neck notch, a muzzle and a curled tail — correct
+   in every part, and still "超級不像". A cat seen side on is a shape any
+   four-legged animal makes.
+3. the head alone, at cartoon proportion — the best-behaved shape in the pack.
+4. that head on a small body with a thick tail — shipped as `cat`, because a
+   person looking at it said it was cute, which is the only evidence that
+   counts here.
+
+Budget is the lesson. Half the contour of a sitting cat goes on a body, a
+foreleg and a haunch that carry no identity, and a cat's identity is two
+triangles on a head. Spending the points on the head instead:
+
+| | floor | n_min | thinness | best fit in Taipei |
+|---|---:|---:|---:|---|
+| sitting profile | 12.2 km | 36 | 0.070 | 0.056 @ 28.5 km |
+| `cat` (head + body + tail) | 10.6 km | 32 | 0.066 | — |
+| `cat_head` | **7.8 km** | 24 | **0.390** | **0.036 @ 24.4 km** |
+
+0.036 is the closest fit this project has produced for any shape, and at 10 km
+`cat_head` still comes out at 0.117 with both ears.
+
+THE TAIL IS NOT SOLVED. A tail is a stroke; a closed outline can only draw a
+stroke as a long thin loop, which is either too thin for the streets to render
+or thick enough to read as a leg. Three attempts all produced a hook hanging
+off the side. The shipped one is the thickest at 14% of the width and scores
+0.066 on `metrics.thinness`, below the warning line. Same wall as the butterfly
+antennae, the leaf midrib and the umbrella rim — four shapes, one cause.
+
+A FACE IS POSSIBLE AND NOT WORTH IT. `multi_contour` carries eyes and a nose
+into the single closed curve and they do render — measured at 40 km, fit 0.067.
+But n_min goes 24 → 92 and the floor 7.8 km → 34.3 km, and the connectors the
+merge needs cross the cheek as visible lines. Four times the ride for a face
+with a scar through it. Dropped.
+
+`cat` and `cat_head` both ship. Which is actually more recognisable is a
+question for raters, not for whoever drew them, and both go into the blind test.

@@ -187,29 +187,68 @@ def music_note() -> np.ndarray:
 
 
 def cat() -> np.ndarray:
-    """A cat sitting in profile: neck, muzzle, short ears, a curled tail.
+    """A cat facing front: a big head with two ears, a small body, a thick tail.
 
-    The version this replaces was read by everyone who saw it as Pikachu, and
-    the diagnosis is exact: tall pointed ears on a round body with no neck.
-    None of the three is wrong for a cat on its own; together they are somebody
-    else. What was missing is the neck notch and the muzzle - the two places a
-    cat's silhouette steps in - so those are drawn deep enough to survive.
+    Three versions were rejected before this one and each named its own fault.
+    The first was read by everyone as Pikachu - tall pointed ears on a round
+    body with no neck is somebody else's silhouette. The second was a sitting
+    profile, correct in every part and unrecognisable, because a cat seen side
+    on is a shape any four-legged animal makes.
+
+    What fixed it was moving the budget. Half the contour of a sitting cat is
+    spent on a body, a foreleg and a haunch that carry no identity at all; a
+    cat is its head, and the head is two triangles. So the head is drawn at
+    cartoon proportion - 0.80 wide against a 0.60 body - and the rest is there
+    to say cat rather than cat's head.
+
+    THE TAIL IS THE WEAK PART and it is worth knowing why before redrawing it
+    again. A tail is a stroke, and a closed outline can only draw a stroke as a
+    long thin loop: too thin and the streets cannot render it, thick enough to
+    render and it reads as a leg. Three attempts all came out as a hook hanging
+    off the side. This one is the thickest of them - `metrics.thinness` 0.066,
+    which is below the warning line - and it survives at 30 km because the loop
+    is 14% of the width, not because the problem is solved.
     """
     return np.array([
-        (0.02, 0.32),
-        (0.02, 0.46), (0.13, 0.36),                     # rear ear
-        (0.19, 0.36), (0.27, 0.48), (0.31, 0.30),       # front ear
-        (0.36, 0.22), (0.42, 0.15), (0.35, 0.09),       # brow, muzzle, chin
-        (0.25, 0.03),                                   # neck
-        (0.33, -0.09),                                  # chest
-        (0.35, -0.28), (0.42, -0.37), (0.33, -0.41),    # foreleg, paw
-        (0.06, -0.41), (-0.12, -0.41), (-0.28, -0.42),  # base
-        (-0.43, -0.38), (-0.52, -0.25), (-0.47, -0.08), # tail, curling
-        (-0.35, -0.01),                                 # tail tip
-        (-0.36, -0.11), (-0.42, -0.23), (-0.35, -0.32), # tail, returning
-        (-0.25, -0.34), (-0.17, -0.32),
-        (-0.20, -0.12), (-0.16, 0.09), (-0.07, 0.24),   # rump, back
+        (0.00, 0.28),
+        (-0.11, 0.32), (-0.21, 0.55), (-0.32, 0.29),          # left ear
+        (-0.40, 0.12), (-0.40, -0.04), (-0.32, -0.14),        # head, jaw
+        (-0.28, -0.24), (-0.30, -0.40), (-0.24, -0.50),       # body, foot
+        (-0.04, -0.54), (0.16, -0.52), (0.26, -0.46),         # base
+        (0.42, -0.52), (0.58, -0.48), (0.70, -0.34),          # tail, outer
+        (0.68, -0.16), (0.56, -0.06),                         # tail tip
+        (0.52, -0.16), (0.54, -0.32), (0.46, -0.40),          # tail, inner
+        (0.34, -0.40), (0.28, -0.28),
+        (0.28, -0.16), (0.32, -0.14),                         # body right, jaw
+        (0.40, -0.04), (0.40, 0.12),                          # head right
+        (0.32, 0.29), (0.21, 0.55), (0.11, 0.32),             # right ear
     ])
+
+
+def cat_head() -> np.ndarray:
+    """The same head with nothing else: the cheapest shape in the pack.
+
+    Kept as its own shape rather than as a replacement for `cat`, because the
+    two are different rides and nobody yet knows which is more recognisable -
+    that is a question for raters, not for whoever drew them.
+
+    What it costs and what it buys, measured in Taipei: a floor of 7.8 km
+    against the cat's 10.6, `n_min` 24, and `metrics.thinness` 0.390 - the
+    highest in the pack, because there is nothing thin in it anywhere. It
+    fitted at 0.036 over 24.4 km, the closest fit this project has produced
+    for any shape, and still reads as a cat's head at 10 km (0.117).
+
+    A version with eyes and a nose was built and dropped. `multi_contour` can
+    carry them - they route, and at 40 km they came out legible - but n_min
+    goes 24 -> 92 and the floor 7.8 km -> 34.3, and the connectors the merge
+    needs cross the cheek as visible lines. Four times the ride for a face
+    with a scar through it.
+    """
+    return _sym([
+        (0.12, 0.34), (0.22, 0.58), (0.34, 0.30),      # ear
+        (0.42, 0.14), (0.44, -0.06),
+        (0.36, -0.26), (0.22, -0.40), (0.10, -0.46),   # cheek, jaw
+    ], (0.00, 0.28), (0.00, -0.48))
 
 
 def lightning() -> np.ndarray:
@@ -376,13 +415,15 @@ PACK = {
     "taiwan": taiwan, "fish": fish, "butterfly": butterfly,
     "umbrella": umbrella, "lightning": lightning, "music_note": music_note,
     "house": house, "crown": crown, "cup": cup, "cat": cat,
+    "cat_head": cat_head,
     "leaf": leaf, "rabbit": rabbit, "gear": gear, "plane": plane,
 }
 
 LABELS = {
     "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶", "umbrella": "雨傘",
     "lightning": "閃電", "music_note": "音符", "house": "房子",
-    "crown": "皇冠", "cup": "咖啡杯", "cat": "貓", "leaf": "葉子",
+    "crown": "皇冠", "cup": "咖啡杯", "cat": "貓", "cat_head": "貓頭",
+    "leaf": "葉子",
     "rabbit": "兔子", "gear": "齒輪",
     "plane": "飛機",
 }
