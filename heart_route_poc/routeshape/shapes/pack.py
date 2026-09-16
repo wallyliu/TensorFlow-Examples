@@ -454,47 +454,78 @@ def gingerbread() -> np.ndarray:
 def snowman() -> np.ndarray:
     """Three balls stacked, with two deep waists, under a hat.
 
-    The waists are the diagnostic feature and they are 20% of the width, so the
-    streets keep them. No arms: a stick arm is a stroke, and strokes are the one
-    thing this project has never managed to draw (BACKLOG 26).
+    The waists are the diagnostic feature and they are a fifth of the width, so
+    the streets keep them. No arms: a stick arm is a stroke, and strokes are the
+    one thing this project has never managed to draw (BACKLOG 26).
+
+    A third wider than first drawn, because the first was read as "too thin" -
+    three stacked balls is inherently a tall shape and it needs the extra width
+    to stop reading as a column. That costs distance: aspect 1.42 against 1.93
+    took the floor from 10.3 km to 18.2.
     """
     return _sym([
-        (0.10, 0.74), (0.10, 0.58),                       # hat
-        (0.21, 0.55), (0.21, 0.48), (0.15, 0.46),         # brim, step to head
-        (0.17, 0.38), (0.14, 0.29), (0.10, 0.24),         # head, WAIST
-        (0.21, 0.18), (0.24, 0.08), (0.20, -0.02),
-        (0.14, -0.07),                                    # WAIST
-        (0.28, -0.13), (0.34, -0.27), (0.30, -0.43), (0.18, -0.52),
+        (0.14, 0.74), (0.14, 0.58),                       # hat
+        (0.29, 0.55), (0.29, 0.48), (0.21, 0.46),         # brim, step to head
+        (0.23, 0.38), (0.19, 0.29), (0.14, 0.24),         # head, WAIST
+        (0.29, 0.18), (0.33, 0.08), (0.27, -0.02),
+        (0.19, -0.07),                                    # WAIST
+        (0.38, -0.13), (0.46, -0.27), (0.41, -0.43), (0.24, -0.52),
     ], (0.00, 0.76), (0.00, -0.55))
 
 
 def christmas_tree() -> np.ndarray:
-    """Tiers over a TRUNK.
+    """Tiers over a trunk, under a five-pointed star.
 
-    The tiers alone are a mountain range - which is precisely how the crown
-    failed, 0/4 with every rater saying "cannot tell". The trunk is the thing a
-    mountain has not got, and it is 23% of the width so it survives.
+    The tiers alone are a mountain range - precisely how the crown failed, 0/4
+    with every rater saying "cannot tell" - and the trunk is what a mountain has
+    not got. But a tree with a trunk is still only a tree; the star is what
+    makes it THIS tree, and it was added after the first draft was called clear
+    and not Christmas.
+
+    The star has to be coarse. A finely drawn one took the floor to 38.6 km on
+    its own; five big points at a fifth of the tree's width cost 18.3.
     """
     return _sym([
-        (0.16, 0.30), (0.09, 0.30),
-        (0.29, 0.02), (0.18, 0.02),
-        (0.44, -0.30), (0.11, -0.30),                     # skirt
-        (0.11, -0.56),                                    # TRUNK
-    ], (0.00, 0.62), (0.00, -0.56))
+        (0.06, 0.72), (0.21, 0.71), (0.10, 0.61), (0.13, 0.46),   # star
+        (0.20, 0.28), (0.11, 0.28),
+        (0.36, 0.00), (0.22, 0.00),
+        (0.55, -0.32), (0.13, -0.32),                             # skirt
+        (0.13, -0.58),                                            # TRUNK
+    ], (0.00, 0.86), (0.00, -0.58))
 
 
-def ghost() -> np.ndarray:
-    """A dome, two stub arms, and a hem of deep waves.
-
-    `metrics.thinness` 0.354, the highest of any shape here - there is nothing
-    narrow in it anywhere, and the waves are 23% of the width.
-    """
+def _ghost_body() -> np.ndarray:
     return _sym([
         (0.16, 0.44), (0.28, 0.34), (0.32, 0.16),         # dome
         (0.44, 0.10), (0.44, -0.02), (0.33, -0.06),       # stub arm
         (0.34, -0.34),
         (0.28, -0.50), (0.18, -0.34), (0.08, -0.50),      # hem
     ], (0.00, 0.50), (0.00, -0.34))
+
+
+def ghost() -> np.ndarray:
+    """A dome, two stub arms, a hem of deep waves - and two eyes.
+
+    The body alone scores 0.354 on `metrics.thinness`, the highest of anything
+    here, and it was still unreadable: "really cannot tell, probably because it
+    has no eyes". A ghost is the one subject in this pack whose identity is not
+    in its silhouette at all - a dome with a wavy hem is a blob - so it is the
+    one place the interior is worth paying for.
+
+    `multi_contour` carries the eyes into the single closed curve, and the price
+    is the floor: 13.8 km to 27.6. Cheaper than it was for the cat's face
+    (7.8 -> 34.3) because the connectors here run horizontally into the eyes
+    from the arms rather than diagonally across a cheek, which is also why they
+    do not read as a scar.
+    """
+    from routeshape.shapes.multi_contour import merge
+
+    def eye(cx):
+        a = np.linspace(0, 2 * math.pi, 10, endpoint=False)
+        return np.column_stack([cx + 0.08 * np.cos(a), 0.16 + 0.10 * np.sin(a)])
+
+    curve, _connector_length, _tree = merge([_ghost_body(), eye(-0.15), eye(0.15)])
+    return curve
 
 
 def bat() -> np.ndarray:
@@ -517,19 +548,22 @@ def bat() -> np.ndarray:
 
 
 def witch_hat() -> np.ndarray:
-    """An upright cone on a WIDE FLAT BRIM.
+    """An upright cone on a wide, DEEP brim.
 
     Drawn leaning, as a witch's hat usually is, it read as a boot - and so did
     three drafts of a Santa hat, which was abandoned for the same reason. A
     tilted cone rising from a horizontal base IS the profile of a boot. Upright
     and symmetric it is a hat again, and the brim is what separates it from a
-    party hat.
+    party hat, so the brim was then deepened until it reads as one: 0.28 of the
+    height rather than 0.20.
+
+    The cheapest shape in the pack at 5.0 km - a city ride draws it.
     """
     return _sym([
-        (0.10, 0.28), (0.17, -0.04), (0.22, -0.22),       # cone
-        (0.50, -0.26), (0.46, -0.40),                     # brim
-        (0.12, -0.42),
-    ], (0.00, 0.62), (0.00, -0.42))
+        (0.10, 0.28), (0.17, -0.02), (0.22, -0.18),       # cone
+        (0.46, -0.22), (0.44, -0.46),                     # BRIM
+        (0.14, -0.48),
+    ], (0.00, 0.62), (0.00, -0.48))
 
 
 # Retired by measurement, not by taste. POC 32 put every shape in front of two

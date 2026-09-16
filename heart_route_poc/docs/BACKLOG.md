@@ -732,3 +732,30 @@ NONE OF THE SIX IS MEASURED. They were chosen by a rule derived from two
 raters and drawn by the same person whose eye has now been wrong four times in
 a row. They go into the next blind round, with anchor items, before any of
 this is believed.
+
+### 28a. What the second look changed
+
+The six were shown to the same person who had just judged the last round, and
+four came back with a specific complaint each. All four were right and all four
+cost distance to fix, which is the trade this project keeps making:
+
+| shape | complaint | fix | floor |
+|---|---|---|---:|
+| snowman | too thin | a third wider; aspect 1.93 to 1.42 | 10.3 -> 18.2 km |
+| christmas_tree | clear, but not CHRISTMAS | a five-pointed star on top | 15.2 -> 18.3 km |
+| witch_hat | the brim is too thin | brim 0.20 to 0.28 of the height | 7.9 -> 5.0 km |
+| ghost | cannot tell, probably no eyes | two eyes via multi_contour | 13.8 -> 27.6 km |
+
+The star had to be COARSE. A finely drawn one took the tree to 38.6 km by
+itself; five big points at a fifth of the tree's width cost 3 km.
+
+The ghost is the exception to POC 20's rule that identity must be in the
+silhouette. A dome with a wavy hem is a blob - scoring 0.354 on thinness, the
+cleanest outline in the pack, and still unreadable. It is the one subject here
+worth paying an interior for, and it costs double. The connectors are cheaper
+to look at than the cat's were, because they run horizontally into the eyes
+from the stub arms rather than diagonally across a face.
+
+Re-fitted in Taipei: snowman 0.073 @ 24.2 km, christmas_tree 0.111 @ 23.3,
+ghost 0.093 @ 31.9, witch_hat 0.083 @ 10.4. The gingerbread man and the bat
+were accepted unchanged.
