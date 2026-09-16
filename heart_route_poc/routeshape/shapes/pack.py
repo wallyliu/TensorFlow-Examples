@@ -399,15 +399,7 @@ def rabbit() -> np.ndarray:
     ], (0.00, 0.26), (0.00, -0.34))
 
 
-def gear(teeth: int = 8) -> np.ndarray:
-    """Eight square teeth with flat tops and flat valleys.
-
-    Sixteen pointed teeth over a V-shaped valley is the outline of a sun, not
-    of a gear, and at any distance a person will ride the teeth came out as
-    noise indistinguishable from the street grid. Halving the count and
-    squaring the profile doubles the width of every tooth and costs nothing
-    that reads: the floor drops from 22.0 km to 10.5 km.
-    """
+def _gear_body(teeth: int = 8) -> np.ndarray:
     pts = []
     pitch = 2 * math.pi / teeth
     for k in range(teeth):
@@ -417,6 +409,37 @@ def gear(teeth: int = 8) -> np.ndarray:
             angle = a + fraction * pitch
             pts.append((radius * math.cos(angle), radius * math.sin(angle)))
     return np.array(pts)
+
+
+def gear(teeth: int = 8, hole: float = 0.16) -> np.ndarray:
+    """Eight square teeth with flat tops and flat valleys, round a centre hole.
+
+    Sixteen pointed teeth over a V-shaped valley is the outline of a sun, not
+    of a gear, and at any rideable size they came out as noise indistinguishable
+    from the street grid. Halving the count and squaring the profile doubled the
+    width of every tooth and cost nothing that reads.
+
+    That was not enough. Two rounds of blind identification named the toothed
+    ring 1 time out of 6, and the complaint was the same both times: a gear has
+    a HOLE. `multi_contour` puts one in - the route rides a spoke in to the bore,
+    round it, and back out - and the price is the floor, 10.5 km to 22.4. A
+    bigger bore at 0.20 reads better still and costs 29.1; 0.16 is the cheapest
+    that is unmistakably a gear.
+
+    Second shape here to need an interior, after the ghost, and for the same
+    reason: a ring of teeth and a dome with a wavy hem are both blobs, and
+    POC 20's rule that identity lives in the silhouette has exactly these
+    exceptions.
+    """
+    from routeshape.shapes.multi_contour import merge
+
+    body = _gear_body(teeth)
+    if not hole:
+        return body
+    angles = np.linspace(0, 2 * math.pi, 12, endpoint=False)
+    bore = np.column_stack([hole * np.cos(angles), hole * np.sin(angles)])
+    curve, _connector_length, _tree = merge([body, bore])
+    return curve
 
 
 def plane() -> np.ndarray:

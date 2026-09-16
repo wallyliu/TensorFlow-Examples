@@ -759,3 +759,46 @@ from the stub arms rather than diagonally across a face.
 Re-fitted in Taipei: snowman 0.073 @ 24.2 km, christmas_tree 0.111 @ 23.3,
 ghost 0.093 @ 31.9, witch_hat 0.083 @ 10.4. The gingerbread man and the bat
 were accepted unchanged.
+
+## 29. The anchors hold: within one task the pack loses to the original five
+
+POC 32's comparison across two tasks was confounded twice - five options
+against sixteen, and different people. POC 33 puts the original five INSIDE the
+same task, 21 shapes, 42 items, one option list. First rater:
+
+| | named | below d=0.10 |
+|---|---|---|
+| the original five (anchors) | 9/10 = 90% | **5/5** |
+| this pack | 11/32 = 34% | 8/17 |
+
+Fisher p = 0.054 on one rater, odds ratio infinite because the anchors did not
+miss a single close fit. The option count rose from 16 to 21, which makes
+everything harder - and the anchors still scored 90%, which is what an anchor
+is for. The effect POC 32 measured survives losing both confounds.
+
+So BACKLOG 23 is confirmed in human data as far as one rater can confirm
+anything: 0.07 on a triangle is a triangle anybody names; 0.07 on a cup, a
+snowman or a gingerbread man is nothing. shape_distance is not a recognition
+scale for shapes whose identity is not their gross outline.
+
+The new scalloped Christmas tree was named at both 0.081 and 0.164 - the only
+seasonal shape this rater got - which is some evidence the star did its job.
+The other five seasonal shapes went 0/2 each, as did cup, which had been 4/4 in
+POC 32 on the same pictures. One rater at two items per shape cannot separate
+that from noise; the anchor comparison is within-subject and does not depend on
+it.
+
+## 30. The gear needs a hole, and that is two exceptions to POC 20 now
+
+Across POC 32 and 33 the toothed ring was named 1 time out of 6, and the
+complaint both times was the same: a gear has a hole. `multi_contour` puts one
+in - the route rides a spoke to the bore, round it, and back out - at a cost of
+10.5 km to 22.4. A 0.20 bore reads better and costs 29.1; 0.16 is the cheapest
+that is unmistakably a gear.
+
+Second shape to need an interior after the ghost, and for the same reason. POC
+20's rule is that identity lives in the silhouette, and it holds for most
+things; the exceptions are shapes whose silhouette is a blob that something
+INSIDE distinguishes - a ring of teeth, a dome with a wavy hem. Both cost
+roughly double the ride, and both are worth it, because the alternative is a
+20 km route that nobody can name.
