@@ -36,6 +36,24 @@ Which also means the convention is LOCAL. The first butterfly was rejected with
 "跟台灣的習慣畫法差很多" - the shape was fine, the convention was the wrong
 one. Anything added here should be checked against the people who will ride it.
 
+THE OUTLINE NEEDS A FEATURE NO OTHER OUTLINE HAS. This is the rule POC 32
+produced, and it is the one to choose subjects by. Two raters named fifteen
+shapes with no label and no reference, and the split was almost clean:
+
+  named every time   butterfly, cup, fish, music_note, plane
+  never named        crown, lightning, umbrella, rabbit, cat_head
+
+The winners each carry one part nothing else has - a handle, a forked tail, a
+cruciform, a flag, four lobes. The losers are assembled entirely from generic
+parts: a zigzag (which is a mountain, or an arrow), a dome on a stick (a
+mushroom, a tree), a blob with ears (any animal - and the cat's head was in
+fact named as the cat). Being distinctive OVERALL is not enough and neither is
+being drawn correctly; the reader needs one place to put their finger.
+
+Per-shape accuracy varies far more than chance allows (permutation p < 0.0001)
+while accuracy against shape distance is flat, so for shapes like these
+recognition is decided by the drawing before any route is fitted. BACKLOG 27.
+
 THE VALIDATOR CANNOT DO THIS JOB. Every shape in this file passed
 describe.check() before any of the above was noticed. It validates a polygon -
 no self-crossings, a sane aspect ratio, a floor a person will ride - and there
@@ -411,21 +429,149 @@ def plane() -> np.ndarray:
     return np.array(pts)
 
 
+# ---------------------------------------------------------------------------
+# Seasonal. Chosen by the rule POC 32 produced rather than by what looks good:
+# the outline needs a feature no other outline has.
+# ---------------------------------------------------------------------------
+def gingerbread() -> np.ndarray:
+    """A round head and four splayed limbs with rounded ends.
+
+    The cheapest recognisable figure in the pack at 9.1 km, and the reason is
+    the rule: nothing else in the world of drawable objects is a symmetric body
+    with four stubby limbs stuck straight out. Compare the rabbit it replaces,
+    which was a blob with ears and shared that description with every animal.
+    """
+    return _sym([
+        (0.10, 0.54), (0.17, 0.44), (0.16, 0.30), (0.10, 0.24),      # head, neck
+        (0.20, 0.20),                                                # shoulder
+        (0.34, 0.24), (0.45, 0.18), (0.43, 0.05), (0.30, 0.04),      # arm
+        (0.22, -0.06), (0.20, -0.22),                                # side
+        (0.27, -0.36), (0.25, -0.51), (0.13, -0.55), (0.06, -0.44),  # leg
+        (0.05, -0.32),
+    ], (0.00, 0.58), (0.00, -0.30))
+
+
+def snowman() -> np.ndarray:
+    """Three balls stacked, with two deep waists, under a hat.
+
+    The waists are the diagnostic feature and they are 20% of the width, so the
+    streets keep them. No arms: a stick arm is a stroke, and strokes are the one
+    thing this project has never managed to draw (BACKLOG 26).
+    """
+    return _sym([
+        (0.10, 0.74), (0.10, 0.58),                       # hat
+        (0.21, 0.55), (0.21, 0.48), (0.15, 0.46),         # brim, step to head
+        (0.17, 0.38), (0.14, 0.29), (0.10, 0.24),         # head, WAIST
+        (0.21, 0.18), (0.24, 0.08), (0.20, -0.02),
+        (0.14, -0.07),                                    # WAIST
+        (0.28, -0.13), (0.34, -0.27), (0.30, -0.43), (0.18, -0.52),
+    ], (0.00, 0.76), (0.00, -0.55))
+
+
+def christmas_tree() -> np.ndarray:
+    """Tiers over a TRUNK.
+
+    The tiers alone are a mountain range - which is precisely how the crown
+    failed, 0/4 with every rater saying "cannot tell". The trunk is the thing a
+    mountain has not got, and it is 23% of the width so it survives.
+    """
+    return _sym([
+        (0.16, 0.30), (0.09, 0.30),
+        (0.29, 0.02), (0.18, 0.02),
+        (0.44, -0.30), (0.11, -0.30),                     # skirt
+        (0.11, -0.56),                                    # TRUNK
+    ], (0.00, 0.62), (0.00, -0.56))
+
+
+def ghost() -> np.ndarray:
+    """A dome, two stub arms, and a hem of deep waves.
+
+    `metrics.thinness` 0.354, the highest of any shape here - there is nothing
+    narrow in it anywhere, and the waves are 23% of the width.
+    """
+    return _sym([
+        (0.16, 0.44), (0.28, 0.34), (0.32, 0.16),         # dome
+        (0.44, 0.10), (0.44, -0.02), (0.33, -0.06),       # stub arm
+        (0.34, -0.34),
+        (0.28, -0.50), (0.18, -0.34), (0.08, -0.50),      # hem
+    ], (0.00, 0.50), (0.00, -0.34))
+
+
+def bat() -> np.ndarray:
+    """Spread wings with a scalloped trailing edge.
+
+    The scallops are the identity, not the ears - a first draft gave the ears
+    half the height of the head and the two spikes read as two more wing
+    fingers. Thinness 0.100 sits exactly on the warning line because the
+    scallops are deep; that is the feature, so it is accepted here and noted.
+    """
+    return _sym([
+        (0.09, 0.32), (0.15, 0.46), (0.21, 0.30),         # ear
+        (0.26, 0.22), (0.34, 0.28),                       # head, shoulder
+        (0.52, 0.38), (0.70, 0.36), (0.82, 0.26),         # leading edge
+        (0.70, 0.10), (0.60, 0.22),                       # finger, scallop
+        (0.48, 0.00), (0.38, 0.14),                       # finger, scallop
+        (0.28, -0.08),                                    # finger into the body
+        (0.17, -0.04), (0.14, -0.22), (0.07, -0.32),      # body, foot
+    ], (0.00, 0.34), (0.00, -0.36))
+
+
+def witch_hat() -> np.ndarray:
+    """An upright cone on a WIDE FLAT BRIM.
+
+    Drawn leaning, as a witch's hat usually is, it read as a boot - and so did
+    three drafts of a Santa hat, which was abandoned for the same reason. A
+    tilted cone rising from a horizontal base IS the profile of a boot. Upright
+    and symmetric it is a hat again, and the brim is what separates it from a
+    party hat.
+    """
+    return _sym([
+        (0.10, 0.28), (0.17, -0.04), (0.22, -0.22),       # cone
+        (0.50, -0.26), (0.46, -0.40),                     # brim
+        (0.12, -0.42),
+    ], (0.00, 0.62), (0.00, -0.42))
+
+
+# Retired by measurement, not by taste. POC 32 put every shape in front of two
+# raters with no label and no reference; these five were named correctly ZERO
+# times out of four, at every distance the router can reach - including their
+# own closest fit. Four of them had been redrawn and approved by eye the week
+# before, which is the whole reason the task exists.
+#
+# The code stays. What each one lacked is a usable finding and deleting it
+# would throw that away, and a redraw that gives one a diagnostic feature can
+# put it back in PACK.
+#
+#   crown      a zigzag on a trapezoid, which is a mountain range
+#   lightning  a zigzag, which is an arrow
+#   umbrella   a dome on a stick, which is a mushroom, or a tree
+#   rabbit     a blob with ears, which is any animal
+#   cat_head   a blob with ears - and its one misidentification was as `cat`
+RETIRED = {
+    "crown": crown, "lightning": lightning, "umbrella": umbrella,
+    "rabbit": rabbit, "cat_head": cat_head,
+}
+
 PACK = {
     "taiwan": taiwan, "fish": fish, "butterfly": butterfly,
-    "umbrella": umbrella, "lightning": lightning, "music_note": music_note,
-    "house": house, "crown": crown, "cup": cup, "cat": cat,
-    "cat_head": cat_head,
-    "leaf": leaf, "rabbit": rabbit, "gear": gear, "plane": plane,
+    "music_note": music_note, "house": house, "cup": cup, "cat": cat,
+    "leaf": leaf, "gear": gear, "plane": plane,
+    # Seasonal, and untested - they go into the next blind round.
+    "gingerbread": gingerbread, "snowman": snowman,
+    "christmas_tree": christmas_tree,
+    "ghost": ghost, "bat": bat, "witch_hat": witch_hat,
 }
 
 LABELS = {
-    "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶", "umbrella": "雨傘",
-    "lightning": "閃電", "music_note": "音符", "house": "房子",
-    "crown": "皇冠", "cup": "咖啡杯", "cat": "貓", "cat_head": "貓頭",
-    "leaf": "葉子",
-    "rabbit": "兔子", "gear": "齒輪",
-    "plane": "飛機",
+    "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶",
+    "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
+    "leaf": "葉子", "gear": "齒輪", "plane": "飛機",
+    "gingerbread": "薑餅人", "snowman": "雪人", "christmas_tree": "聖誕樹",
+    "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
+}
+RETIRED_LABELS = {
+    "crown": "皇冠", "lightning": "閃電", "umbrella": "雨傘",
+    "rabbit": "兔子", "cat_head": "貓頭",
 }
 
 

@@ -683,3 +683,52 @@ and then looking is a different act from looking.
 
 31 of the 33 errors were "cannot tell". Routes do not become the wrong thing;
 they become nothing. Same as POC 29's 48 of 50.
+
+## 28. Choose subjects by the diagnostic feature, and retire the five that failed
+
+POC 32's split is the rule for picking what to draw next. The five shapes
+named every time each carry one part nothing else has — a handle, a forked
+tail, a cruciform, a flag, four lobes. The five never named are assembled
+entirely from generic parts:
+
+| retired | what it actually is |
+|---|---|
+| crown | a zigzag on a trapezoid, which is a mountain range |
+| lightning | a zigzag, which is an arrow |
+| umbrella | a dome on a stick, which is a mushroom, or a tree |
+| rabbit | a blob with ears, which is any animal |
+| cat_head | a blob with ears — its one misidentification was as `cat` |
+
+So being distinctive OVERALL is not enough, and neither is being drawn
+correctly: the reader needs one place to put their finger. All five are out of
+`PACK` and kept in `RETIRED`, because what each one lacked is a finding and a
+redraw that gives it a diagnostic feature can put it back.
+
+Six seasonal shapes chosen by that rule, all fitted in Taipei:
+
+| shape | floor | thinness | fit |
+|---|---:|---:|---|
+| gingerbread | 9.1 km | 0.223 | 0.055 @ 20.3 km |
+| witch_hat | 7.9 km | 0.250 | 0.083 @ 14.9 km |
+| snowman | 10.3 km | 0.137 | 0.107 @ 20.3 km |
+| ghost | 13.8 km | 0.354 | 0.109 @ 19.8 km |
+| christmas_tree | 15.2 km | 0.207 | 0.085 @ 22.6 km |
+| bat | 19.9 km | 0.100 | 0.118 @ 25.5 km |
+
+The gingerbread man replaces the rabbit and is the argument for the rule: a
+symmetric body with four stubby limbs stuck straight out has no neighbours,
+where a blob with ears has every animal. It is also the cheapest recognisable
+figure here, 9.1 km against the rabbit's 8.8 for a shape that was never named.
+
+Two drawings failed on the way and both failed the same way. A Santa hat, at
+three drafts, and a witch hat drawn leaning, both read as a BOOT: a tilted cone
+rising from a horizontal base is a boot's profile. Upright and symmetric the
+witch hat is a hat again; the Santa hat was abandoned.
+
+Christmas tree: the tiers alone are a mountain range, which is exactly how the
+crown failed. The trunk is the part a mountain has not got.
+
+NONE OF THE SIX IS MEASURED. They were chosen by a rule derived from two
+raters and drawn by the same person whose eye has now been wrong four times in
+a row. They go into the next blind round, with anchor items, before any of
+this is believed.
