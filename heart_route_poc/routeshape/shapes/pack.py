@@ -451,26 +451,35 @@ def gingerbread() -> np.ndarray:
     ], (0.00, 0.58), (0.00, -0.30))
 
 
+def _arc(cx: float, cy: float, r: float, a0: float, a1: float, n: int) -> list:
+    """Points on a circle, degrees clockwise from straight up."""
+    return [(cx + r * math.sin(math.radians(a)), cy + r * math.cos(math.radians(a)))
+            for a in np.linspace(a0, a1, n)]
+
+
 def snowman() -> np.ndarray:
-    """Three balls stacked, with two deep waists, under a hat.
+    """Three real circles, clipped where they actually intersect, under a hat.
 
-    The waists are the diagnostic feature and they are a fifth of the width, so
-    the streets keep them. No arms: a stick arm is a stroke, and strokes are the
-    one thing this project has never managed to draw (BACKLOG 26).
+    Drawn first as polygons it was called thin, then widened, and then called
+    ugly - correctly: it was a column of straight edges and sharp corners, and
+    everything in this pack that reads well has a round outline. Built from
+    circles instead it is both better looking and CHEAPER, 18.2 km to 14.6,
+    because a circle costs fewer sample points than a polygon pretending to be
+    one.
 
-    A third wider than first drawn, because the first was read as "too thin" -
-    three stacked balls is inherently a tall shape and it needs the extra width
-    to stop reading as a column. That costs distance: aspect 1.42 against 1.93
-    took the floor from 10.3 km to 18.2.
+    The waists are the diagnostic feature. The centres are spaced so the
+    circles overlap only a little - at the first spacing tried they met at
+    almost the full head radius and there was no waist at all. No arms: a stick
+    arm is a stroke, and strokes are the one thing this project has never
+    managed to draw (BACKLOG 26).
     """
-    return _sym([
-        (0.14, 0.74), (0.14, 0.58),                       # hat
-        (0.29, 0.55), (0.29, 0.48), (0.21, 0.46),         # brim, step to head
-        (0.23, 0.38), (0.19, 0.29), (0.14, 0.24),         # head, WAIST
-        (0.29, 0.18), (0.33, 0.08), (0.27, -0.02),
-        (0.19, -0.07),                                    # WAIST
-        (0.38, -0.13), (0.46, -0.27), (0.41, -0.43), (0.24, -0.52),
-    ], (0.00, 0.76), (0.00, -0.55))
+    return _sym(
+        [(0.15, 0.86), (0.15, 0.68),                       # hat crown
+         (0.30, 0.66), (0.31, 0.60), (0.17, 0.58)]         # brim
+        + _arc(0.00, 0.46, 0.20, 55, 136, 5)               # head
+        + _arc(0.00, 0.06, 0.29, 28, 121, 6)               # middle
+        + _arc(0.00, -0.40, 0.40, 39, 168, 8),             # bottom
+        (0.00, 0.86), (0.00, -0.80))
 
 
 def christmas_tree() -> np.ndarray:
@@ -485,13 +494,14 @@ def christmas_tree() -> np.ndarray:
     The star has to be coarse. A finely drawn one took the floor to 38.6 km on
     its own; five big points at a fifth of the tree's width cost 18.3.
     """
-    return _sym([
-        (0.06, 0.72), (0.21, 0.71), (0.10, 0.61), (0.13, 0.46),   # star
-        (0.20, 0.28), (0.11, 0.28),
-        (0.36, 0.00), (0.22, 0.00),
-        (0.55, -0.32), (0.13, -0.32),                             # skirt
-        (0.13, -0.58),                                            # TRUNK
-    ], (0.00, 0.86), (0.00, -0.58))
+    return _sym(
+        [(0.06, 0.72), (0.21, 0.71), (0.10, 0.61), (0.13, 0.46)]   # star
+        + [(0.25, 0.36), (0.14, 0.30),
+           (0.36, 0.16), (0.23, 0.09),
+           (0.47, -0.08), (0.33, -0.15),
+           (0.58, -0.32), (0.13, -0.32),
+           (0.13, -0.60)],                                         # TRUNK
+        (0.00, 0.86), (0.00, -0.60))
 
 
 def _ghost_body() -> np.ndarray:
