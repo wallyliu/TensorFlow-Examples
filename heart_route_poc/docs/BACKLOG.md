@@ -1320,3 +1320,23 @@ improvement, and three cards reading 貓 is not a choice a rider can make.
 
 STILL OPEN: leaf and snowman were named 0/4 across every arm and both raters.
 Two raters is thin for a retirement, and a third is in progress.
+
+### 43a. Three raters settle it
+
+    hand      28/36 = 78%
+    Noto      15/18 = 83%
+    OpenMoji   7/18 = 39%
+    anchors     9/9 = 100%
+
+    hand vs Noto      18 pairs, 1 split (Noto), p = 1.000
+    hand vs OpenMoji  18 pairs, 7 splits, ALL hand, p = 0.016
+
+So the call made on two raters holds and now has a p-value behind it: Noto is
+indistinguishable from the hand-drawn pack, OpenMoji is worse than it at the
+same threshold POC 36 claimed the opposite at. The ghost stays the one
+exception - OpenMoji 3/3, and the hand-drawn ghost is also 3/3, so the eyes buy
+nothing a rider would notice.
+
+LEAF AND SNOWMAN ARE RETIRED. 0/6 each, across all three drawings and all three
+raters - not "the traced one is better", nobody named any version. Same
+evidence the crown went on. The pack is thirteen.

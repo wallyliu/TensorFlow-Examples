@@ -746,33 +746,40 @@ BEATEN_BY_TRACING = {
     "maple": maple, "elephant": elephant,
 }
 
+# POC 37, three raters, every arm: leaf 0/6 and snowman 0/6. Not "the traced
+# version is better" - NOBODY named either one, hand-drawn, Noto-traced or
+# OpenMoji-traced. That is the same evidence the crown was retired on, and the
+# leaf had a labeller's diagnosis attached a round earlier: without veins it
+# reads as a pair of lips. There is no version of these two to fall back to.
+NAMED_BY_NOBODY = {"leaf": leaf, "snowman": snowman}
+
 RETIRED = {
     "crown": crown, "lightning": lightning, "umbrella": umbrella,
     "rabbit": rabbit, "cat_head": cat_head,
     **BEATEN_BY_TRACING,
+    **NAMED_BY_NOBODY,
 }
 
 PACK = {
     "taiwan": taiwan, "fish": fish,
     "music_note": music_note, "house": house, "cup": cup, "cat": cat,
-    "leaf": leaf, "gear": gear, "plane": plane,
-    # Seasonal, and untested - they go into the next blind round.
-    "gingerbread": gingerbread, "snowman": snowman,
-    "christmas_tree": christmas_tree,
+    "gear": gear, "plane": plane,
+    "gingerbread": gingerbread, "christmas_tree": christmas_tree,
     "ghost": ghost, "bat": bat, "witch_hat": witch_hat,
 }
 
 LABELS = {
     "taiwan": "台灣", "fish": "魚",
     "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
-    "leaf": "葉子", "gear": "齒輪", "plane": "飛機",
-    "gingerbread": "薑餅人", "snowman": "雪人", "christmas_tree": "聖誕樹",
+    "gear": "齒輪", "plane": "飛機",
+    "gingerbread": "薑餅人", "christmas_tree": "聖誕樹",
     "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
 }
 RETIRED_LABELS = {
     "crown": "皇冠", "lightning": "閃電", "umbrella": "雨傘",
     "rabbit": "兔子", "cat_head": "貓頭", "butterfly": "蝴蝶",
     "crab": "螃蟹", "giraffe": "長頸鹿", "maple": "楓葉", "elephant": "大象",
+    "leaf": "葉子", "snowman": "雪人",
 }
 
 

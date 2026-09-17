@@ -122,7 +122,17 @@ def main() -> None:
     region = np.array(to_xy.transform(LON, LAT))
     print(f"{graph.number_of_nodes():,} nodes in {time.time() - t0:.0f}s\n")
 
-    out = []
+    # RESUMABLE. Thirty-six fits is half an hour, and this container has been
+    # reclaimed twice mid-run - both times the log stopped mid-arm and the work
+    # was gone. Rows already in the file are kept and skipped, so a restart
+    # costs one fit rather than all of them. Delete the file to start over,
+    # which is what a change to the shape library calls for: `saliency`
+    # measures a shape against the OTHERS, so the weights move when the library
+    # does and old rows are no longer comparable.
+    out = json.loads(OUT.read_text()) if OUT.exists() else []
+    done = {(r["shape"], r["arm"]) for r in out}
+    if done:
+        print(f"resuming: {len(done)} fits already on disk\n")
     for shape in SHAPES:
         floor = rf.min_distance_km(shape, MODE, scale)
         target_km = float(max(25.0, floor * 1.25))
@@ -148,11 +158,15 @@ def main() -> None:
                               width_m, rotation)
         reference = place_shape(closed, centre, width_m, rotation)
         upright = place_shape(closed, centre, width_m, 0.0)
+        if all((shape, arm) in done for arm in ARMS):
+            continue
         w = snap_weights(shape, points)
         print(f"{shape}  {points} pts  {width_m:.0f} m wide  "
               f"rotation {rotation:.0f} deg")
 
         for arm in ARMS:
+            if (shape, arm) in done:
+                continue
             snap, radius, k = arm_settings(arm, shape, points)
             t1 = time.time()
             try:
