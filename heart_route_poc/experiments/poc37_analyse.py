@@ -114,6 +114,28 @@ def main() -> None:
     else:
         print("  no split pairs: this many raters cannot separate the arms")
 
+    # And the same test PER TRACER, which is the one that means something.
+    # Pooling them asks "is hand better than emoji" when the two tracers are
+    # nowhere near each other, and the pooled answer is then just whichever
+    # tracer happened to be drawn more often.
+    for tracer in EMOJI_ARMS:
+        h = e = same = 0
+        for arms in both.values():
+            if arms["emoji"]["arm"] != tracer:
+                continue
+            a, b = bool(arms["hand"]["correct"]), bool(arms["emoji"]["correct"])
+            if a and not b:
+                h += 1
+            elif b and not a:
+                e += 1
+            else:
+                same += 1
+        n = h + e
+        line = (f"  hand vs {tracer:9s} {same + n:2d} pairs, {n} split "
+                f"(hand {h}, {tracer} {e})")
+        print(line + (f", p = {binomtest(e, n, 0.5).pvalue:.3f}" if n
+                      else ", nothing to test"))
+
     # --- the two tracers, between items ------------------------------------
     print("\nNoto against OpenMoji (unmatched - one tracer per rater per "
           "subject)")
@@ -141,11 +163,14 @@ def main() -> None:
         for arm in ("hand",) + EMOJI_ARMS:
             named, shown = tally[subject].get(arm, [0, 0])
             parts.append(f"{arm} {named}/{shown}" if shown else f"{arm} -")
-        best = max(tally[subject].items(),
-                   key=lambda kv: (kv[1][0] / kv[1][1] if kv[1][1] else -1,
-                                   kv[1][1]))
+        # A subject nobody named has no winner, and saying it does is how a
+        # dead shape stays in the pack.
+        scored = [(kv[1][0] / kv[1][1], kv[1][1], kv[0])
+                  for kv in tally[subject].items() if kv[1][1]]
+        top = max(scored)
+        best = "none named" if top[0] == 0 else top[2]
         print(f"  {subject:14s} " + "  ".join(f"{p:14s}" for p in parts)
-              + f"  -> {best[0]}")
+              + f"  -> {best}")
 
     print("\nevery item:")
     for r in sorted(rows, key=lambda r: (r["subject"], r["arm"])):
