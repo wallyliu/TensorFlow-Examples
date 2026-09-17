@@ -1053,3 +1053,40 @@ The rider it is being built for says a 3 to 8 km ride is too short. A floor is a
 MINIMUM: a 5 km mushroom is still rideable at 50 km, so a low floor only widens
 the choice, and it is the cheap end that needs justifying, not the expensive
 end. The page's default distance goes 10 km to 30.
+
+## 39. Traced beats hand-drawn in every pair that split, on one rater
+
+First answers on the head-to-head. One rater, 22 items, no misidentifications
+at all - all eight errors were "cannot tell", as in every round.
+
+| arm | named |
+|---|---|
+| traced | 7/11 = 64% |
+| hand-drawn | 4/8 = 50% |
+| anchors | 3/3 |
+
+The five matched pairs are the result, because they hold the subject, the
+rater, the option list and the session fixed and vary only the drawing:
+
+| subject | hand | traced | |
+|---|---|---|---|
+| butterfly | 0.102, cannot tell | 0.118, **named** | traced |
+| crab | 0.132, cannot tell | 0.165, **named** | traced |
+| maple | 0.062, cannot tell | 0.069, **named** | traced |
+| giraffe | 0.058, named | 0.102, named | both |
+| elephant | 0.066, cannot tell | 0.072, cannot tell | neither |
+
+Three pairs split and all three went to the traced arm; zero went to the hand
+arm. McNemar on three split pairs gives p = 0.250, which is the LOWEST p that
+three matched pairs can produce - so this is the right direction at the
+smallest sample that could show it, and not yet evidence.
+
+THE SHARPEST LINE IN THE DATA is that in every split pair the traced arm won
+with a WORSE shape distance. And at the extremes: a traced cactus at 0.300 over
+71 km was named, while a hand-drawn elephant at 0.066 was not. A fit four and a
+half times worse by the metric the entire search optimises, and it is the one a
+person can name.
+
+Also here, unremarked by the rater and worth noting: the bicycle was the one
+route whose excursion broke the 0.08 limit (0.148, no placement qualified, the
+search fell back), and it is one of the four traced routes not named. n = 1.

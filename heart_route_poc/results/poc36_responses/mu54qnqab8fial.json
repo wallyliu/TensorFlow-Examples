@@ -1,0 +1,204 @@
+{
+  "answers": [
+    {
+      "at": 1789625382488,
+      "chosen": "音符",
+      "correct": true,
+      "distance": 0.0613,
+      "item": "music_note_17",
+      "route_km": 25.5,
+      "shape": "音符"
+    },
+    {
+      "at": 1789625385261,
+      "chosen": "蘑菇",
+      "correct": true,
+      "distance": 0.0512,
+      "item": "e_mushroom_10",
+      "route_km": 25.3,
+      "shape": "蘑菇"
+    },
+    {
+      "at": 1789625392942,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1315,
+      "item": "crab_2",
+      "route_km": 25.1,
+      "shape": "螃蟹"
+    },
+    {
+      "at": 1789625395093,
+      "chosen": "仙人掌",
+      "correct": true,
+      "distance": 0.3003,
+      "item": "e_cactus_15",
+      "route_km": 71.2,
+      "shape": "仙人掌"
+    },
+    {
+      "at": 1789625397156,
+      "chosen": "螃蟹",
+      "correct": true,
+      "distance": 0.1647,
+      "item": "e_crab_3",
+      "route_km": 56.9,
+      "shape": "螃蟹"
+    },
+    {
+      "at": 1789625406365,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0619,
+      "item": "maple_6",
+      "route_km": 23.6,
+      "shape": "楓葉"
+    },
+    {
+      "at": 1789625408000,
+      "chosen": "愛心",
+      "correct": true,
+      "distance": 0.0463,
+      "item": "heart_19",
+      "route_km": 24.2,
+      "shape": "愛心"
+    },
+    {
+      "at": 1789625411887,
+      "chosen": "企鵝",
+      "correct": true,
+      "distance": 0.0648,
+      "item": "e_penguin_12",
+      "route_km": 24.7,
+      "shape": "企鵝"
+    },
+    {
+      "at": 1789625415950,
+      "chosen": "長頸鹿",
+      "correct": true,
+      "distance": 0.0583,
+      "item": "giraffe_4",
+      "route_km": 24.3,
+      "shape": "長頸鹿"
+    },
+    {
+      "at": 1789625420594,
+      "chosen": "恐龍",
+      "correct": true,
+      "distance": 0.147,
+      "item": "trex_21",
+      "route_km": 39.8,
+      "shape": "恐龍"
+    },
+    {
+      "at": 1789625425378,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1927,
+      "item": "e_bicycle_14",
+      "route_km": 62.5,
+      "shape": "腳踏車"
+    },
+    {
+      "at": 1789625428715,
+      "chosen": "蝴蝶",
+      "correct": true,
+      "distance": 0.1185,
+      "item": "e_butterfly_9",
+      "route_km": 30.9,
+      "shape": "蝴蝶"
+    },
+    {
+      "at": 1789625436556,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.072,
+      "item": "e_elephant_1",
+      "route_km": 23.9,
+      "shape": "大象"
+    },
+    {
+      "at": 1789625440775,
+      "chosen": "聖誕樹",
+      "correct": true,
+      "distance": 0.0843,
+      "item": "christmas_tree_18",
+      "route_km": 26.5,
+      "shape": "聖誕樹"
+    },
+    {
+      "at": 1789625447271,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.102,
+      "item": "butterfly_8",
+      "route_km": 40.3,
+      "shape": "蝴蝶"
+    },
+    {
+      "at": 1789625457923,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0579,
+      "item": "e_whale_13",
+      "route_km": 22.7,
+      "shape": "鯨魚"
+    },
+    {
+      "at": 1789625461768,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0662,
+      "item": "elephant_0",
+      "route_km": 23.7,
+      "shape": "大象"
+    },
+    {
+      "at": 1789625464700,
+      "chosen": "楓葉",
+      "correct": true,
+      "distance": 0.0685,
+      "item": "e_maple_7",
+      "route_km": 30.4,
+      "shape": "楓葉"
+    },
+    {
+      "at": 1789625467085,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0535,
+      "item": "e_turtle_11",
+      "route_km": 23.8,
+      "shape": "烏龜"
+    },
+    {
+      "at": 1789625469747,
+      "chosen": "飛機",
+      "correct": true,
+      "distance": 0.1093,
+      "item": "plane_16",
+      "route_km": 25.5,
+      "shape": "飛機"
+    },
+    {
+      "at": 1789625472380,
+      "chosen": "長頸鹿",
+      "correct": true,
+      "distance": 0.102,
+      "item": "e_giraffe_5",
+      "route_km": 30.1,
+      "shape": "長頸鹿"
+    },
+    {
+      "at": 1789625474360,
+      "chosen": "五角星",
+      "correct": true,
+      "distance": 0.0542,
+      "item": "star5_20",
+      "route_km": 22.8,
+      "shape": "五角星"
+    }
+  ],
+  "finished": "2026-09-17T06:11:14.360Z",
+  "session": "mu54qnqab8fial"
+}
