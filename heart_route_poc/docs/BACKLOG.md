@@ -948,3 +948,33 @@ are figures whose parts are individually generic (a head, a body, limbs, balls)
 and whose arrangement is supposed to carry the identity. The shapes that pass -
 plane, music note, Christmas tree, bat, fish - each have one part that is
 strange on its own.
+
+## 36. The veins are refused again, on better numbers, and answered a different way
+
+Two raters have now asked the leaf for veins - "a few horizontal lines, not
+just the one". The old refusal was measured on the LENS-shaped leaf, and that
+leaf has since been replaced by an ovate one at less than half the price, so
+the question was worth re-asking on the cheaper base. Re-measured:
+
+| | floor |
+|---|---:|
+| midrib only | 9.1 km |
+| 1 pair | 43.5 km |
+| 2 pairs | 115.3 km |
+| 3 pairs | 166.6 km |
+
+So the answer is the same and the reason is sharper: n_min tracks the finest
+feature, a vein is a zero-width stroke, and each one you add is SHORTER than
+the last, so "several" costs 115 km and up. One pair at 43.5 km is the most
+this approach can give and it is a long day for two lines.
+
+`maple` answers the same request differently. Its lobes are OUTLINE features,
+costing what a notch costs rather than what a stroke costs: 13.8 km, and
+`metrics.thinness` 0.257 against the veined leaf's effectively zero. It is also
+the leaf most people draw.
+
+Both ship. `leaf` stays at 9.1 km as the cheap one, `maple` is the one that
+should read without help, and the raters decide - the same way `cat` and
+`cat_head` were handled. One risk named in advance: five points around a centre
+is also a star, and `star5` is in the library; the stem and the notched margin
+are what separate them.

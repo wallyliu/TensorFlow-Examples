@@ -384,6 +384,42 @@ def leaf() -> np.ndarray:
                                                              # close draws it back
 
 
+def maple() -> np.ndarray:
+    """Five lobes and a stem: a leaf you know from the silhouette alone.
+
+    Two raters have asked the ovate leaf for veins - "a few horizontal lines,
+    not just the one". They are describing what a leaf is, and the streets
+    cannot draw it. Measured on the ovate blade, which is itself less than half
+    the price of the lens it replaced:
+
+        midrib only     9.1 km      2 pairs   115.3 km
+        1 pair         43.5 km      3 pairs   166.6 km
+
+    n_min tracks the FINEST feature, and a vein is a zero-width stroke that
+    gets shorter as you add more of them, so "several" is 115 km and up - past
+    what this product will offer. One pair at 43.5 km is rideable and is the
+    most this approach can give.
+
+    A maple leaf answers the same request a different way. Its lobes are
+    OUTLINE features, so they cost what a notch costs rather than what a stroke
+    costs: 13.8 km, and `metrics.thinness` 0.257 against the veined leaf's
+    effectively zero. It is also the leaf most people draw.
+
+    UNTESTED AND ONE RISK NAMED: five points around a centre is also a star,
+    and `star5` is in the library. The stem and the notched margin are what
+    separate them, and whether that is enough is a question for raters.
+    """
+    return _sym([
+        (0.09, 0.40), (0.15, 0.22),          # right of the centre lobe, notch
+        (0.33, 0.40), (0.31, 0.16),          # upper-right lobe
+        (0.26, 0.09),                        # notch
+        (0.58, 0.04), (0.37, -0.11),         # lower-right lobe
+        (0.29, -0.20),                       # notch
+        (0.31, -0.34), (0.11, -0.33),        # basal lobe, in to the petiole
+        (0.05, -0.64),                       # STEM
+    ], (0.00, 0.64), (0.00, -0.66))
+
+
 def rabbit() -> np.ndarray:
     """Face on: two long ears, a round head, a body and two feet.
 
@@ -625,7 +661,7 @@ RETIRED = {
 PACK = {
     "taiwan": taiwan, "fish": fish, "butterfly": butterfly,
     "music_note": music_note, "house": house, "cup": cup, "cat": cat,
-    "leaf": leaf, "gear": gear, "plane": plane,
+    "leaf": leaf, "maple": maple, "gear": gear, "plane": plane,
     # Seasonal, and untested - they go into the next blind round.
     "gingerbread": gingerbread, "snowman": snowman,
     "christmas_tree": christmas_tree,
@@ -635,7 +671,7 @@ PACK = {
 LABELS = {
     "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶",
     "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
-    "leaf": "葉子", "gear": "齒輪", "plane": "飛機",
+    "leaf": "葉子", "maple": "楓葉", "gear": "齒輪", "plane": "飛機",
     "gingerbread": "薑餅人", "snowman": "雪人", "christmas_tree": "聖誕樹",
     "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
 }
