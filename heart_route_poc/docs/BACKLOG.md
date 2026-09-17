@@ -897,3 +897,54 @@ better. There is no way to validate it against the metric - and BACKLOG 29 has
 already established the metric is the wrong ruler for these shapes, 90% against
 41% at equal distance. So this ships only behind a rater round: same shapes,
 weighted against unweighted, blind.
+
+## 34. Excursion becomes a constraint; it is the first one fitted to people
+
+Three raters, 126 answers. At n = 84 the excursion signal was a lead; at 126 it
+is decisive, and the reason is that it separates WITHIN a fixed shape-distance
+band, which is what "carries information the metric does not" means:
+
+| | correct | wrong | |
+|---|---:|---:|---|
+| excursion, all | 0.050 | 0.080 | p < 0.0001 |
+| excursion, d < 0.10 | 0.043 | 0.060 | p = 0.0009 (n=66) |
+| excursion, d >= 0.10 | 0.071 | 0.103 | p = 0.0001 (n=60) |
+| shape distance, all | 0.081 | 0.118 | p = 0.087 |
+
+Naming rate by excursion band: 67% below 0.040, 74% to 0.055, 67% to 0.070,
+52% to 0.090, and **21% above**. The cliff is at 0.09.
+
+`EXCURSION_LIMIT = 0.08` keeps 71% of fitted placements, which were named 67%
+of the time against 25% for the ones it drops, and with six candidates a
+request nearly always has one under it. Applied lexicographically like
+WANDER_LIMIT, falling back rather than refusing.
+
+This is the first constraint in the project fitted to what people RECOGNISE
+rather than to what the metric scores, and it had to be: shape distance alone
+does not separate named from unnamed in this data at all.
+
+ONE BUG, CAUGHT IN VERIFICATION. Wander is a length ratio, so the call that
+builds its template has always passed rotation 0, and the first version of the
+excursion call copied that. Excursion is a nearest-point distance and
+orientation is most of it: a correctly fitted Taiwan scored 0.253 against an
+upright template, which is the rotation and not a spur. It now gets the
+template the matcher actually aimed at, and the same route scores 0.035.
+
+## 35. Three shapes are unnamed after every fix, and one of them was my prediction
+
+After three raters, 0/6 with no fix pending: cat, gingerbread, snowman. (cup,
+gear and leaf were also 0/6, but their stimuli used versions since redrawn on
+the raters' own feedback, so they are untested rather than refuted.)
+
+The gingerbread man is the uncomfortable one. It was the worked example for the
+rule POC 32 produced - a symmetric body with four stubby limbs stuck straight
+out has no neighbours - it was the cheapest recognisable figure in the pack at
+9.1 km, and it scored 0/6. The rule that predicted it is the same rule that
+correctly retired the crown and the rabbit, so it is not worthless, but it is
+clearly not sufficient, and it was mine rather than the raters'.
+
+What the three have in common is worth testing rather than asserting: all three
+are figures whose parts are individually generic (a head, a body, limbs, balls)
+and whose arrangement is supposed to carry the identity. The shapes that pass -
+plane, music note, Christmas tree, bat, fish - each have one part that is
+strange on its own.

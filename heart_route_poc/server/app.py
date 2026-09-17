@@ -56,7 +56,7 @@ import routeshape.street_scale as ss                                        # no
 import routeshape.recognition as rc                                         # noqa: E402
 from routeshape.wander import wander                                  # noqa: E402
 from routeshape.shapes.library import resample_by_arclength                  # noqa: E402
-from routeshape.metrics import alignment_angle                        # noqa: E402
+from routeshape.metrics import alignment_angle, excursion                        # noqa: E402
 from routeshape.export import to_gpx                                  # noqa: E402
 from routeshape.shapes.library import SHAPES, register                       # noqa: E402
 import routeshape.shapes.pack as shape_pack                                                # noqa: E402
@@ -121,6 +121,34 @@ PLACE_PROBE_M = 4500.0
 # between 0.19 and 0.50. Extrapolating their preference down to 0.263 against
 # 0.240 is not something the data supports.
 WANDER_LIMIT = 0.30
+
+# The farthest a route may stray from its template at any ONE point, as a
+# fraction of the shape's width. A rater looked at a perfect Taiwan with one
+# straight bar shot across the bottom right and answered "cannot tell", naming
+# the bar; three of the six Taiwan routes in POC 33 carried one.
+#
+# Neither existing check can see it. `shape_distance` compares resampled
+# positions, so a spike moves a handful of points; `wander` is a length ratio
+# over the whole route, and 1 km of spur on a 25 km ride is 4% against the 30%
+# above. Both are averages. A spur is a maximum.
+#
+# Measured over 126 answers from three raters, naming rate by excursion:
+#
+#     0.000-0.040   67%        0.070-0.090   52%
+#     0.040-0.055   74%        0.090-1.000   21%
+#     0.055-0.070   67%
+#
+# The cliff is at 0.09. 0.08 is the operating point: it keeps 71% of fitted
+# placements, which were named 67% of the time against 25% for the ones it
+# drops, and with six candidates per request there is nearly always one under
+# it. It is applied like WANDER_LIMIT - lexicographically, falling back to the
+# whole list rather than refusing, because a spurred route still beats none.
+#
+# This is the first constraint here fitted to what people RECOGNISE rather than
+# to what the metric scores, and it had to be: within a fixed shape-distance
+# band excursion still separates named from unnamed (p = 0.0009 below 0.10,
+# p = 0.0001 above), while shape distance on its own manages p = 0.087.
+EXCURSION_LIMIT = 0.08
 MAX_TEXT = 12
 ROUTES: dict[str, dict] = {}
 _networks: dict[tuple, dict] = {}
@@ -400,10 +428,19 @@ def build_route(shape: str, target_km: float, mode: str,
             continue
         if fit is None:
             continue
-        fit["wander"] = wander(
+        closed_template = np.vstack([dense_template, dense_template[:1]])
+        centre = np.array([row["x"], row["y"]])
+        # Wander is a length ratio, so the template's ORIENTATION does not
+        # matter to it and this call has always passed 0. Excursion is a
+        # nearest-point distance and orientation is most of it: measured
+        # against an upright template a correctly fitted Taiwan scored 0.253,
+        # which is the rotation, not a spur. It gets the template the matcher
+        # actually aimed at.
+        fit["wander"] = wander(fit["route_xy"],
+                               place_shape(closed_template, centre, width_m, 0.0))
+        fit["excursion"] = excursion(
             fit["route_xy"],
-            place_shape(np.vstack([dense_template, dense_template[:1]]),
-                        np.array([row["x"], row["y"]]), width_m, 0.0))
+            place_shape(closed_template, centre, width_m, row["rotation"]))
         fitted.append(fit)
         # Stop once one candidate is comfortably recognisable. Fitting is the
         # whole cost of a request - six candidates on a 55 km Taiwan took 144
@@ -420,6 +457,7 @@ def build_route(shape: str, target_km: float, mode: str,
         # six. The bar is the per-shape recognition curve from POC 29, so a
         # triangle has to come out tighter than a star to qualify.
         if (fit["wander"] <= WANDER_LIMIT
+                and fit["excursion"] <= EXCURSION_LIMIT
                 and rc.recognition_rate(shape, float(fit["distance"]))
                 >= EARLY_STOP_RECOGNITION):
             break
@@ -430,7 +468,11 @@ def build_route(shape: str, target_km: float, mode: str,
     # Lexicographic, not weighted: meet the wander condition first, then pick the
     # closest shape among those that do. Falling back to the whole list rather
     # than refusing - a route that wanders is still better than no route.
-    admissible = [f for f in fitted if f["wander"] <= WANDER_LIMIT] or fitted
+    admissible = ([f for f in fitted if f["wander"] <= WANDER_LIMIT
+                   and f["excursion"] <= EXCURSION_LIMIT]
+                  or [f for f in fitted if f["excursion"] <= EXCURSION_LIMIT]
+                  or [f for f in fitted if f["wander"] <= WANDER_LIMIT]
+                  or fitted)
     best = min(admissible, key=lambda f: f["distance"])
 
     dense = resample_by_arclength(shape, 4000)
@@ -462,6 +504,8 @@ def build_route(shape: str, target_km: float, mode: str,
             "recognition_measured": rc.measured(shape),
             "wander": round(float(best["wander"]), 3),
             "wander_limit": WANDER_LIMIT,
+            "excursion": round(float(best["excursion"]), 3),
+            "excursion_limit": EXCURSION_LIMIT,
             "candidates_within_limit": sum(f["wander"] <= WANDER_LIMIT
                                            for f in fitted),
             "upright_deg": round(alignment_angle(best["route_xy"], upright), 1),
