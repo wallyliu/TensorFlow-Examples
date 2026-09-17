@@ -26,19 +26,35 @@ OUT = RESULTS / "poc37_task.html"
 
 # Drop one of the two emoji arms per subject, per rater, at load time. Anything
 # that is not part of a pair (the anchors) is kept as it is.
+#
+# HALF AND HALF, not a coin per subject. Independent coins gave one draw nine
+# Noto items and three OpenMoji, and a rater who happens to get the weak half of
+# one tracer makes that tracer look bad for a reason that has nothing to do with
+# the tracer. Shuffling the subjects and cutting the list in two keeps every
+# rater's contribution balanced, and which subjects fall on which side still
+# varies from rater to rater.
 PICK = """
 (function () {
-  var by = {};
+  var by = {}, subjects = [];
   DATA.items.forEach(function (it) {
-    (by[it.subject] = by[it.subject] || []).push(it);
+    if (!by[it.subject]) { by[it.subject] = []; subjects.push(it.subject); }
+    by[it.subject].push(it);
+  });
+  var paired = subjects.filter(function (s) {
+    return by[s].some(function (i) { return i.arm !== 'hand' && i.arm !== 'anchor'; });
+  });
+  for (var i = paired.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = paired[i]; paired[i] = paired[j]; paired[j] = t;
+  }
+  var want = {};
+  paired.forEach(function (s, n) {
+    want[s] = n < paired.length / 2 ? 'noto' : 'openmoji';
   });
   var keep = [];
-  Object.keys(by).forEach(function (k) {
-    var pool = by[k].filter(function (i) { return i.arm !== 'hand'
-                                                  && i.arm !== 'anchor'; });
-    var pick = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
-    by[k].forEach(function (i) {
-      if (i.arm === 'hand' || i.arm === 'anchor' || i === pick) keep.push(i);
+  subjects.forEach(function (s) {
+    by[s].forEach(function (i) {
+      if (i.arm === 'hand' || i.arm === 'anchor' || i.arm === want[s]) keep.push(i);
     });
   });
   DATA.items = keep;
@@ -67,7 +83,7 @@ def main() -> None:
         raise RuntimeError("the task template changed; PICK has nowhere to go")
     html = html.replace(anchor, PICK + "\n" + anchor, 1)
     html = html.replace("15 個圖案 · 約 4 分鐘",
-                        f"{len(labels)} 個選項 · 約 5 分鐘")
+                        f"{len(labels)} 個選項 · 約 7 分鐘")
     html = html.replace("<title>這條路線在畫什麼</title>",
                         "<title>路線辨識第四輪</title>")
     html = html.replace("同一個形狀會出現兩次，難度不同。",
