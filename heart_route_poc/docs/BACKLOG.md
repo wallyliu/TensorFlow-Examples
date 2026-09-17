@@ -1090,3 +1090,36 @@ person can name.
 Also here, unremarked by the rater and worth noting: the bicycle was the one
 route whose excursion broke the 0.08 limit (0.148, no placement qualified, the
 search fell back), and it is one of the four traced routes not named. n = 1.
+
+### 39a. Two raters: p = 0.016, and what it does and does not license
+
+Seven matched pairs split and all seven went to the traced arm. McNemar exact
+p = 0.016. Forty-four answers, and still not one misidentification - every
+error in this project, across four rounds, has been "cannot tell".
+
+| arm | named |
+|---|---|
+| traced | 14/22 = 64% |
+| hand-drawn | 7/16 = 44% |
+| anchors | 6/6 |
+
+In every split pair the traced outline won with a WORSE shape distance, and at
+the extremes a traced cactus at 0.300 over 71 km was named while a hand-drawn
+elephant at 0.066 was not. That is the fourth and cleanest demonstration that
+`shape_distance` is not a recognition scale.
+
+SO THE FIVE LOSERS ARE RETIRED - butterfly, crab, giraffe, maple, elephant -
+and `shapes.emoji` carries those subjects now.
+
+WHAT IT DOES NOT LICENSE is retiring hand-drawing as such. The three hand-drawn
+shapes in this round that were NOT in a pair - plane, music note, Christmas
+tree - went 6/6. They are not worse than tracing; they were simply the ones I
+got right.
+
+AND TRACING IS NOT A RESCUE. Four traced routes went 0/4: turtle, whale,
+elephant, bicycle. The first three are subjects whose silhouette is a blob with
+one bump - the "one strange part" rule from BACKLOG 37 is about the SUBJECT, and
+no amount of tracing fidelity gives a turtle a strange part. The bicycle is a
+different fault: it is the one route whose excursion broke the 0.08 limit
+(0.148, no placement qualified, the search fell back), so it is evidence for
+the limit rather than against the tracing.

@@ -120,9 +120,10 @@ def main() -> None:
               f"{meta[r['item']]['route_km']:5.1f} km  {got}")
 
     if len(sessions) < 3:
-        print(f"\nCAVEAT: {len(sessions)} rater. Five pairs is five matched "
-              f"observations; a McNemar on that cannot reach significance "
-              f"unless every pair splits the same way.")
+        print(f"\nNOTE: {len(sessions)} rater(s), {len(both)} matched pairs. "
+              f"Every rater adds five pairs, and the test only sees the ones "
+              f"that SPLIT - so a clean effect reaches significance here at "
+              f"two raters and a mixed one would need many more.")
 
 
 if __name__ == "__main__":

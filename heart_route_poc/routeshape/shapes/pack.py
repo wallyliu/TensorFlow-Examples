@@ -726,33 +726,53 @@ def witch_hat() -> np.ndarray:
 #   umbrella   a dome on a stick, which is a mushroom, or a tree
 #   rabbit     a blob with ears, which is any animal
 #   cat_head   a blob with ears - and its one misidentification was as `cat`
+# Retired a second time, and by a different test. POC 36 put five subjects in
+# front of two raters TWICE each - once as something I drew, once traced off the
+# emoji - same rater, same option list, same session, so the only thing varying
+# was the drawing. Seven pairs split and all seven went to the traced arm;
+# McNemar p = 0.016. In every one of them the traced outline won with a WORSE
+# shape distance.
+#
+#   butterfly  hand 0.102 cannot tell   traced 0.118 named
+#   crab       hand 0.132 cannot tell   traced 0.165 named
+#   maple      hand 0.062 cannot tell   traced 0.069 named
+#   giraffe    hand 0.058 1 of 2        traced 0.102 named
+#   elephant   hand 0.066 cannot tell   traced 0.072 cannot tell
+#
+# The elephant is the one the tracing did not rescue, and it stays retired with
+# the rest: shapes.emoji carries all five now.
+BEATEN_BY_TRACING = {
+    "butterfly": butterfly, "crab": crab, "giraffe": giraffe,
+    "maple": maple, "elephant": elephant,
+}
+
 RETIRED = {
     "crown": crown, "lightning": lightning, "umbrella": umbrella,
     "rabbit": rabbit, "cat_head": cat_head,
+    **BEATEN_BY_TRACING,
 }
 
 PACK = {
-    "taiwan": taiwan, "fish": fish, "butterfly": butterfly,
+    "taiwan": taiwan, "fish": fish,
     "music_note": music_note, "house": house, "cup": cup, "cat": cat,
-    "leaf": leaf, "maple": maple, "gear": gear, "plane": plane,
+    "leaf": leaf, "gear": gear, "plane": plane,
     # Seasonal, and untested - they go into the next blind round.
-    "elephant": elephant, "crab": crab, "giraffe": giraffe,
     "gingerbread": gingerbread, "snowman": snowman,
     "christmas_tree": christmas_tree,
     "ghost": ghost, "bat": bat, "witch_hat": witch_hat,
 }
 
 LABELS = {
-    "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶",
+    "taiwan": "台灣", "fish": "魚",
     "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
-    "leaf": "葉子", "maple": "楓葉", "gear": "齒輪", "plane": "飛機",
-    "elephant": "大象", "crab": "螃蟹", "giraffe": "長頸鹿",
+    "leaf": "葉子", "gear": "齒輪", "plane": "飛機",
     "gingerbread": "薑餅人", "snowman": "雪人", "christmas_tree": "聖誕樹",
     "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
 }
 RETIRED_LABELS = {
     "crown": "皇冠", "lightning": "閃電", "umbrella": "雨傘",
-    "rabbit": "兔子", "cat_head": "貓頭",
+    "rabbit": "兔子", "cat_head": "貓頭", "butterfly": "蝴蝶",
+    "crab": "螃蟹", "giraffe": "長頸鹿", "maple": "楓葉", "elephant": "大象",
 }
 
 
