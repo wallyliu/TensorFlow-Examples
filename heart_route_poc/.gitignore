@@ -5,3 +5,6 @@ __pycache__/
 _region_cache/
 _region_merged/
 _*.graphml
+
+# cached OpenMoji SVG - refetched on demand
+_openmoji/

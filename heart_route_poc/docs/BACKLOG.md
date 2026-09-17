@@ -1204,3 +1204,66 @@ available exactly rather than guessed from a 109 px bitmap. That also answers a
 question this project has been ducking: the raters grew up on Apple's emoji and
 the tracer uses Google's, so the POC 36 result - traced beats hand-drawn,
 p = 0.016 - was won with the WRONG set, which makes it conservative.
+
+
+## 42. The SVG tracer: the interior is read, not inferred
+
+Item 41 ended with "the real fix is not pixels". `routeshape/shapes/openmoji.py`
+is that fix. OpenMoji ships every emoji as SVG with the drawing separated the
+way it was drawn - `<g id="color">` holds the filled regions, `<g id="line">`
+holds the strokes - so an ear is a path and not a colour boundary guessed from
+a 109 px render.
+
+The three things the rider and the labellers asked for by name are now there:
+
+    the gear's bore          21.0 km, a real ring rather than a painted circle
+    the ghost's TWO eyes      7.9 -> 40.4 km
+    the elephant's ear line  19.9 -> 26.4 km, one arc, no doubled outline
+
+Four things had to be got right, and each of them was a bug first:
+
+  ONE FIGURE IS MANY PATHS. Taking the largest filled path as the body gives a
+  crab with no claws and a butterfly with no wings - 23 pt and 2.5 km of
+  featureless blob. A path that sticks out of everything bigger is another
+  PIECE of the silhouette and belongs in the union; a path wholly inside one is
+  a DETAIL drawn on top and has to stay its own contour or the union eats it.
+  Crab 23 -> 80 pt, butterfly 16 -> 52 pt.
+
+  A FILLED PATH IS A REGION WHETHER OR NOT IT SAYS `z`. SVG closes a path to
+  fill it. Asking `isclosed()` first threw away the sauropod's entire body,
+  which OpenMoji draws as one unclosed filled path.
+
+  SHADING IS THE SILHOUETTE REDRAWN. OpenMoji shades by filling a region
+  bounded on one side by the outline itself - the snowman's two crescents, the
+  house's door on the ground line. Kept as closed contours they retrace the
+  outline a hair inside it and cross it wherever simplification moves either
+  one: 28 crossings on the snowman, 28 on the mushroom. Cutting away the part
+  that is within 1.2% of the boundary and keeping the rest as an open line
+  gives the fold and the doorway and no crossings.
+
+  THE SAME LINE TWICE. OpenMoji's fish has its gill arc in both layers, a few
+  tenths of a percent apart; two copies of one curve cross at every wobble.
+  Eight crossings, gone with a Hausdorff test.
+
+And then a guard rather than a fix: features are added one at a time, longest
+first, and a feature is kept only if the curve is still simple. A crossing is
+fatal downstream - `describe.check` refuses the shape and no route is ever
+built - and it is never worth losing the whole drawing to keep one line. All 28
+subjects now trace with zero crossings.
+
+WHAT IT DOES NOT DO is win everywhere, and that is the finding. Neither tracer
+dominates:
+
+    SVG better   elephant giraffe penguin turtle crab mushroom cactus anchor
+                 guitar butterfly cat gear house fish cup
+    bitmap better  maple apple bicycle rocket sauropod leaf music_note
+                 christmas_tree snowman plane
+
+The bitmap keeps the maple's points and the bicycle's spokes because those are
+silhouette; the SVG loses the leaf's veins because OpenMoji's leaf has none.
+So the shape library should hold the better DRAWING per subject, chosen by a
+person, and POC 37 is what asks one.
+
+The SVG cache (`_openmoji/`) is not tracked, on the same grounds as the OSM
+extracts: it is refetched on demand. OpenMoji is CC BY-SA 4.0 and anything
+published from these outlines owes it attribution.
