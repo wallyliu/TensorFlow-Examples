@@ -1014,3 +1014,42 @@ neck is what carries the name, so the neck gets the width.
 The elephant's trunk crossed its own chest on the first draft. A hanging
 appendage is traced down one side and back up the other, and the two edges must
 not swap sides on the way - the same mistake the cat's tail made three times.
+
+## 38. Stop drawing; trace the emoji. And stop treating a low floor as a win
+
+Seventeen hand-drawn shapes were rejected on sight against five that passed.
+BACKLOG 24's rule is right - draw the picture people would draw - but the hand
+doing the drawing was mine. The emoji is that picture, agreed by committee and
+already installed on this machine.
+
+Noto Color Emoji is a bitmap font with no outlines to read, so the silhouette
+is traced out of the rendered glyph: alpha threshold, fill holes, largest
+component, Moore-neighbour boundary follow, Douglas-Peucker.
+
+SIMPLIFY TO A TOLERANCE, NOT A VERTEX COUNT. A fixed budget spends the same 44
+points on a mushroom and a crab. A tolerance - stay within this fraction of the
+width - lets the count follow the subject: at 1%, 28 points for a mushroom and
+97 for a crab.
+
+AND FINER IS USUALLY CHEAPER, which is the wrong way round from the intuition
+this project has been running on:
+
+| | 3% tol | 0.7% tol |
+|---|---|---|
+| elephant | 32 pts, 27 km | 78 pts, **20 km** |
+| crab | 56 pts, 64 km | 128 pts, **46 km** |
+| giraffe | 31 pts, 34 km | 74 pts, **27 km** |
+
+`n_min` measures sampling error, and a coarse polygon is long straight runs
+meeting at sharp corners, which needs MORE samples to reproduce than a smooth
+curve. So there is no distance argument for tracing coarsely, only a vertex cap.
+
+Sixteen ship, floors 5.1 to 55.6 km. Octopus and bee were traced and dropped -
+the arms tangle, the bee reads as a bird.
+
+AND THE FLOOR IS NOT A SCORE. Half this log treats a lower floor as a win -
+"more leaf-like AND less than half the ride", "the cheapest shape in the pack".
+The rider it is being built for says a 3 to 8 km ride is too short. A floor is a
+MINIMUM: a 5 km mushroom is still rideable at 50 km, so a low floor only widens
+the choice, and it is the cheap end that needs justifying, not the expensive
+end. The page's default distance goes 10 km to 30.

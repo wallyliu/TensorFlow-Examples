@@ -145,7 +145,7 @@
     </div>
     <label class="field" for="km">你想騎多遠</label>
     <div class="km"><span id="km-value">10.0</span> km</div>
-    <input type="range" id="km" min="2" max="120" step="0.5" value="10">
+    <input type="range" id="km" min="2" max="120" step="0.5" value="30">
     <div class="scale"><span>2 km</span><span>60 km</span><span>120 km</span></div>
     <div class="presets" id="km-presets"></div>
   </div>
@@ -204,7 +204,7 @@
 
 <script>
 (function () {
-  var state = { mode: "bike", km: 10, shape: null, text: null, shapes: [] };
+  var state = { mode: "bike", km: 30, shape: null, text: null, shapes: [] };
   state.view = "map";
   state.last = null;
   state.upright = true;
