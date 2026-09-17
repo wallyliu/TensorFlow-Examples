@@ -131,12 +131,20 @@ def butterfly() -> np.ndarray:
     which is not the same shape as a photograph of one. That difference is the
     point: the target has to match the reader's convention, not the object.
     """
-    return _sym([
+    wings = _sym([
         (0.10, 0.40), (0.30, 0.62), (0.50, 0.52), (0.44, 0.24), (0.22, 0.08),
         (0.10, 0.02),                                   # waist
         (0.28, -0.10), (0.40, -0.26), (0.30, -0.40), (0.34, -0.56),
         (0.16, -0.40), (0.08, -0.32),                   # lower wing + tail
     ], (0.00, 0.20), (0.00, -0.42))
+    # The abdomen, as an out-and-back stroke down the middle. A rater said the
+    # wings were fine and it still needed "a line from top to bottom", which is
+    # the body every drawn butterfly has and a silhouette cannot show. It costs
+    # 21.3 km to 34.3 - the most expensive single line in the pack - because a
+    # zero-width feature is the finest feature there is and n_min tracks that.
+    spine = np.array([(0.00, 0.19), (0.00, 0.06), (0.00, -0.08),
+                      (0.00, -0.22), (0.00, -0.34)])
+    return np.vstack([wings, spine, spine[::-1][1:]])
 
 
 def umbrella() -> np.ndarray:
@@ -277,20 +285,27 @@ def lightning() -> np.ndarray:
 
 
 def house() -> np.ndarray:
-    """Overhanging eaves, a chimney and a door.
+    """Overhanging eaves, a chimney, and a door that is CLOSED at the bottom.
 
-    The plain pentagon it replaces was not wrong, it was generic - a house
-    shares its outline with a great many things until it has the parts people
-    draw on a house.
+    The plain pentagon this replaces was not wrong, it was generic. The door
+    was then a notch cut up out of the base, and a rater asked for "a line under
+    the door" - correctly: a notch is a hole in the wall, and a door is a
+    rectangle standing on the floor. `multi_contour` makes it its own contour
+    with the base running unbroken underneath, joined by a short stub. 14.0 km
+    to 22.0.
     """
-    return np.array([
-        (-0.46, -0.36), (-0.10, -0.36), (-0.10, -0.06),
-        (0.12, -0.06), (0.12, -0.36), (0.46, -0.36),    # door
-        (0.46, 0.06), (0.56, 0.10),                     # eave
+    from routeshape.shapes.multi_contour import merge
+
+    walls = np.array([
+        (-0.46, -0.36), (0.01, -0.36), (0.46, -0.36),   # base; the middle
+        (0.46, 0.06), (0.56, 0.10),                     # vertex takes the stub
         (0.00, 0.46),                                   # ridge
         (-0.26, 0.28), (-0.26, 0.48), (-0.40, 0.48), (-0.40, 0.18),
         (-0.56, 0.10), (-0.46, 0.06),                   # chimney, eave
     ])
+    door = np.array([(-0.10, -0.30), (0.12, -0.30), (0.12, -0.02), (-0.10, -0.02)])
+    curve, _connector_length, _tree = merge([walls, door])
+    return curve
 
 
 def crown() -> np.ndarray:
@@ -314,71 +329,59 @@ def crown() -> np.ndarray:
 
 
 def cup() -> np.ndarray:
-    """A mug seen from the side, handle included - the handle is the giveaway."""
-    body = [(-0.34, 0.30), (0.20, 0.30), (0.20, 0.14)]
-    handle = [(0.30, 0.16), (0.42, 0.06), (0.42, -0.10), (0.30, -0.20),
-              (0.22, -0.16), (0.32, -0.08), (0.32, 0.02), (0.22, 0.06)]
+    """A mug seen from the side, handle included - the handle is the giveaway.
+
+    So the handle was doubled in thickness after a rater named it as the reason
+    the cup did not read: at the first drawing it was 6% of the width, and a
+    giveaway nobody can see gives nothing away. 10.7 km to 12.3.
+    """
+    body = [(-0.34, 0.30), (0.20, 0.30), (0.20, 0.12)]
+    handle = [(0.34, 0.14), (0.48, 0.02), (0.48, -0.14), (0.34, -0.26),
+              (0.20, -0.22), (0.28, -0.12), (0.28, 0.00), (0.20, 0.04)]
     rest = [(0.20, 0.00), (0.14, -0.34), (-0.28, -0.34), (-0.34, 0.00)]
     return np.array(body + handle + rest)
 
 
-def leaf(veins: int = 0) -> np.ndarray:
-    """A leaf WITH its midrib and side veins, as one closed route.
+def leaf() -> np.ndarray:
+    """An OVATE blade with a midrib and a stem: wide at the stem, tapering to a
+    point.
 
-    Without veins this was just a pointed ellipse and read as an eye or a
-    lens - the first version was rejected on exactly that. A leaf's identity is
-    the venation, not the silhouette, which is the one case where POC 20's rule
-    points inward: the inside marks ARE the outline here, not shading.
+    Drawn as a symmetric lens it was called lips, and that is exactly right -
+    lips are symmetric both ways, and a leaf is symmetric only about its
+    midrib. Fixing the asymmetry is the whole change and it is not a trade: the
+    floor falls 20.5 km to 9.1, because a lens has two sharp tips to resolve
+    and an ovate blade has one.
 
-    A closed route can draw an interior line by going out along it and back,
-    which costs twice its length and nothing else - the same out-and-back
-    `multi_contour.merge` uses for its connectors. So the path runs the whole
-    blade, then walks the midrib tip to tip, branching off to each vein root
-    and returning, and comes back to where it started.
+    THE VEINS DO NOT FIT, and two raters have now asked for them. The interior
+    line is drawn the way the midrib is, by going out along it and back, and
+    the cost is not the ink, it is n_min tracking the FINEST feature:
 
-    The price is steep and it is the reason `leaf` ships with the midrib alone:
+        midrib only        n_min  56   >= 21 km   (the old lens)
+        1 pair of veins    n_min 136   >= 61 km
+        2 pairs            n_min 188   >= 90 km
+        serrated margin    n_min 128   >= 58 km   (tried in place of veins)
 
-        midrib only   n_min  56   >= 21 km
-        1 pair        n_min 136   >= 61 km
-        2 pairs       n_min 188   >= 90 km
-
-    The midrib by itself is already enough to stop it reading as an eye, for a
-    distance somebody will actually ride. The full venation was built, fitted
-    and dropped: a 2-pair leaf asked for at 100 km came back 79.7 km at a shape
-    distance of 0.250, with the side veins landing as blobs - past the pooled
-    recognition threshold, so the street network cannot draw them and shipping
-    it would only sell a 90 km ride that does not work.
-
-    Note the 2-pairs-but-shorter variant costs MORE, not less - n_min 208
-    against 188, 107 km against 90 - because a shorter vein is a FINER feature,
-    and n_min tracks the finest feature rather than the total amount of ink.
+    A 2-pair leaf asked for at 100 km came back 79.7 km at a shape distance of
+    0.250 with the veins landing as blobs, so the street network cannot draw
+    them at any distance somebody will ride. The serrated margin was the same
+    answer: the teeth are finer than the midrib, and fineness is what costs.
+    Asymmetry is the version of "more leaf-like" that the streets can render.
     """
-    def edge(t, sign):
-        return (t - 0.5, sign * 0.34 * math.sin(math.pi * t) ** 1.2)
+    def blade(sign: int) -> list:
+        pts = []
+        for t in np.linspace(0.04, 0.96, 9):
+            x = 0.62 - 1.12 * t
+            # widest a third of the way from the stem, not at the middle
+            w = 0.38 * (t ** 0.55) * ((1 - t) ** 1.25) / (0.55 ** 0.55 * 0.45 ** 1.25)
+            pts.append((x, sign * w))
+        return pts
 
-    blade = [edge(t, 1) for t in np.linspace(0, 1, 26)]
-    blade += [edge(t, -1) for t in np.linspace(1, 0, 26)]
-    stem = [(-0.62, -0.10), (-0.5, 0.0)]
-
-    # Midrib left tip to right tip, dropping a vein each side on the way.
-    path = list(blade) + stem
-    for i in range(veins + 1 if veins else 0):
-        t = 0.12 + 0.72 * i / veins
-        base = (t - 0.5, 0.0)
-        path.append(base)
-        if i == veins:
-            break
-        for sign in (1, -1):
-            # Out to the blade and back: a vein reaching about two thirds of
-            # the way to the edge, angled forward the way a real one runs.
-            tip_t = min(0.97, t + 0.13)
-            ex, ey = edge(tip_t, sign)
-            path.append((base[0] + (ex - base[0]) * 0.72,
-                         base[1] + (ey - base[1]) * 0.72))
-            path.append(base)
-    path.append((0.47, 0.0))          # midrib reaches the tip
-    path += [(t - 0.5, 0.0) for t in np.linspace(0.97, 0.0, 8)]   # and back
-    return np.array(path)
+    return np.array(
+        [(0.62, 0.00)] + blade(1)
+        + [(-0.50, 0.00), (-0.66, -0.08), (-0.50, 0.00)]     # tip, STEM, back
+        + list(reversed(blade(-1)))
+        + [(0.62, 0.00), (-0.50, 0.00)])                     # MIDRIB, and the
+                                                             # close draws it back
 
 
 def rabbit() -> np.ndarray:

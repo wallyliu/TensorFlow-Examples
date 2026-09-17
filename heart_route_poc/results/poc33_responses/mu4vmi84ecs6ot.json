@@ -1,0 +1,384 @@
+{
+  "answers": [
+    {
+      "at": 1789610069652,
+      "chosen": "triangle",
+      "correct": true,
+      "distance": 0.1046,
+      "item": "triangle_33",
+      "route_km": 20.5,
+      "shape": "triangle"
+    },
+    {
+      "at": 1789610080376,
+      "chosen": "trex",
+      "correct": true,
+      "distance": 0.2947,
+      "item": "trex_41",
+      "route_km": 40.8,
+      "shape": "trex"
+    },
+    {
+      "at": 1789610082543,
+      "chosen": "triangle",
+      "correct": true,
+      "distance": 0.076,
+      "item": "triangle_32",
+      "route_km": 19.3,
+      "shape": "triangle"
+    },
+    {
+      "at": 1789610087622,
+      "chosen": "butterfly",
+      "correct": true,
+      "distance": 0.2265,
+      "item": "butterfly_5",
+      "route_km": 36.7,
+      "shape": "butterfly"
+    },
+    {
+      "at": 1789610092076,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1202,
+      "item": "house_9",
+      "route_km": 20.1,
+      "shape": "house"
+    },
+    {
+      "at": 1789610152478,
+      "chosen": "trex",
+      "correct": true,
+      "distance": 0.0752,
+      "item": "trex_40",
+      "route_km": 35.1,
+      "shape": "trex"
+    },
+    {
+      "at": 1789610154305,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2109,
+      "item": "snowman_23",
+      "route_km": 25.6,
+      "shape": "snowman"
+    },
+    {
+      "at": 1789610162413,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0974,
+      "item": "cat_13",
+      "route_km": 20.6,
+      "shape": "cat"
+    },
+    {
+      "at": 1789610168682,
+      "chosen": "bat",
+      "correct": true,
+      "distance": 0.0642,
+      "item": "bat_28",
+      "route_km": 24.6,
+      "shape": "bat"
+    },
+    {
+      "at": 1789610172448,
+      "chosen": "house",
+      "correct": true,
+      "distance": 0.0719,
+      "item": "house_8",
+      "route_km": 19.8,
+      "shape": "house"
+    },
+    {
+      "at": 1789610174075,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.056,
+      "item": "cat_12",
+      "route_km": 19.1,
+      "shape": "cat"
+    },
+    {
+      "at": 1789610187424,
+      "chosen": "plane",
+      "correct": true,
+      "distance": 0.1559,
+      "item": "plane_19",
+      "route_km": 25,
+      "shape": "plane"
+    },
+    {
+      "at": 1789610189136,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0426,
+      "item": "snowman_22",
+      "route_km": 23.2,
+      "shape": "snowman"
+    },
+    {
+      "at": 1789610192704,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0589,
+      "item": "witch_hat_30",
+      "route_km": 21.2,
+      "shape": "witch_hat"
+    },
+    {
+      "at": 1789610194438,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1386,
+      "item": "cup_11",
+      "route_km": 21.3,
+      "shape": "cup"
+    },
+    {
+      "at": 1789610208402,
+      "chosen": "christmas_tree",
+      "correct": true,
+      "distance": 0.1642,
+      "item": "christmas_tree_25",
+      "route_km": 33.8,
+      "shape": "christmas_tree"
+    },
+    {
+      "at": 1789610211373,
+      "chosen": "crescent",
+      "correct": true,
+      "distance": 0.0453,
+      "item": "crescent_38",
+      "route_km": 20.4,
+      "shape": "crescent"
+    },
+    {
+      "at": 1789610213541,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0751,
+      "item": "gear_16",
+      "route_km": 19.8,
+      "shape": "gear"
+    },
+    {
+      "at": 1789610216300,
+      "chosen": "fish",
+      "correct": true,
+      "distance": 0.0683,
+      "item": "fish_2",
+      "route_km": 19.5,
+      "shape": "fish"
+    },
+    {
+      "at": 1789610217927,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2845,
+      "item": "gingerbread_21",
+      "route_km": 22.3,
+      "shape": "gingerbread"
+    },
+    {
+      "at": 1789610219247,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1419,
+      "item": "leaf_15",
+      "route_km": 30,
+      "shape": "leaf"
+    },
+    {
+      "at": 1789610222922,
+      "chosen": "music_note",
+      "correct": true,
+      "distance": 0.0833,
+      "item": "music_note_6",
+      "route_km": 21,
+      "shape": "music_note"
+    },
+    {
+      "at": 1789610225255,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0639,
+      "item": "butterfly_4",
+      "route_km": 31,
+      "shape": "butterfly"
+    },
+    {
+      "at": 1789610227497,
+      "chosen": "plane",
+      "correct": true,
+      "distance": 0.0696,
+      "item": "plane_18",
+      "route_km": 23.5,
+      "shape": "plane"
+    },
+    {
+      "at": 1789610231030,
+      "chosen": "bat",
+      "correct": true,
+      "distance": 0.1416,
+      "item": "bat_29",
+      "route_km": 26.4,
+      "shape": "bat"
+    },
+    {
+      "at": 1789610233040,
+      "chosen": "star5",
+      "correct": true,
+      "distance": 0.1307,
+      "item": "star5_37",
+      "route_km": 19.4,
+      "shape": "star5"
+    },
+    {
+      "at": 1789610234412,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0653,
+      "item": "cup_10",
+      "route_km": 19.5,
+      "shape": "cup"
+    },
+    {
+      "at": 1789610235702,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1064,
+      "item": "witch_hat_31",
+      "route_km": 19.8,
+      "shape": "witch_hat"
+    },
+    {
+      "at": 1789610257362,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2789,
+      "item": "taiwan_1",
+      "route_km": 25.8,
+      "shape": "taiwan"
+    },
+    {
+      "at": 1789610258870,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0706,
+      "item": "gingerbread_20",
+      "route_km": 20.3,
+      "shape": "gingerbread"
+    },
+    {
+      "at": 1789610260483,
+      "chosen": "taiwan",
+      "correct": true,
+      "distance": 0.0423,
+      "item": "taiwan_0",
+      "route_km": 20,
+      "shape": "taiwan"
+    },
+    {
+      "at": 1789610263003,
+      "chosen": "fish",
+      "correct": true,
+      "distance": 0.1182,
+      "item": "fish_3",
+      "route_km": 19.5,
+      "shape": "fish"
+    },
+    {
+      "at": 1789610265275,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1633,
+      "item": "gear_17",
+      "route_km": 19.2,
+      "shape": "gear"
+    },
+    {
+      "at": 1789610268268,
+      "chosen": "heart",
+      "correct": true,
+      "distance": 0.1372,
+      "item": "heart_35",
+      "route_km": 21.1,
+      "shape": "heart"
+    },
+    {
+      "at": 1789610274299,
+      "chosen": "ghost",
+      "correct": true,
+      "distance": 0.0949,
+      "item": "ghost_26",
+      "route_km": 37.6,
+      "shape": "ghost"
+    },
+    {
+      "at": 1789610275717,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2873,
+      "item": "crescent_39",
+      "route_km": 23.9,
+      "shape": "crescent"
+    },
+    {
+      "at": 1789610277328,
+      "chosen": "star5",
+      "correct": true,
+      "distance": 0.0721,
+      "item": "star5_36",
+      "route_km": 19.9,
+      "shape": "star5"
+    },
+    {
+      "at": 1789610279128,
+      "chosen": "heart",
+      "correct": true,
+      "distance": 0.0572,
+      "item": "heart_34",
+      "route_km": 20.4,
+      "shape": "heart"
+    },
+    {
+      "at": 1789610282661,
+      "chosen": "ghost",
+      "correct": true,
+      "distance": 0.3197,
+      "item": "ghost_27",
+      "route_km": 42,
+      "shape": "ghost"
+    },
+    {
+      "at": 1789610284664,
+      "chosen": "christmas_tree",
+      "correct": true,
+      "distance": 0.0808,
+      "item": "christmas_tree_24",
+      "route_km": 30.4,
+      "shape": "christmas_tree"
+    },
+    {
+      "at": 1789610312264,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0676,
+      "item": "leaf_14",
+      "route_km": 30.3,
+      "shape": "leaf"
+    },
+    {
+      "at": 1789610317357,
+      "chosen": "music_note",
+      "correct": true,
+      "distance": 0.1582,
+      "item": "music_note_7",
+      "route_km": 22,
+      "shape": "music_note"
+    }
+  ],
+  "finished": "2026-09-17T01:58:37.357Z",
+  "session": "mu4vmi84ecs6ot"
+}

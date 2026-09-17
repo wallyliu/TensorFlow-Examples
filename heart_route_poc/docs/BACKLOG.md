@@ -802,3 +802,58 @@ things; the exceptions are shapes whose silhouette is a blob that something
 INSIDE distinguishes - a ring of teeth, a dome with a wavy hem. Both cost
 roughly double the ride, and both are worth it, because the alternative is a
 20 km route that nobody can name.
+
+## 31. A single spur is worth more than the whole shape distance
+
+A rater looked at a route that is a perfect Taiwan except for one straight bar
+shot across the bottom right, and answered "cannot tell", naming the bar. Three
+of the six Taiwan routes in POC 33 carry one. They come out of the map
+matching: two consecutive contour points land either side of something the
+street network cannot cross, the shortest path between them runs a long way
+round, and the route draws a spike into the interior.
+
+Nothing in the pipeline sees it. `shape_distance` compares resampled positions,
+so a spike moves a handful of points and costs almost nothing. `wander` is a
+ratio over the whole route, and a 1 km spur on a 25 km ride is 4% against a
+limit of 30%. Both are averages. A spur is a maximum.
+
+`metrics.excursion` is the maximum instead - the farthest any route point
+strays from the template, over the shape's width. Against the POC 33 answers,
+84 of them over 42 routes from two raters:
+
+| | correct | wrong | Mann-Whitney |
+|---|---:|---:|---|
+| max excursion | 0.048 | 0.062 | **p = 0.013** |
+| shape distance | 0.081 | 0.112 | p = 0.142 |
+
+The measure the entire search optimises does not separate the routes people can
+name from the ones they cannot. This one does.
+
+NOT YET A GATE. Within a fixed distance band the direction holds and the
+significance does not (p = 0.085 below 0.10, p = 0.098 above), and the two
+correlate at Spearman 0.77 - so this is not yet evidence that excursion adds
+anything beyond distance. Reported, like `thinness`, and the reason to collect
+more answers. The version of this that ships is a constraint in `search`, the
+way `WANDER_LIMIT` is, and it should not ship on n = 84.
+
+## 32. What the second rater's five complaints were actually asking for
+
+Three of the five asked for the same thing: an interior line.
+
+| complaint | what it means | floor |
+|---|---|---|
+| butterfly needs "a line top to bottom" | the abdomen | 21.3 -> 34.3 km |
+| the house door needs "a line under it" | a door is a rectangle on the floor, not a hole in the wall | 14.0 -> 22.0 km |
+| the leaf needs more veins | venation | refused, see below |
+| the cup's handle is too thin | 6% of the width | 10.7 -> 12.3 km |
+| Taiwan has "an extra bar at the bottom right" | a routing spur, not the shape | BACKLOG 31 |
+
+The butterfly's spine is the most expensive single line in the pack, because a
+zero-width feature is the finest feature there is and n_min tracks fineness
+rather than quantity. The same arithmetic is why the leaf's veins are refused:
+one pair costs 61 km, two cost 90, and a serrated margin tried in their place
+costs 58. What the leaf needed was not veins but ASYMMETRY - it was called
+lips, and lips are symmetric both ways while a leaf is symmetric only about its
+midrib. Redrawn ovate, wide at the stem and tapering to the tip, it goes from
+20.5 km to 9.1: more leaf-like and less than half the ride, the only change in
+this round that was not a trade.

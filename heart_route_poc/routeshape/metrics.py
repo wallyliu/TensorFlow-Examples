@@ -416,3 +416,47 @@ def thinness(xy: np.ndarray, n: int = 512,
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio = np.where(far_enough, chord / arc, np.inf)
     return float(np.min(ratio))
+
+
+# ---------------------------------------------------------------------------
+# Excursion
+# ---------------------------------------------------------------------------
+def excursion(route_xy: np.ndarray, template_xy: np.ndarray, n: int = 512) -> float:
+    """
+    How far the route strays from the template at its WORST point, over width.
+
+    A rater looked at a route that is a perfect Taiwan except for one straight
+    bar shot across the bottom right, and answered "cannot tell" - naming the
+    bar as the reason. Three of the six Taiwan routes in POC 33 have one. They
+    come out of the map matching: two consecutive contour points land either
+    side of something the street network cannot cross, the shortest path between
+    them runs a long way round, and the route draws a spike into the interior.
+
+    NOTHING IN THE PIPELINE SEES THIS. `shape_distance` resamples both curves
+    and compares positions, so a spike moves a handful of points and costs
+    almost nothing. `wander` is arclength(route)/arclength(template) - 1, a
+    ratio over the WHOLE route, and a 1 km spur on a 25 km ride is 4% against a
+    limit of 30%. Both are averages; a spur is a maximum.
+
+    What the rater data says, over 84 answers on 42 routes from two people:
+
+        max excursion   correct median 0.048, wrong 0.062   p = 0.013
+        shape distance  correct median 0.081, wrong 0.112   p = 0.142
+
+    The measure the whole search optimises does not separate the routes people
+    name from the ones they cannot; this does. Within a fixed distance band the
+    direction holds and the significance does not (p = 0.085 below 0.10, 0.098
+    above), and the two correlate at Spearman 0.77, so this is NOT yet evidence
+    that excursion adds anything beyond distance. It is a strong lead and the
+    reason to collect more answers, not a constant to gate on.
+
+    Both curves are normalised for translation and scale first, so the result
+    is a fraction of the shape's width. Rotation is NOT removed: pass a route
+    already turned upright against its own template, as the search does.
+    """
+    route = normalize_curve(np.asarray(route_xy, dtype=float), n)
+    template = normalize_curve(np.asarray(template_xy, dtype=float), max(n, 1024))
+    gap = np.hypot(route[:, 0][:, None] - template[:, 0][None, :],
+                   route[:, 1][:, None] - template[:, 1][None, :]).min(axis=1)
+    width = float(max(template.max(axis=0) - template.min(axis=0)))
+    return float(gap.max() / width) if width > 0 else float("inf")
