@@ -11,7 +11,7 @@
   "salient_m": 14.9,
   "filler_m": 25.9,
   "mean_m": 25.0,
-  "seconds": 9.6
+  "seconds": 9.4
  },
  {
   "shape": "cup",
@@ -25,7 +25,7 @@
   "salient_m": 14.9,
   "filler_m": 37.3,
   "mean_m": 27.3,
-  "seconds": 16.4
+  "seconds": 15.5
  },
  {
   "shape": "cup",
@@ -39,7 +39,7 @@
   "salient_m": 14.9,
   "filler_m": 37.3,
   "mean_m": 27.3,
-  "seconds": 15.8
+  "seconds": 14.7
  },
  {
   "shape": "cup",
@@ -53,7 +53,7 @@
   "salient_m": 14.9,
   "filler_m": 37.3,
   "mean_m": 27.3,
-  "seconds": 15.7
+  "seconds": 15.1
  },
  {
   "shape": "cup",
@@ -67,7 +67,7 @@
   "salient_m": 14.9,
   "filler_m": 37.3,
   "mean_m": 27.3,
-  "seconds": 13.9
+  "seconds": 13.6
  },
  {
   "shape": "cup",
@@ -81,7 +81,7 @@
   "salient_m": 14.9,
   "filler_m": 37.3,
   "mean_m": 27.3,
-  "seconds": 12.7
+  "seconds": 13.3
  },
  {
   "shape": "gear",
@@ -95,7 +95,7 @@
   "salient_m": 35.3,
   "filler_m": 31.3,
   "mean_m": 33.0,
-  "seconds": 9.7
+  "seconds": 9.5
  },
  {
   "shape": "gear",
@@ -109,7 +109,7 @@
   "salient_m": 41.9,
   "filler_m": 29.1,
   "mean_m": 33.3,
-  "seconds": 15.1
+  "seconds": 15.0
  },
  {
   "shape": "gear",
@@ -123,7 +123,7 @@
   "salient_m": 41.9,
   "filler_m": 29.1,
   "mean_m": 33.3,
-  "seconds": 14.7
+  "seconds": 14.6
  },
  {
   "shape": "gear",
@@ -137,7 +137,7 @@
   "salient_m": 40.2,
   "filler_m": 30.5,
   "mean_m": 33.3,
-  "seconds": 13.8
+  "seconds": 15.3
  },
  {
   "shape": "gear",
@@ -151,6 +151,6 @@
   "salient_m": 24.4,
   "filler_m": 29.0,
   "mean_m": 29.7,
-  "seconds": 13.3
+  "seconds": 13.5
  }
 ]

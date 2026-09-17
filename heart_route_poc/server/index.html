@@ -550,6 +550,12 @@
     if (state.text || $("text").value.trim()) checkText();
   });
   $("go").addEventListener("click", go);
+  // The distance readout is only touched when the slider moves, so on first
+  // paint it showed whatever number the markup was written with - 10.0, while
+  // the slider, the state and the "too short" warnings all said 30. Read it
+  // off the state instead, so there is one source of truth for it.
+  $("km").value = String(state.km);
+  $("km-value").textContent = state.km.toFixed(1);
   renderPresets();
   loadPlaces();
   loadShapes();
