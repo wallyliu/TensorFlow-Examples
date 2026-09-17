@@ -60,6 +60,7 @@ from routeshape.metrics import alignment_angle, excursion                       
 from routeshape.export import to_gpx                                  # noqa: E402
 from routeshape.shapes.library import SHAPES, register                       # noqa: E402
 import routeshape.shapes.pack as shape_pack                                                # noqa: E402
+import routeshape.shapes.emoji as emoji_pack                                              # noqa: E402
 import routeshape.describe as describe_shape                                            # noqa: E402
 
 # The wider library. Registered at import so /api/shapes lists them and the
@@ -67,9 +68,29 @@ import routeshape.describe as describe_shape                                    
 # in Taipei and they came out 0.050 to 0.146.
 shape_pack.install()
 
+# The traced emoji, for the subjects nobody drew by hand. ONE drawing per
+# subject reaches the page: three cards all labelled 貓 is not a choice a rider
+# can make, and POC 37 says which one to keep anyway. Two raters saw all twelve
+# subjects that exist in both, and hand against Noto split on NOTHING (12 pairs,
+# 0 splits) - the traced version is not better, so there is no reason to
+# replace a drawing that already works.
+#
+# NOTO AND NOT OPENMOJI, which is the opposite of what the outlines look like.
+# The SVG gives the gear a bore and the ghost two eyes, and it still lost 5-0
+# on the split pairs (p = 0.062): its extra interior detail is finer than the
+# street grid, so it survives in the outline and is ground off in the route.
+# It stays in the library for experiments and off the page until a rater round
+# says otherwise.
+EMOJI_ONLY = [name for name in emoji_pack.PACK if name not in shape_pack.PACK]
+emoji_pack.install(names=EMOJI_ONLY)
+
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
           "triangle": "三角形", "trex": "恐龍"}
 LABELS.update(shape_pack.LABELS)
+LABELS.update({"e_" + name: emoji_pack.LABELS[name] for name in EMOJI_ONLY})
+# Two cards reading 恐龍 is a card the rider cannot choose between. 🦕 and the
+# hand-drawn trex are different animals; say which.
+LABELS["e_sauropod"] = "雷龍"
 # POC 17 fitted six candidates per shape and found the coarse scan's rank
 # uncorrelated with the final result (Spearman -0.024 over thirty candidates).
 # The pre-ranking says which placements are routable, not which are good, so the

@@ -1267,3 +1267,56 @@ person, and POC 37 is what asks one.
 The SVG cache (`_openmoji/`) is not tracked, on the same grounds as the OSM
 extracts: it is refetched on demand. OpenMoji is CC BY-SA 4.0 and anything
 published from these outlines owes it attribution.
+
+
+## 43. Round four: Noto ties the hand-drawn pack, OpenMoji loses to it
+
+Twelve subjects that exist as three drawings - hand-drawn, Noto-traced,
+OpenMoji-traced - in front of two raters, 27 items each, each subject seen
+twice and the tracer split six and six per rater.
+
+    hand      19/24 = 79%
+    Noto      10/12 = 83%
+    OpenMoji   4/12 = 33%
+    anchors     6/6 = 100%
+
+    hand vs Noto      12 pairs, 0 split
+    hand vs OpenMoji  12 pairs, 5 split, all hand, p = 0.062
+
+POOLING THE TRACERS WAS THE WRONG TEST and it is what the analysis did first.
+"Is hand better than emoji" pooled gives p = 0.062 too, but that number is just
+a reading of how many OpenMoji items happened to be drawn. Split apart, the two
+tracers are nowhere near each other and one of them is indistinguishable from
+the thing it was supposed to beat.
+
+SO POC 36's HEADLINE NEEDS NARROWING. "Traced beats hand-drawn, p = 0.016" was
+measured on five subjects where what I drew was bad. On twelve subjects that
+had already survived a rater round, tracing does not win - it ties. What POC 36
+really showed is that tracing beats a BAD drawing, which is a claim about my
+drawing and not about tracing.
+
+AND THE SVG's EXTRA DETAIL IS A LIABILITY ON THE ROAD. The OpenMoji outlines
+are plainly better to look at - the gear has a bore, the ghost has two eyes,
+the house has a door - and they lost 5-0. The three that split are fish, house
+and plane, and all three had GOOD excursion (0.032, 0.061, 0.052, limit 0.08).
+Look at the routes and the mechanism is obvious: the interior detail is finer
+than the street grid, so it survives in the outline and is ground off in the
+route, leaving a polygon with no identity. Excursion does not catch this,
+because excursion measures distance from the template and the template is the
+problem.
+
+    the one exception is the ghost, 2/2 on OpenMoji. The eyes work.
+
+I tried to turn that mechanism into a number - smallest feature thickness over
+street scale - and it does not work: an interior line is drawn out-and-back, so
+its thickness is zero by construction and the metric reads the CONNECTORS, not
+the features. The gear measured 7 m and was named by both raters. Recorded as
+a dead end, not a signal.
+
+WHAT SHIPPED. `server/app.py` now registers the sixteen emoji subjects with no
+hand-drawn twin (Noto, not OpenMoji) and nothing else: one drawing per subject,
+36 shapes on the page. Replacing a hand-drawn shape that ties is not an
+improvement, and three cards reading 貓 is not a choice a rider can make.
+
+STILL OPEN: leaf and snowman were named 0/4 across every arm and both raters.
+Two raters is thin for a retirement, and a third is in progress.

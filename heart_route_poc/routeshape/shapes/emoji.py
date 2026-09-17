@@ -174,7 +174,7 @@ PACK = {
 LABELS = {name: label for name, (_, label) in PACK.items()}
 
 
-def install(prefix: str = "e_") -> list:
+def install(prefix: str = "e_", names: list | None = None) -> list:
     """Register every emoji shape with shape_library, under a prefix.
 
     Prefixed because several of these share a name with a hand-drawn shape -
@@ -185,6 +185,8 @@ def install(prefix: str = "e_") -> list:
 
     installed = []
     for name, (character, _label) in PACK.items():
+        if names is not None and name not in names:
+            continue
         try:
             sl.register(prefix + name, outline(character))
         except Exception as exc:      # noqa: BLE001 - one bad glyph is not fatal
