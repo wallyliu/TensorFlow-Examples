@@ -384,6 +384,79 @@ def leaf() -> np.ndarray:
                                                              # close draws it back
 
 
+def elephant() -> np.ndarray:
+    """Side on, with a trunk and an ear. Nothing else has either.
+
+    Chosen against POC 33's result rather than by taste. The shapes three
+    raters named every time - plane, music note, Christmas tree, bat, fish -
+    each carry one part that is strange on its own. The ones named zero times
+    out of six - cat, gingerbread man, snowman - are figures assembled from
+    parts that are individually generic, a head and a body and limbs, where the
+    identity is supposed to live in the ARRANGEMENT. It does not survive being
+    drawn in streets.
+
+    A trunk is the strangest part any animal has, and unlike the cat's tail it
+    is THICK, so it is an outline feature rather than a long thin loop
+    (BACKLOG 26). The ear is the second one. 13.5 km, thinness 0.138.
+
+    Drawn first with the trunk hanging from the chest, where its two edges
+    crossed: a hanging appendage is traced down ONE side and back up the other,
+    and the two must not swap sides on the way.
+    """
+    return np.array([
+        (0.08, 0.40), (0.34, 0.34), (0.58, 0.22),          # head top, back
+        (0.66, -0.02), (0.64, -0.28),                      # rump
+        (0.66, -0.48), (0.48, -0.48), (0.48, -0.22),       # hind leg
+        (0.26, -0.24),
+        (0.24, -0.48), (0.08, -0.48), (0.08, -0.20),       # foreleg
+        (-0.02, -0.02), (-0.10, 0.00),                     # chest, trunk root
+        (-0.14, -0.16), (-0.22, -0.34), (-0.20, -0.48),    # TRUNK, inner edge
+        (-0.30, -0.54),                                    # tip
+        (-0.34, -0.44), (-0.32, -0.26), (-0.26, -0.08),    # TRUNK, outer edge
+        (-0.28, 0.10), (-0.24, 0.28),                      # face, forehead
+        (-0.12, 0.36), (-0.06, 0.50), (0.06, 0.46),        # EAR
+    ])
+
+
+def crab() -> np.ndarray:
+    """Two big claws held up over a flat shell.
+
+    The claws are the strange part and they are chunky, which is the whole
+    reason this is here and the rabbit is not. 10.7 km - one of the cheapest
+    animals in the pack.
+    """
+    return _sym([
+        (0.16, 0.20), (0.26, 0.36),                        # arm, raised
+        (0.18, 0.50), (0.30, 0.62), (0.46, 0.56),
+        (0.44, 0.40), (0.34, 0.34),                        # CLAW
+        (0.32, 0.18),
+        (0.52, 0.12), (0.58, -0.06),                       # shell
+        (0.48, -0.24), (0.26, -0.34),
+    ], (0.00, 0.22), (0.00, -0.38))
+
+
+def giraffe() -> np.ndarray:
+    """A neck four times the length of the head, and nothing else is.
+
+    The legs are deliberately short and thick. A giraffe's real proportions put
+    four thin sticks under it, and thin is the thing the streets cannot draw;
+    the neck is what carries the name, so the neck gets the width budget.
+    13.6 km.
+    """
+    return np.array([
+        (-0.30, 0.60), (-0.38, 0.54), (-0.36, 0.44),       # head, muzzle
+        (-0.22, 0.44), (-0.12, 0.34),                      # jaw, into the neck
+        (0.02, 0.02), (0.10, -0.22),                       # NECK, front edge
+        (0.12, -0.56), (0.24, -0.56), (0.24, -0.26),       # foreleg
+        (0.42, -0.26),
+        (0.42, -0.56), (0.54, -0.56), (0.56, -0.24),       # hind leg
+        (0.60, -0.06), (0.36, -0.02),                      # rump, back
+        (0.18, 0.22), (0.02, 0.50),                        # NECK, back edge
+        (-0.04, 0.60), (-0.02, 0.72), (-0.10, 0.62),       # horn
+        (-0.20, 0.62), (-0.22, 0.74), (-0.28, 0.70),       # horn
+    ])
+
+
 def maple() -> np.ndarray:
     """Five lobes and a stem: a leaf you know from the silhouette alone.
 
@@ -663,6 +736,7 @@ PACK = {
     "music_note": music_note, "house": house, "cup": cup, "cat": cat,
     "leaf": leaf, "maple": maple, "gear": gear, "plane": plane,
     # Seasonal, and untested - they go into the next blind round.
+    "elephant": elephant, "crab": crab, "giraffe": giraffe,
     "gingerbread": gingerbread, "snowman": snowman,
     "christmas_tree": christmas_tree,
     "ghost": ghost, "bat": bat, "witch_hat": witch_hat,
@@ -672,6 +746,7 @@ LABELS = {
     "taiwan": "台灣", "fish": "魚", "butterfly": "蝴蝶",
     "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
     "leaf": "葉子", "maple": "楓葉", "gear": "齒輪", "plane": "飛機",
+    "elephant": "大象", "crab": "螃蟹", "giraffe": "長頸鹿",
     "gingerbread": "薑餅人", "snowman": "雪人", "christmas_tree": "聖誕樹",
     "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
 }

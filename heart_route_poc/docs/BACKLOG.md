@@ -978,3 +978,39 @@ should read without help, and the raters decide - the same way `cat` and
 `cat_head` were handled. One risk named in advance: five points around a centre
 is also a star, and `star5` is in the library; the stem and the notched margin
 are what separate them.
+
+## 37. Pick animals with one strange part
+
+POC 33's split, three raters, six answers per shape:
+
+    named 6/6   plane, music note, Christmas tree   (+ every anchor)
+    named 5/6   bat, fish
+    named 0/6   cat, gingerbread man, snowman
+
+The pattern is not distinctiveness overall. Each shape that passes carries one
+part that is strange ON ITS OWN - a cruciform, a flag, a star on a trunk, a
+scalloped wing, a forked tail. Each shape that fails is a FIGURE built from
+parts that are individually generic - a head, a body, limbs, balls - where the
+identity is meant to live in the arrangement. Arrangement does not survive
+being drawn in streets.
+
+So the next animals are chosen by which strange part they own, and by whether
+that part is THICK, since a thin one cannot be drawn at all (BACKLOG 26):
+
+| shape | the strange part | floor | thinness |
+|---|---|---:|---:|
+| crab | two raised claws | 10.7 km | 0.107 |
+| elephant | a trunk, and an ear | 13.5 km | 0.138 |
+| giraffe | a neck four times the head | 13.6 km | 0.125 |
+
+All three are cheaper than the gingerbread man's 9.1 km was worth, and all
+three are untested - they go into the next blind round with `maple` and with
+the redrawn cup, gear and leaf.
+
+The giraffe's legs are deliberately short and thick. A giraffe's real
+proportions put four sticks under it, and thin is what the streets refuse; the
+neck is what carries the name, so the neck gets the width.
+
+The elephant's trunk crossed its own chest on the first draft. A hanging
+appendage is traced down one side and back up the other, and the two edges must
+not swap sides on the way - the same mistake the cat's tail made three times.
