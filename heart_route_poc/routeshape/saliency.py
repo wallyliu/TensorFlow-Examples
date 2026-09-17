@@ -98,7 +98,8 @@ BASE_RADIUS_M = 300.0
 TIGHT_M, LOOSE_M = 110.0, 650.0
 
 
-def radii(point_weights: np.ndarray, base: float = BASE_RADIUS_M) -> np.ndarray:
+def radii(point_weights: np.ndarray, base: float = BASE_RADIUS_M,
+          tight: float = TIGHT_M, loose: float = LOOSE_M) -> np.ndarray:
     """How far each contour point may be snapped, from its weight.
 
     Weighting the emission cost alone moved almost nothing - two of five shapes
@@ -107,6 +108,13 @@ def radii(point_weights: np.ndarray, base: float = BASE_RADIUS_M) -> np.ndarray:
     weights should move: an identity-bearing arc gets a tight one and has to
     land close, a filler arc gets a loose one and may take whatever street is
     convenient.
+
+    ONLY THE TIGHT END IS A LEVER, and the defaults barely touch it. The
+    candidate set is the k nearest junctions WITHIN the radius, so widening it
+    past the k-th nearest one changes nothing: at k = 18 the loose end is
+    inert. POC 38 measured the result - `radius` came out byte-identical to a
+    flat 260 m on the cup and within 0.001 on the gear, with candidate counts
+    of 17.8 out of 18. `tight` and `loose` are parameters so a sweep can push
+    the end that does something.
     """
-    return np.clip(base / np.asarray(point_weights, dtype=float),
-                   TIGHT_M, LOOSE_M)
+    return np.clip(base / np.asarray(point_weights, dtype=float), tight, loose)

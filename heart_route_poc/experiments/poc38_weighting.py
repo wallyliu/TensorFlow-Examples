@@ -66,8 +66,18 @@ OUT = RESULTS / "poc38_weighting.json"
 # cup and its traced twin - would tell it that nothing does.
 SHAPES = ["cup", "gear", "house", "plane", "fish", "ghost"]
 
-ARMS = ("base", "wide", "radius", "full")
+ARMS = ("base", "wide", "radius", "full", "tight", "sharp")
 QUARTILE = 0.25
+
+# The first pass ran the top four and found the radius inert: `radius` came out
+# byte-identical to `wide` on the cup and within 0.001 on the gear, because the
+# candidate set is the k nearest junctions WITHIN the radius and at k = 18 the
+# 18th is already closer than the loose end. Only the TIGHT end can bite, and
+# 150 m over a 280 m street grid does not. So two more arms push it until it
+# does: 75 m on the most identity-bearing points leaves the DP one junction to
+# choose from, which is what "must land close" actually means here.
+TIGHT_BASE, TIGHT_FLOOR = 150.0, 70.0
+SHARP_CONTRAST = 8.0
 
 
 def arm_settings(arm: str, shape: str, points: int):
@@ -76,9 +86,14 @@ def arm_settings(arm: str, shape: str, points: int):
         return 1.0, 260.0, 10
     if arm == "wide":
         return 1.0, 260.0, 18
+    if arm == "sharp":
+        w = snap_weights(shape, points, contrast=SHARP_CONTRAST)
+        return w, radii(w, TIGHT_BASE, TIGHT_FLOOR), 18
     w = snap_weights(shape, points)
     if arm == "radius":
         return 1.0, radii(w), 18
+    if arm == "tight":
+        return 1.0, radii(w, TIGHT_BASE, TIGHT_FLOOR), 18
     return w, radii(w), 18
 
 
