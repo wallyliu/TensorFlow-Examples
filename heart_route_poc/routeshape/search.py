@@ -69,15 +69,32 @@ def coarse_scan(street_tree, centers, shape, width_m, rotations):
                                  ("worst", float)])
 
 
-def refine(graph, shape, centre_xy, rotation, width_m=WIDTH_M, points=N_POINTS):
-    """Fit a real route to one placement and score it with the endorsed metric."""
+def refine(graph, shape, centre_xy, rotation, width_m=WIDTH_M, points=N_POINTS,
+           weighted=False):
+    """Fit a real route to one placement and score it with the endorsed metric.
+
+    `weighted` puts `saliency.weights` on the snap term instead of one number
+    for every contour point, so the route is held to the arcs that carry the
+    shape's identity and allowed to wander on the ones that do not. Off by
+    default: it cannot be validated against `shape_distance` - holding the
+    important arcs tighter costs error elsewhere, so a weighted route scores
+    worse on the unweighted metric by construction - and the only test that
+    means anything is a rater round.
+    """
     target = place_shape(resample_by_arclength(shape, points), centre_xy, width_m, rotation)
     dense = resample_by_arclength(shape, 4000)
     reference = place_shape(np.vstack([dense, dense[:1]]), centre_xy, width_m, rotation)
 
+    snap, radius, k = 1.0, 260.0, 10
+    if weighted:
+        from routeshape.saliency import radii, weights as snap_weights
+        snap = snap_weights(shape, points)
+        radius = radii(snap)
+        k = 18          # a wider radius is no use if only ten nodes are offered
+
     try:
-        result = run_poc2(graph, target, reference, 10, 1.0,
-                          radius_m=260.0, deviation_weight=10.0)
+        result = run_poc2(graph, target, reference, k, snap,
+                          radius_m=radius, deviation_weight=10.0)
     except NoRouteFoundError:
         return None
     result.update(centre_xy=np.asarray(centre_xy), rotation=rotation,

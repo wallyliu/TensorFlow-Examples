@@ -29,6 +29,8 @@ Out:  heart_route_poc2.png, poc1_vs_poc2.png
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import argparse
 import time
 from pathlib import Path
@@ -117,6 +119,14 @@ def build_candidate_sets(
     the shape, but the nearest candidate is always kept even if it is further,
     so no contour point is ever left without options.
 
+    `radius_m` may be one number or one PER CONTOUR POINT. Per-point is what
+    makes weighting bite: weighting the emission COST alone changed almost
+    nothing measurable, because at a 260 m radius over a 142 m street grid the
+    DP has about two blocks of freedom and no room to trade. Freedom is the
+    lever, not price - so an arc that carries the shape's identity gets a small
+    radius and must land close, and a filler arc gets a large one and may take
+    whatever street is convenient.
+
     Returns the candidate node ids per point, and the snap distance (the
     "emission cost") of each candidate.
     """
@@ -129,10 +139,16 @@ def build_candidate_sets(
     if k == 1:
         dists, idxs = dists[:, None], idxs[:, None]
 
+    radii = ([float(radius_m)] * len(points_proj) if np.isscalar(radius_m)
+             else [float(r) for r in radius_m])
+    if len(radii) != len(points_proj):
+        msg = f"radius_m has {len(radii)} entries for {len(points_proj)} points"
+        raise ValueError(msg)
+
     candidates: list[list[int]] = []
     emissions: list[dict[int, float]] = []
-    for row_d, row_i in zip(dists, idxs):
-        keep = [(float(d), junctions[i]) for d, i in zip(row_d, row_i) if d <= radius_m]
+    for row_d, row_i, limit in zip(dists, idxs, radii):
+        keep = [(float(d), junctions[i]) for d, i in zip(row_d, row_i) if d <= limit]
         if not keep:  # nothing within the radius - fall back to the single nearest
             keep = [(float(row_d[0]), junctions[row_i[0]])]
         candidates.append([n for _, n in keep])
@@ -228,12 +244,18 @@ def viterbi_closed_loop(
     candidates: list[list[int]],
     emissions: list[dict[int, float]],
     transitions: list[dict[tuple[int, int], float]],
-    snap_weight: float = SNAP_WEIGHT,
+    snap_weight: float | Sequence[float] = SNAP_WEIGHT,
 ) -> tuple[list[int], float]:
     """
     Pick one candidate per contour point, minimising total cost around the loop.
 
-        total = snap_weight * sum(snap error) + sum(excess detour)
+        total = sum_i snap_weight[i] * snap error_i + sum(excess detour)
+
+    `snap_weight` may be one number for every point, as it always was, or one
+    PER CONTOUR POINT. Per-point is what lets the route be held tightly to the
+    parts that carry the shape's identity and let go everywhere else: POC 34
+    measures which parts those are, and this is the whole of the plumbing it
+    needs. A scalar is broadcast, so nothing that called this before changes.
 
     A plain Viterbi pass handles an open chain, but this route is a cycle: the
     last point must join back to the first, and that choice depends on where the
@@ -244,12 +266,17 @@ def viterbi_closed_loop(
     Returns the chosen node per contour point and the total cost.
     """
     n = len(candidates)
+    weights = ([float(snap_weight)] * n if np.isscalar(snap_weight)
+               else [float(w) for w in snap_weight])
+    if len(weights) != n:
+        msg = f"snap_weight has {len(weights)} entries for {n} contour points"
+        raise ValueError(msg)
     best_assignment: list[int] | None = None
     best_cost = float("inf")
 
     for start in candidates[0]:
         # dp[node] = cost of the best partial path ending at `node` at step i.
-        dp: dict[int, float] = {start: snap_weight * emissions[0][start]}
+        dp: dict[int, float] = {start: weights[0] * emissions[0][start]}
         back: list[dict[int, int]] = [{} for _ in range(n)]
 
         for i in range(n - 1):
@@ -265,7 +292,7 @@ def viterbi_closed_loop(
                     if total < cheapest:
                         cheapest, arg = total, u
                 if arg is not None:
-                    nxt[v] = cheapest + snap_weight * emissions[i + 1][v]
+                    nxt[v] = cheapest + weights[i + 1] * emissions[i + 1][v]
                     back[i + 1][v] = arg
             dp = nxt
             if not dp:
@@ -477,6 +504,7 @@ def dense_reference(lat, lon, width_m, crs, n=4000) -> np.ndarray:
 
 def run_poc2(graph_proj, heart_proj, reference_xy, k, snap_weight, radius_m,
              deviation_weight=DEVIATION_WEIGHT):
+    # radius_m may be per-point; build_candidate_sets broadcasts a scalar.
     """Candidate sets -> transition costs -> Viterbi -> route."""
     candidates, emissions = build_candidate_sets(
         graph_proj, heart_proj, k=k, radius_m=radius_m

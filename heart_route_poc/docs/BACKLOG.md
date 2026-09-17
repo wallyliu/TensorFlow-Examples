@@ -1123,3 +1123,50 @@ no amount of tracing fidelity gives a turtle a strange part. The bicycle is a
 different fault: it is the one route whose excursion broke the 0.08 limit
 (0.148, no placement qualified, the search fell back), so it is evidence for
 the limit rather than against the tracing.
+
+## 40. Per-point weighting: the cost was the wrong lever, the RADIUS is the right one
+
+BACKLOG 33 said the plumbing was one line - `viterbi_closed_loop` multiplies
+every emission by one global `snap_weight`, so a per-point weight is that
+constant becoming an array. That was true and it did almost nothing. Weighted
+against plain at the same placement:
+
+| shape | plain | weighted (cost only) |
+|---|---|---|
+| e_elephant | 0.100 | 0.100 |
+| cup | 0.124 | 0.124 |
+| e_giraffe | 0.151 | 0.156 |
+| gear | 0.124 | 0.126 |
+| e_crab | 0.259 | 0.267 |
+
+Two of five came out identical. The reason is that the DP had nothing to trade
+with: candidates are the ten nearest junctions within 260 m, which on a 142 m
+street grid is about two blocks, and re-pricing choices inside two blocks
+changes which of them wins hardly at all.
+
+FREEDOM IS THE LEVER, NOT PRICE. `build_candidate_sets` now takes a per-point
+radius too: an identity-bearing arc gets 110 m and has to land close, a filler
+arc gets up to 650 m and may take whatever street is convenient, with k raised
+from 10 to 18 so a wider radius actually offers more nodes.
+
+| shape | plain | weighted | excursion plain -> weighted |
+|---|---|---|---|
+| e_giraffe | 0.151 | **0.110** | 0.042 -> 0.048 |
+| e_crab | 0.259 | **0.239** | 0.093 -> 0.095 |
+| gear | 0.124 | **0.113** | 0.076 -> **0.064** |
+| e_elephant | 0.100 | **0.093** | 0.042 -> 0.041 |
+| cup | 0.124 | 0.129 | 0.100 -> **0.089** |
+
+I PREDICTED THE OPPOSITE. BACKLOG 33 and the docstring both say a weighted
+route must score WORSE on the unweighted metric, "by construction", because
+holding the important arcs tighter costs error elsewhere. It improved shape
+distance in four of five and excursion in three. The reasoning was wrong in a
+specific way: loosening the filler arcs does not only trade against the fit, it
+lets the DP find a better assignment overall, and the tight arcs cost little
+because they were already being snapped closely.
+
+Costs about twice the fit time (8s to 15s), from k = 18 rather than 10.
+
+STILL NOT ON BY DEFAULT. Five shapes, one placement each, one city, and the
+thing it is supposed to improve - whether a person can NAME the route - is not
+what any of these numbers measure. A wider sweep first, then a rater round.
