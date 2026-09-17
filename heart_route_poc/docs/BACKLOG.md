@@ -1170,3 +1170,37 @@ Costs about twice the fit time (8s to 15s), from k = 18 rather than 10.
 STILL NOT ON BY DEFAULT. Five shapes, one placement each, one city, and the
 thing it is supposed to improve - whether a person can NAME the route - is not
 what any of these numbers measure. A wider sweep first, then a rater round.
+
+## 41. The emoji's interior lines: right idea, and the bitmap will not give them up
+
+"The elephant would look much more like an elephant if the ear's outline were
+drawn." Correct, and it generalises - an emoji's internal colour boundaries are
+exactly the lines a person draws. Three attempts, none shipped:
+
+  WHOLE COLOUR REGIONS, merged as contours. The dominant colour is the body, so
+  including it traces a shrunken copy of the silhouette: a double outline, not
+  an ear. Excluding it, the regions that clear an area floor are SHADOWS - the
+  elephant's leg shading, the cat's foot - and they cost a great deal: elephant
+  19.9 -> 41.7 km, cat 61.8 -> 97.3.
+
+  THE EAR ITSELF is there, at 10.8% of the body, but split by anti-aliasing
+  into three components of 3.6%, 1.2% and 3.5%. No single threshold picks the
+  ear and rejects the shadows, and eroding the pieces far enough to keep their
+  boundary off the silhouette deletes them.
+
+  THE INTERIOR ARC - the part of the region's boundary that lies strictly
+  inside the body, spliced in as an out-and-back stroke - is the right shape of
+  answer and still crossed the closing segment. Fixable with more care about
+  where the splice lands.
+
+WHAT DOES WORK is transparent holes: the gear gets its bore back (13.3 km, and
+CHEAPER than the 22.4 km hand-built one) and the cup gets the gap in its
+handle. Two of twelve glyphs have one, because an emoji is an opaque picture
+and most of its "holes" are painted.
+
+THE REAL FIX IS NOT PIXELS. Twemoji (CC-BY 4.0) and OpenMoji (CC BY-SA) ship as
+SVG, where the ear is a separate path and the line a person would draw is
+available exactly rather than guessed from a 109 px bitmap. That also answers a
+question this project has been ducking: the raters grew up on Apple's emoji and
+the tracer uses Google's, so the POC 36 result - traced beats hand-drawn,
+p = 0.016 - was won with the WRONG set, which makes it conservative.

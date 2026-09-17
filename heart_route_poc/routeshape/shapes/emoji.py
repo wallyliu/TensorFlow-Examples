@@ -38,9 +38,26 @@ PX = 109                    # the only bitmap strike the font carries
 TOLERANCE = 0.008           # of the shape's width
 MAX_VERTICES = 150          # describe.check refuses above 160
 ALPHA = 128
+MIN_HOLE_AREA = 0.012      # of the body, so speckle is not a bore
 
 
-def _mask(emoji: str) -> np.ndarray:
+def _mask(emoji: str) -> tuple[np.ndarray, list]:
+    """The glyph's largest solid region, and the holes worth keeping in it.
+
+    Filling every hole was the first version and it threw away the two interior
+    features this project had already learned to pay for by hand: the gear's
+    bore and the ghost's eyes. A gear without a bore was named 1 time in 6
+    (POC 33) and a ghost without eyes 0 in 4, and both were fixed by putting the
+    interior back with `multi_contour`. The tracer should not be undoing that.
+
+    ONLY TRANSPARENT HOLES ARE FOUND, and that is most of them missed. An emoji
+    is an opaque picture: the gear's bore is a real gap and comes back, and so
+    is the gap inside a cup's handle, but the ghost's eyes and a doughnut's hole
+    are PAINTED - dark pixels, not absent ones - so alpha cannot see them. Of
+    twelve glyphs traced for the round-four pairs, two had a hole. Finding the
+    rest means segmenting by colour, which is a different and much less robust
+    program, and it is not attempted here.
+    """
     from PIL import Image, ImageDraw, ImageFont
     from scipy import ndimage
 
@@ -51,10 +68,20 @@ def _mask(emoji: str) -> np.ndarray:
     if not mask.any():
         msg = f"no glyph for {emoji!r} in {FONT.name}"
         raise ValueError(msg)
-    mask = ndimage.binary_fill_holes(mask)
-    labels, count = ndimage.label(mask)
-    sizes = ndimage.sum(mask, labels, range(1, count + 1))
-    return labels == (int(np.argmax(sizes)) + 1)
+    filled = ndimage.binary_fill_holes(mask)
+    labels, count = ndimage.label(filled)
+    sizes = ndimage.sum(filled, labels, range(1, count + 1))
+    body = labels == (int(np.argmax(sizes)) + 1)
+
+    hole_map, holes = ndimage.label(body & ~mask)
+    if holes == 0:
+        return body, []
+    floor = MIN_HOLE_AREA * float(body.sum())
+    kept = [hole_map == (i + 1)
+            for i, area in enumerate(ndimage.sum(body & ~mask, hole_map,
+                                                 range(1, holes + 1)))
+            if area >= floor]
+    return body, kept
 
 
 def _trace(mask: np.ndarray) -> np.ndarray:
@@ -92,18 +119,30 @@ def _simplify(points: np.ndarray, tolerance: float) -> np.ndarray:
 
 
 def outline(emoji: str, tolerance: float = TOLERANCE,
-            max_vertices: int = MAX_VERTICES) -> np.ndarray:
+            max_vertices: int = MAX_VERTICES, holes: bool = True) -> np.ndarray:
     """One emoji's silhouette, normalised to unit width and centred.
+
+    Holes big enough to matter are carried in as separate contours and merged
+    into the single closed curve the rest of the pipeline wants - the route
+    rides a spoke in, round the hole, and back out, exactly as the hand-built
+    gear bore and ghost eyes do.
 
     The tolerance is loosened, never tightened, if the trace comes out with
     more vertices than the pipeline accepts - a cap is a cap, and coarsening is
     the only lever that respects it.
     """
-    raw = _trace(_mask(emoji))
-    points = _simplify(raw, tolerance)
-    while len(points) > max_vertices and tolerance < 0.06:
+    from routeshape.shapes.multi_contour import merge
+
+    body, inner = _mask(emoji)
+    contours = [_trace(body)] + ([_trace(h) for h in inner] if holes else [])
+    span = float(max(contours[0].max(axis=0) - contours[0].min(axis=0)))
+    while True:
+        simple = [_simplify(c, tolerance * span / max(
+            1e-9, float(max(c.max(axis=0) - c.min(axis=0))))) for c in contours]
+        points = simple[0] if len(simple) == 1 else merge(simple)[0]
+        if len(points) <= max_vertices or tolerance >= 0.06:
+            break
         tolerance *= 1.3
-        points = _simplify(raw, tolerance)
     points = points - points.mean(axis=0)
     return points / float(max(points.max(axis=0) - points.min(axis=0)))
 
@@ -124,6 +163,13 @@ PACK = {
     "apple": ("🍎", "蘋果"), "butterfly": ("🦋", "蝴蝶"),
     "bicycle": ("🚲", "腳踏車"), "rocket": ("🚀", "火箭"),
     "anchor": ("⚓", "錨"), "guitar": ("🎸", "吉他"),
+    # The twins of what is left of the hand-drawn pack, for round four.
+    "bat": ("🦇", "蝙蝠"), "cat": ("🐈", "貓"),
+    "christmas_tree": ("🎄", "聖誕樹"), "cup": ("☕", "咖啡杯"),
+    "fish": ("🐟", "魚"), "gear": ("⚙", "齒輪"), "ghost": ("👻", "鬼"),
+    "house": ("🏠", "房子"), "leaf": ("🍃", "葉子"),
+    "music_note": ("🎵", "音符"), "plane": ("✈", "飛機"),
+    "snowman": ("⛄", "雪人"),
 }
 LABELS = {name: label for name, (_, label) in PACK.items()}
 
