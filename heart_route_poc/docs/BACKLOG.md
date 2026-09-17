@@ -857,3 +857,43 @@ lips, and lips are symmetric both ways while a leaf is symmetric only about its
 midrib. Redrawn ovate, wide at the stem and tapering to the tip, it goes from
 20.5 km to 9.1: more leaf-like and less than half the ride, the only change in
 this round that was not a trade.
+
+## 33. Weighting the matcher per contour point: feasible, and the weights compute
+
+Proposed: make some contour points matter more, so the route MUST hit them and
+can relax elsewhere. The plumbing is one line - `viterbi_closed_loop` already
+multiplies every emission by a single global `snap_weight`, so a per-point
+weight is that constant becoming an array. The open question was the numbers.
+
+POC 34 computes them by flattening one region of the outline at a time,
+replacing it with the straight chord across it, and measuring what that costs.
+Two candidates:
+
+  SELF            how much shape_distance to the shape's own template rises.
+                  Close to curvature - and curvature is not identity. The crown
+                  is all corners and raters named it 0/4.
+  DISCRIMINATIVE  how much closer the flattened shape moves to its nearest
+                  OTHER shape in the library. This asks what stops it being
+                  something else, which is exactly the rule POC 32 produced.
+
+The discriminative map finds the right parts: the cup's handle root, the
+plane's wingtips, the gear's CENTRE HOLE - the thing a rater said was missing
+before it had one - and the crown's deep valleys rather than the flat base it
+shares with every trapezoid.
+
+Two ways to spend it, and the second is cheaper:
+
+  1. per-point `snap_weight` in the Viterbi pass. One line, and it changes
+     nothing else.
+  2. non-uniform RESAMPLING - put more of the same `points` budget on the
+     high-saliency arcs and fewer on the straight runs. No change to the
+     matcher at all, and it should relieve n_min too, since n_min is set by the
+     finest feature and this is a way of spending samples where fineness lives.
+
+THE BLOCKER IS EVALUATION, NOT IMPLEMENTATION. Weighting the matcher makes the
+route hug the parts that carry identity at the cost of the parts that do not,
+so the route will score WORSE on unweighted `shape_distance` while looking
+better. There is no way to validate it against the metric - and BACKLOG 29 has
+already established the metric is the wrong ruler for these shapes, 90% against
+41% at equal distance. So this ships only behind a rater round: same shapes,
+weighted against unweighted, blind.
