@@ -1568,3 +1568,24 @@ subject; it only made the losing version different.
 `recognition.OBSERVED` has 33 rows and the page has no unrated shapes left. Six
 of those rows rest on one answer, which is why the wording carries the counts:
 「這個圖案給 1 個人看過，1 個認出來」 cannot be mistaken for a rate.
+
+### 47a. Second rater, and two subjects are close to done
+
+Anchors 6/6. Traced 21/32. Pooled over POC 36 and 41:
+
+    4/4   crab  giraffe  penguin  maple  cactus  butterfly
+    3/4   mushroom
+    2/2   anchor  guitar  sauropod
+    1/4   whale
+    1/2   rocket
+    0/2   apple  bicycle
+    0/4   elephant  turtle
+
+The elephant and the turtle are at 0/4. The retirement rule this project has
+used three times is "named by nobody over at least six showings", so neither
+qualifies yet - but the elephant is the shape POC 35 traced specifically to
+rescue, and the version that beat it was retired for losing. Two more raters
+decide it.
+
+297 answers now. The comparison has not moved: drawing 0.4949, distance 0.6577,
+excursion 0.6606, knowing nothing 0.6614.
