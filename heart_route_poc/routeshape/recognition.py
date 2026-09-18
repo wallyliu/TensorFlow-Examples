@@ -100,14 +100,14 @@ def band(shape: str, distance: float) -> tuple[str, str]:
 # Everything from `CHANCE` down to `band` maps shape_distance to a recognition
 # rate. POC 39 pooled every answer this project has collected and asked, by
 # five-fold cross-validation, which model predicts the NEXT answer best. Mean
-# held-out log-loss per answer, 297 answers over 5 rounds and 67 drawings:
+# held-out log-loss per answer, 316 answers over 5 rounds and 67 drawings:
 #
-#     none                 0.6614
-#     distance             0.6577     <- what shipped
-#     excursion            0.6606
-#     distance+excursion   0.6571
-#     drawing              0.4949     <- best
-#     drawing+excursion    0.4952
+#     none                 0.6502
+#     distance             0.6465     <- what shipped
+#     excursion            0.6495
+#     distance+excursion   0.6460
+#     drawing              0.4850     <- best
+#     drawing+excursion    0.4851
 #
 # NEITHER DISTANCE NOR EXCURSION IS WORTH ANYTHING. All of them sit within
 # 0.005 of knowing nothing at all. Which drawing it is cuts the loss by 25%.
@@ -150,32 +150,31 @@ OBSERVED = {
     "christmas_tree": (11, 11, 0.046),
     "crescent": (3, 6, 0.079),
     "cup": (2, 3, 0.060),
-    "e_anchor": (2, 2, 0.061),
-    "e_apple": (0, 2, 0.051),
-    "e_bicycle": (0, 2, 0.070),
-    "e_butterfly": (4, 4, 0.054),
-    "e_cactus": (4, 4, 0.091),
-    "e_crab": (4, 4, 0.054),
-    "e_elephant": (0, 4, 0.043),
-    "e_giraffe": (4, 4, 0.058),
-    "e_guitar": (2, 2, 0.035),
-    "e_maple": (4, 4, 0.032),
-    "e_mushroom": (3, 4, 0.063),
-    "e_penguin": (4, 4, 0.057),
-    "e_rocket": (1, 2, 0.028),
-    "e_sauropod": (2, 2, 0.028),
-    "e_turtle": (0, 4, 0.037),
-    "e_whale": (1, 4, 0.037),
+    "e_anchor": (3, 3, 0.061),
+    "e_apple": (1, 3, 0.051),
+    "e_bicycle": (0, 3, 0.070),
+    "e_butterfly": (5, 5, 0.054),
+    "e_cactus": (5, 5, 0.091),
+    "e_crab": (5, 5, 0.054),
+    "e_giraffe": (5, 5, 0.058),
+    "e_guitar": (3, 3, 0.035),
+    "e_maple": (5, 5, 0.032),
+    "e_mushroom": (4, 5, 0.063),
+    "e_penguin": (5, 5, 0.057),
+    "e_rocket": (2, 3, 0.028),
+    "e_sauropod": (2, 3, 0.028),
+    "e_turtle": (0, 5, 0.037),
+    "e_whale": (1, 5, 0.037),
     "fish": (12, 13, 0.043),
     "gear": (3, 3, 0.076),
     "ghost": (6, 9, 0.082),
-    "heart": (13, 13, 0.053),
+    "heart": (14, 14, 0.051),
     "house": (3, 3, 0.055),
     "music_note": (15, 15, 0.063),
     "plane": (15, 15, 0.049),
-    "star5": (13, 13, 0.051),
+    "star5": (14, 14, 0.050),
     "taiwan": (5, 10, 0.092),
-    "trex": (13, 13, 0.062),
+    "trex": (14, 14, 0.062),
     "triangle": (6, 6, 0.047),
     "witch_hat": (2, 6, 0.044),
 }

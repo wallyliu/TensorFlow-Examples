@@ -1589,3 +1589,42 @@ decide it.
 
 297 answers now. The comparison has not moved: drawing 0.4949, distance 0.6577,
 excursion 0.6606, knowing nothing 0.6614.
+
+### 47b. Third rater, and the elephant is retired
+
+Anchors 9/9 across three raters - the round is sound. Traced 32/48. 316 answers
+in the pool now; the comparison has not moved in five rounds:
+
+    drawing 0.4850   distance 0.6465   excursion 0.6495   knowing nothing 0.6502
+
+Where the sixteen traced subjects land:
+
+    5/5   crab  giraffe  penguin  maple  cactus  butterfly
+    4/5   mushroom
+    3/3   anchor  guitar
+    2/3   rocket  sauropod
+    1/3   apple
+    1/5   whale
+    0/3   bicycle
+    0/5   turtle
+    0/5   elephant   (and 0/2 hand-drawn: the SUBJECT is 0/7)
+
+THE ELEPHANT IS RETIRED and it is the expensive admission of this project. POC
+35 traced it BECAUSE my drawing was failing, and POC 36 retired my drawing for
+losing to the traced one - a result at p = 0.016. Five rounds later the subject
+is 0 of 7 across both drawings. What POC 36 measured was not "tracing wins", it
+was which of two unrecognisable elephants a rater preferred to say nothing
+about. A significant difference between two failures is still two failures.
+
+`elephant` is in both BEATEN_BY_TRACING and NAMED_BY_NOBODY, and the server
+reads the second, so the subject cannot come back through its traced twin.
+
+NOT RETIRED, and said plainly rather than decided quietly: the turtle at 0/5
+and the bicycle at 0/3 are short of the "nobody, over at least six showings"
+rule that the leaf, the snowman, the gingerbread man and now the elephant went
+on. They stay on the page carrying their own counts, which is what the counts
+are for. The rider has said there are no more raters, so they stay at 0/5 and
+0/3 unless someone decides otherwise - one showing short is not the same as
+failing, and the page does not pretend it is.
+
+32 shapes.

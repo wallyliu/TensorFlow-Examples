@@ -753,8 +753,14 @@ BEATEN_BY_TRACING = {
 # traced twin to try. Same evidence the crown went on. The leaf also had a
 # labeller's diagnosis a round earlier: without veins it reads as a pair of
 # lips.
+# The elephant joins them, and it is the expensive one to admit. POC 35 traced
+# it BECAUSE the hand-drawn version was failing, and POC 36 retired my drawing
+# for losing to the traced one. Five rounds later the subject is 0 of 7 across
+# both drawings - hand 0/2, traced 0/5 - so what POC 36 actually measured was
+# which of two unrecognisable elephants a rater preferred to say nothing about.
+# Tracing did not rescue the subject; it produced a different failure.
 NAMED_BY_NOBODY = {"leaf": leaf, "snowman": snowman,
-                   "gingerbread": gingerbread}
+                   "gingerbread": gingerbread, "elephant": elephant}
 
 RETIRED = {
     "crown": crown, "lightning": lightning, "umbrella": umbrella,
@@ -783,6 +789,9 @@ RETIRED_LABELS = {
     "crab": "螃蟹", "giraffe": "長頸鹿", "maple": "楓葉", "elephant": "大象",
     "leaf": "葉子", "snowman": "雪人", "gingerbread": "薑餅人",
 }
+# `elephant` is in both BEATEN_BY_TRACING and NAMED_BY_NOBODY, and the second
+# is what the server reads: a subject nobody can name must not come back
+# through its traced twin.
 
 
 def install() -> list:

@@ -1,0 +1,177 @@
+{
+  "answers": [
+    {
+      "at": 1789702331440,
+      "chosen": "蘋果",
+      "correct": true,
+      "distance": 0.0696,
+      "item": "e_apple_10",
+      "route_km": 26.1,
+      "shape": "蘋果"
+    },
+    {
+      "at": 1789702332866,
+      "chosen": "火箭",
+      "correct": true,
+      "distance": 0.0663,
+      "item": "e_rocket_13",
+      "route_km": 25.5,
+      "shape": "火箭"
+    },
+    {
+      "at": 1789702335512,
+      "chosen": "蝴蝶",
+      "correct": true,
+      "distance": 0.1185,
+      "item": "e_butterfly_11",
+      "route_km": 30.9,
+      "shape": "蝴蝶"
+    },
+    {
+      "at": 1789702336896,
+      "chosen": "螃蟹",
+      "correct": true,
+      "distance": 0.1647,
+      "item": "e_crab_4",
+      "route_km": 56.9,
+      "shape": "螃蟹"
+    },
+    {
+      "at": 1789702338313,
+      "chosen": "仙人掌",
+      "correct": true,
+      "distance": 0.3003,
+      "item": "e_cactus_9",
+      "route_km": 71.2,
+      "shape": "仙人掌"
+    },
+    {
+      "at": 1789702339706,
+      "chosen": "五角星",
+      "correct": true,
+      "distance": 0.0542,
+      "item": "star5_17",
+      "route_km": 22.8,
+      "shape": "五角星"
+    },
+    {
+      "at": 1789702341888,
+      "chosen": "恐龍",
+      "correct": false,
+      "distance": 0.0629,
+      "item": "e_sauropod_5",
+      "route_km": 34.6,
+      "shape": "雷龍"
+    },
+    {
+      "at": 1789702343305,
+      "chosen": "企鵝",
+      "correct": true,
+      "distance": 0.0648,
+      "item": "e_penguin_2",
+      "route_km": 24.7,
+      "shape": "企鵝"
+    },
+    {
+      "at": 1789702345294,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.3292,
+      "item": "e_bicycle_12",
+      "route_km": 126.7,
+      "shape": "腳踏車"
+    },
+    {
+      "at": 1789702348301,
+      "chosen": "恐龍",
+      "correct": true,
+      "distance": 0.147,
+      "item": "trex_18",
+      "route_km": 39.8,
+      "shape": "恐龍"
+    },
+    {
+      "at": 1789702350236,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.072,
+      "item": "e_elephant_0",
+      "route_km": 23.9,
+      "shape": "大象"
+    },
+    {
+      "at": 1789702353176,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0579,
+      "item": "e_whale_6",
+      "route_km": 22.7,
+      "shape": "鯨魚"
+    },
+    {
+      "at": 1789702356719,
+      "chosen": "楓葉",
+      "correct": true,
+      "distance": 0.0685,
+      "item": "e_maple_8",
+      "route_km": 30.4,
+      "shape": "楓葉"
+    },
+    {
+      "at": 1789702359825,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0535,
+      "item": "e_turtle_3",
+      "route_km": 23.8,
+      "shape": "烏龜"
+    },
+    {
+      "at": 1789702363870,
+      "chosen": "長頸鹿",
+      "correct": true,
+      "distance": 0.102,
+      "item": "e_giraffe_1",
+      "route_km": 30.1,
+      "shape": "長頸鹿"
+    },
+    {
+      "at": 1789702365697,
+      "chosen": "蘑菇",
+      "correct": true,
+      "distance": 0.0512,
+      "item": "e_mushroom_7",
+      "route_km": 25.3,
+      "shape": "蘑菇"
+    },
+    {
+      "at": 1789702368777,
+      "chosen": "愛心",
+      "correct": true,
+      "distance": 0.0463,
+      "item": "heart_16",
+      "route_km": 24.2,
+      "shape": "愛心"
+    },
+    {
+      "at": 1789702373630,
+      "chosen": "錨",
+      "correct": true,
+      "distance": 0.0941,
+      "item": "e_anchor_14",
+      "route_km": 27.5,
+      "shape": "錨"
+    },
+    {
+      "at": 1789702377987,
+      "chosen": "吉他",
+      "correct": true,
+      "distance": 0.0631,
+      "item": "e_guitar_15",
+      "route_km": 23.6,
+      "shape": "吉他"
+    }
+  ],
+  "finished": "2026-09-18T03:32:57.989Z",
+  "session": "mu6ek1hdwi9mga"
+}
