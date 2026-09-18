@@ -1830,3 +1830,27 @@ case rather than promising routes that may not exist:
     first       換一個位置
     after one   換一個位置（還有 1 個）
     after two   hidden - there were three, all seen
+
+### 51a. The database, filled
+
+`--precompute` fitted every shape at every preset distance it can reach:
+
+    75 routes fitted, 78 in the database (three are 25 km, from testing)
+      10 km   5      30 km  22      50 km  24      100 km  24
+
+    slowest: e_giraffe 100 km (265 s), gear 100 km (260 s), bat 100 km (260 s)
+
+And on a cold server the answers are immediate:
+
+    78 routes restored from _routes.db
+    gear 30 km -> 29.2 km in 0.0 s, cached
+
+TWO DO NOT FIT AT 100 KM and come back 「no route」 - e_penguin and taiwan. Only
+successes are stored, so every future precompute spends about six minutes
+rediscovering that. Left alone rather than caching the failure: a route that
+cannot be placed today may be placeable once the network grows, and a stored
+「no」 would hide that.
+
+THE RUN WAS KILLED HALFWAY by a container reclamation, which is the second time
+this session, and it restarted from route 77 of 77 without recomputing the 76
+before it. That is the resume working for the reason it was written.
