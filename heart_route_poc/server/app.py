@@ -376,10 +376,20 @@ def search(query: str, mode: str, lat: float, lon: float,
     is asking about Keelung's.
     """
     scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
-    hits = []
-    for row in emoji_index.find(query, limit):
+    if not emoji_index.load()["emoji"]:
+        return {"query": query, "hits": [], "problem": "index",
+                "message": "emoji 索引沒有載入。"
+                           "routeshape/shapes/emoji_index.json 不在，"
+                           "或是還沒 git pull 到那個 commit。"}
+    matched = emoji_index.find(query, limit)
+    hits, undrawable = [], 0
+    for row in matched:
         name = emoji_index.register(row["c"])
-        if name is None:                      # traced at build time, not now
+        if name is None:
+            # FOUND BUT NOT DRAWABLE, which is not the same as not found and
+            # must not be reported as it. The index was built on a machine with
+            # the emoji font; this one may not have it.
+            undrawable += 1
             continue
         LABELS.setdefault(name, row["n"])
         hits.append({"name": name, "emoji": row["c"], "label": row["n"],
@@ -388,8 +398,13 @@ def search(query: str, mode: str, lat: float, lon: float,
                      "outline": outline_for(name),
                      "recognition_measured": rc.observed(name) is not None,
                      "recognition_seen": rc.observed(name)})
-    return {"query": query, "mode": mode, "street_scale_m": round(scale),
-            "hits": hits}
+    out = {"query": query, "mode": mode, "street_scale_m": round(scale),
+           "hits": hits, "matched": len(matched)}
+    if not hits and undrawable:
+        out["problem"] = "font"
+        out["message"] = f"找到 {undrawable} 個，但這台機器畫不出來：" \
+                         + emoji_pack.INSTALL_HINT
+    return out
 
 
 def places() -> list[dict]:
@@ -925,6 +940,14 @@ def main() -> None:
         print("warming the network cache...", flush=True)
         network(SEARCH_LAT, SEARCH_LON, rf.DEFAULT_MODE)
 
+    # Say what is actually loaded. The emoji font and the word index are both
+    # things that can be absent on one machine and present on another, and both
+    # failed silently into 「找不到」 before this line existed.
+    installed = [n for n in SHAPES if n.startswith("e_")]
+    print(f"{len(SHAPES)} shapes ({len(installed)} traced), "
+          f"emoji font {emoji_pack.FONT or 'MISSING - ' + emoji_pack.INSTALL_HINT}, "
+          f"{len(emoji_index.load()['emoji'])} emoji in the word index",
+          flush=True)
     print(f"serving on http://{args.host}:{args.port}", flush=True)
     ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
 

@@ -33,7 +33,61 @@ from pathlib import Path
 
 import numpy as np
 
-FONT = Path("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf")
+# WHERE THE FONT IS depends on the machine, and hard-coding Debian's path meant
+# that on any other one every trace failed - and the page reported it as
+# 「找不到披薩」, which is a lie: the emoji was found, it could not be DRAWN.
+# Searched in order, and `ROUTESHAPE_EMOJI_FONT` wins so a rider with the font
+# somewhere unusual has a way in.
+FONT_CANDIDATES = (
+    "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
+    "/usr/share/fonts/truetype/noto/NotoColorEmoji_WindowsCompatible.ttf",
+    "/usr/share/fonts/noto/NotoColorEmoji.ttf",
+    "/usr/local/share/fonts/NotoColorEmoji.ttf",
+    str(Path.home() / ".local/share/fonts/NotoColorEmoji.ttf"),
+    str(Path.home() / ".fonts/NotoColorEmoji.ttf"),
+)
+INSTALL_HINT = ("找不到 Noto Color Emoji 字型。"
+                "Debian/Ubuntu: sudo apt install fonts-noto-color-emoji；"
+                "或把字型路徑放進 ROUTESHAPE_EMOJI_FONT 環境變數。")
+
+
+def find_font() -> Path:
+    """The emoji font on this machine, or a message saying how to get one.
+
+    Noto specifically: the tracer reads a bitmap strike at `PX`, which is the
+    one size this font carries. Apple's and Microsoft's emoji fonts are built
+    differently and would need a different reader, so pointing this at them
+    would fail later and less clearly than failing here.
+    """
+    import os
+
+    override = os.environ.get("ROUTESHAPE_EMOJI_FONT")
+    if override and Path(override).exists():
+        return Path(override)
+    for path in FONT_CANDIDATES:
+        if Path(path).exists():
+            return Path(path)
+    import glob
+    for root in ("/usr/share/fonts", "/usr/local/share/fonts",
+                 str(Path.home() / ".local/share/fonts")):
+        found = glob.glob(root + "/**/NotoColorEmoji*.ttf", recursive=True)
+        if found:
+            return Path(sorted(found)[0])
+    raise FileNotFoundError(INSTALL_HINT)
+
+
+def _font_path() -> Path:
+    global FONT
+    if FONT is None:
+        FONT = find_font()
+    return FONT
+
+
+FONT: Path | None = None
+try:
+    FONT = find_font()
+except FileNotFoundError:
+    pass                      # reported when something actually asks to draw
 PX = 109                    # the only bitmap strike the font carries
 TOLERANCE = 0.008           # of the shape's width
 MAX_VERTICES = 150          # describe.check refuses above 160
@@ -61,12 +115,12 @@ def _mask(emoji: str) -> tuple[np.ndarray, list]:
     from PIL import Image, ImageDraw, ImageFont
     from scipy import ndimage
 
-    font = ImageFont.truetype(str(FONT), PX)
+    font = ImageFont.truetype(str(_font_path()), PX)
     img = Image.new("RGBA", (PX * 3, PX * 3), (0, 0, 0, 0))
     ImageDraw.Draw(img).text((PX, PX), emoji, font=font, embedded_color=True)
     mask = np.array(img)[:, :, 3] > ALPHA
     if not mask.any():
-        msg = f"no glyph for {emoji!r} in {FONT.name}"
+        msg = f"no glyph for {emoji!r} in {_font_path().name}"
         raise ValueError(msg)
     filled = ndimage.binary_fill_holes(mask)
     labels, count = ndimage.label(filled)

@@ -398,7 +398,13 @@
       .then(function (r) {
         hits = r.hits || [];
         renderHits();
-        if (!hits.length) {
+        if (r.problem) {
+          // The server found the emoji and could not draw it, or has no index
+          // at all. Saying 「找不到」 for either of those sends the rider off
+          // to invent different words for a word that was never the problem.
+          $("query-note").textContent = r.message;
+          $("query-note").className = "verdict bad";
+        } else if (!hits.length) {
           $("query-note").textContent = "找不到「" + q + "」。試試別的說法，"
             + "或直接貼一個 emoji 上來。";
           $("query-note").className = "verdict bad";
