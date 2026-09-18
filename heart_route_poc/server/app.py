@@ -383,6 +383,27 @@ def places() -> list[dict]:
 # 0.120 to 0.321 across the five shapes.
 
 
+_OUTLINES: dict[str, list] = {}
+
+
+def outline_for(shape: str, points: int = 48) -> list:
+    """A thumbnail of the shape itself, normalised and rounded.
+
+    The shape cards carried a label, a minimum distance and a point count, and
+    a rider picking 「錨」 had no way to know what this project's anchor looks
+    like - or that the gear has its centre ring, which is the one thing the
+    rider asked for by name. The outlines are tiny and never change, so they
+    are computed once and held.
+    """
+    if shape not in _OUTLINES:
+        xy = resample_by_arclength(shape, points)
+        span = float(max(xy.max(axis=0) - xy.min(axis=0))) or 1.0
+        xy = (xy - xy.mean(axis=0)) / span
+        _OUTLINES[shape] = [[round(float(a), 3), round(float(b), 3)]
+                            for a, b in xy]
+    return _OUTLINES[shape]
+
+
 def quality_for(shape: str) -> tuple[str, str]:
     """How this route came out, in the counts of people who named the shape.
 
@@ -665,10 +686,10 @@ class Handler(BaseHTTPRequestHandler):
                              "shapes": [
                 {"name": s, "label": LABELS.get(s, s), "n_min": rf.n_min(s),
                  "min_km": round(rf.min_distance_km(s, mode, scale), 1),
-                 # Only the original five have had raters name them. The rest
-                 # carry the pooled threshold, which POC 29 showed is an
-                 # average over a 2.7x spread - so the page can say which
-                 # number it is quoting rather than implying they are alike.
+                 # The picture, so the card is not asking a rider to choose
+                 # 「錨」 from its name and a point count. 48 points is enough
+                 # for a thumbnail and keeps the whole list under 60 KB.
+                 "outline": outline_for(s),
                  "recognition_measured": rc.observed(s) is not None,
                  "recognition_seen": rc.observed(s)}
                 for s in sorted(SHAPES, key=rf.n_min)]})

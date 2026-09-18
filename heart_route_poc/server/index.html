@@ -67,6 +67,13 @@
   }
   .shape[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
   .shape:disabled { cursor: not-allowed; background: var(--warn-soft); border-color: var(--warn-soft); }
+  .shape { display: flex; gap: 12px; align-items: center; }
+  .shape .thumb { flex: 0 0 44px; }
+  .shape svg { display: block; width: 44px; height: 44px; }
+  .shape svg path { fill: none; stroke: var(--ink); stroke-width: 0.035;
+                    stroke-linejoin: round; vector-effect: non-scaling-stroke;
+                    stroke-width: 1.4px; }
+  .shape:disabled svg path { stroke: var(--warn); opacity: .55; }
   .shape b { display: block; font-weight: 600; }
   .shape small { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: 11px; }
   .shape:disabled small { color: var(--warn); }
@@ -321,6 +328,20 @@
     });
   }
 
+  // The outline arrives centred and normalised to a longest side of 1, with y
+  // pointing up as it does everywhere else in this project - so the viewBox is
+  // fixed and only the sign of y has to be flipped for SVG.
+  function thumbSvg(outline) {
+    if (!outline || !outline.length) return "";
+    var d = "";
+    for (var i = 0; i < outline.length; i++) {
+      d += (i ? "L" : "M") + outline[i][0].toFixed(3)
+         + " " + (-outline[i][1]).toFixed(3);
+    }
+    return '<svg viewBox="-0.58 -0.58 1.16 1.16" aria-hidden="true">'
+         + '<path d="' + d + 'Z"/></svg>';
+  }
+
   function renderShapes() {
     var box = $("shapes");
     box.innerHTML = "";
@@ -334,9 +355,12 @@
       b.id = "shape-" + s.name;
       b.disabled = !ok;
       b.setAttribute("aria-pressed", String(state.shape === s.name));
-      b.innerHTML = "<b>" + s.label + "</b><small>"
+      // The picture first. A card that says 「錨 · 最少 20.9 km · 60 個輪廓點」
+      // is asking a rider to choose a drawing they have never seen.
+      b.innerHTML = "<span class=\"thumb\">" + thumbSvg(s.outline) + "</span>"
+        + "<span><b>" + s.label + "</b><small>"
         + (ok ? "最少 " + s.min_km + " km · " + s.n_min + " 個輪廓點"
-              : "距離不夠 · 至少要 " + s.min_km + " km") + "</small>";
+              : "距離不夠 · 至少要 " + s.min_km + " km") + "</small></span>";
       b.addEventListener("click", function () {
         state.shape = s.name;
         state.text = null;
