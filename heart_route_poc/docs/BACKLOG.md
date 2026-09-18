@@ -1752,3 +1752,45 @@ The request sends the EMOJI, not the `q_1F3F0` the search registered it under.
 That name lives in the server's memory; a restart between searching and pressing
 the button would turn it into "unknown shape", while the character always
 resolves. 🏰 at 25 km: 24.5 km, distance 0.098, excursion 0.072, 40 seconds.
+
+
+## 51. Routes that survive a restart
+
+The in-memory cache made a repeat instant and lost everything when the process
+ended, so the first rider after every restart paid 8 to 53 seconds again for a
+route the server had already found.
+
+WHAT IS STORED IS THE ROUTE, NOT THE PICTURE, and the measurement is the whole
+design. One answer is 1,068 KB and 1,045 of them are `streets` - the 16,433
+road polylines the page draws behind the route. Those are a bounding-box filter
+over the network, so they are rebuilt on the way out and never written down.
+What is left is 22 KB: at 1,500 routes, 33 MB instead of 1.6 GB.
+
+The GPX is rebuilt the same way, from the route's own WGS84 coordinates, so a
+restored route needs no projection and no graph to hand out a download.
+
+SQLITE FROM THE STANDARD LIBRARY. Nothing to install for something a person has
+to run in one command, one file to delete when it goes wrong, and it is what
+this actually is - a key-value store that must outlive a process and be
+inspectable when a route comes out wrong.
+
+THE FINGERPRINT IS THE PART THAT EARNS ITS KEEP. A stored route is valid only
+while the shape still means what it meant, and this project has already been
+bitten hard by exactly that: the gear got its centre bore between two rounds,
+five shapes were redrawn under their own names, and the rater pool was quietly
+wrong for weeks until BACKLOG 45 found it. So every row carries a hash of the
+outline it was fitted to, and a row whose shape no longer hashes the same is
+deleted at load rather than served. Verified by forging a hash: the gear's row
+is dropped, the fish's survives.
+
+    restart -> 1 routes restored from _routes.db
+    same request -> 0.0 s, cached, same id, 16,433 streets, 54 KB of GPX
+
+`--precompute` fits every shape at the four preset distances and fills the
+database; `--no-store` runs without it. The database is not tracked - it is
+rebuilt on demand, like the OSM extracts and the OpenMoji cache.
+
+STILL NOT DONE, and it is the rider's original suggestion: serving a NEARBY
+distance from a precomputed one. That needs a product decision first, because
+`width_m` comes from `target_km` - answering a 28 km request with a 30 km route
+means the rider rides 30, and the page would have to say so.

@@ -73,6 +73,7 @@ from routeshape.shapes.library import SHAPES, register                       # n
 import routeshape.shapes.pack as shape_pack                                                # noqa: E402
 import routeshape.shapes.emoji as emoji_pack                                              # noqa: E402
 import routeshape.shapes.emoji_index as emoji_index                                      # noqa: E402
+import server.store as store                                                             # noqa: E402
 import routeshape.describe as describe_shape                                            # noqa: E402
 
 # The wider library. Registered at import so /api/shapes lists them and the
@@ -207,6 +208,12 @@ _lock = threading.Lock()
 # points at, already lives for the life of the process. A cache that outlives
 # its GPX would hand out a download link that 404s; this one cannot.
 _ROUTE_CACHE: dict[tuple, dict] = {}
+
+# And on disk, so a restart does not make the first rider pay again for a route
+# the server has already found. See server/store.py for what is kept and why
+# the street background is not.
+STORE_PATH = HERE.parent / "_routes.db"
+_store: "store.Store | None" = None
 
 
 def _cache_key(shape: str, target_km: float, mode: str,
@@ -500,13 +507,47 @@ def build_route(shape: str, target_km: float, mode: str,
             # cost. Reporting the original 53 seconds for a reply that took a
             # millisecond would be a lie in the one field that exists to say
             # how long the work took.
-            return dict(hit, seconds=0.0, cached=True)
+            return dict(_rehydrate(hit, mode), seconds=0.0, cached=True)
 
     answer = _build_route_uncached(shape, target_km, mode, lat, lon, force)
     if answer.get("status") == "ok":
         with _lock:
             _ROUTE_CACHE[key] = answer
+        if _store is not None:
+            _store.put(key, answer)
     return dict(answer, cached=False)
+
+
+def _rehydrate(answer: dict, mode: str) -> dict:
+    """Put back what the store does not keep.
+
+    A route restored from disk has no street background and no GPX waiting
+    under its id - both are derived from the route and the network, and both
+    are far cheaper to rebuild than to store. The GPX is built from the route's
+    own WGS84 coordinates, so this needs no projection and no graph.
+    """
+    answer = dict(answer)
+    route_id = answer.get("id")
+    if route_id and route_id not in ROUTES:
+        pts = np.array([[lon, lat] for lat, lon in answer.get("coordinates", [])])
+        if len(pts):
+            label = answer.get("label", answer.get("shape", ""))
+            ROUTES[route_id] = {
+                "gpx": to_gpx(pts, "EPSG:4326", f"{label}路線",
+                              f"{label} · {answer.get('route_km')} km · {mode}"),
+                "shape": answer.get("shape", "")}
+    if "streets" not in answer and answer.get("coordinates"):
+        try:
+            net = network(answer["_lat"], answer["_lon"], mode) \
+                if "_lat" in answer else None
+        except Exception:                                # noqa: BLE001
+            net = None
+        if net is not None:
+            to_xy = Transformer.from_crs("EPSG:4326", net["crs"], always_xy=True)
+            lons, lats = zip(*[(lon, lat) for lat, lon in answer["coordinates"]])
+            xs, ys = to_xy.transform(lons, lats)
+            answer["streets"] = streets_near(net, np.column_stack([xs, ys]))
+    return answer
 
 
 def _build_route_uncached(shape: str, target_km: float, mode: str,
@@ -653,6 +694,9 @@ def _build_route_uncached(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
+            # Where to reload the network from when this comes back off disk
+            # without its street background.
+            "_lat": lat, "_lon": lon,
             "quality": quality_for(shape)[0],
             "quality_message": quality_for(shape)[1],
             "recognition": (None if rc.rate(shape) is None
@@ -820,13 +864,62 @@ class Handler(BaseHTTPRequestHandler):
             self._json(500, {"error": "route build failed; see server log"})
 
 
+# The four buttons on the page, which is what a rider actually picks.
+PRESET_KM = (10.0, 30.0, 50.0, 100.0)
+
+
+def precompute(lat: float = SEARCH_LAT, lon: float = SEARCH_LON,
+               mode: str = "bike") -> None:
+    """Fit everything the page can ask for at the preset distances.
+
+    Only the presets, not the whole slider: the slider is continuous and the
+    buttons are where the traffic is. A shape whose minimum is above the preset
+    is skipped rather than fitted at a distance nobody can select.
+    """
+    scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    jobs = [(s, km) for s in sorted(SHAPES) for km in PRESET_KM
+            if rf.min_distance_km(s, mode, scale) <= km]
+    print(f"{len(jobs)} routes to fit; {len(SHAPES)} shapes over "
+          f"{len(PRESET_KM)} distances", flush=True)
+    done = 0
+    for shape, km in jobs:
+        key = _cache_key(shape, km, mode, lat, lon)
+        if key in _ROUTE_CACHE:
+            continue
+        t0 = time.time()
+        answer = build_route(shape, km, mode, lat, lon)
+        done += 1
+        print(f"  {shape:16s} {km:5.0f} km -> {answer.get('status')} "
+              f"{answer.get('route_km', '')} ({time.time() - t0:.0f}s)",
+              flush=True)
+    print(f"{done} fitted, {_store.count() if _store else 0} in the database")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--warm", action="store_true",
                         help="load the default network before serving")
+    parser.add_argument("--no-store", action="store_true",
+                        help="do not read or write the route database")
+    parser.add_argument("--precompute", action="store_true",
+                        help="fit every shape at every preset distance for the "
+                             "default place, fill the database, and exit")
     args = parser.parse_args()
+
+    global _store
+    if not args.no_store:
+        _store = store.Store(STORE_PATH)
+        restored, dropped = _store.load()
+        _ROUTE_CACHE.update(restored)
+        print(f"{len(restored)} routes restored from {STORE_PATH.name}"
+              + (f", {dropped} dropped (the shape has been redrawn)"
+                 if dropped else ""), flush=True)
+
+    if args.precompute:
+        precompute()
+        return
 
     if args.warm:
         print("warming the network cache...", flush=True)

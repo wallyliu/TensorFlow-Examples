@@ -8,3 +8,6 @@ _*.graphml
 
 # cached OpenMoji SVG - refetched on demand
 _openmoji/
+
+# route cache - rebuilt by the server on demand
+_routes.db
