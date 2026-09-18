@@ -355,17 +355,20 @@ def places() -> list[dict]:
 # 0.120 to 0.321 across the five shapes.
 
 
-def quality_for(shape: str, excursion: float | None) -> tuple[str, str]:
+def quality_for(shape: str) -> tuple[str, str]:
     """How this route came out, in the counts of people who named the shape.
 
     Took `distance` until POC 39, which pooled 311 judgements and found that a
-    curve over shape_distance fits them worse than a lookup table of what
-    raters said (AIC 281.9 against 190.5), and that distance adds nothing at
-    all once excursion is known. So the answer is now the shape's measured
-    rate, adjusted for this route's excursion - and "no answer" for a shape
-    nobody has rated, rather than a pooled average borrowed from other shapes.
+    a curve over shape_distance predicts a held-out answer no better than
+    knowing nothing at all (log-loss 0.656 against 0.660), and neither does
+    excursion. Which drawing it is cuts the loss to 0.505. So the answer is
+    the shape's measured rate and nothing about this particular route - and
+    "no answer" for a shape nobody has rated, rather than a pooled average
+    borrowed from other shapes. The route-specific warnings the page shows
+    come from the wander and excursion LIMITS, which are a different question:
+    whether the fit met its own constraints, not whether anyone will name it.
     """
-    return rc.verdict(shape, excursion)
+    return rc.verdict(shape)
 
 
 def plan(shape: str, target_km: float, mode: str,
@@ -542,10 +545,10 @@ def build_route(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
-            "quality": quality_for(shape, float(best["excursion"]))[0],
-            "quality_message": quality_for(shape, float(best["excursion"]))[1],
-            "recognition": (None if rc.rate(shape, float(best["excursion"])) is None
-                            else round(rc.rate(shape, float(best["excursion"])), 2)),
+            "quality": quality_for(shape)[0],
+            "quality_message": quality_for(shape)[1],
+            "recognition": (None if rc.rate(shape) is None
+                            else round(rc.rate(shape), 2)),
             "recognition_measured": rc.observed(shape) is not None,
             "recognition_seen": rc.observed(shape),
             "wander": round(float(best["wander"]), 3),

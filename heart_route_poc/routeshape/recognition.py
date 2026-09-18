@@ -98,49 +98,56 @@ def band(shape: str, distance: float) -> tuple[str, str]:
 # What replaced the curve above, and why
 #
 # Everything from `CHANCE` down to `band` maps shape_distance to a recognition
-# rate. POC 39 pooled every answer this project has collected - 311 judgements,
-# 10 rater-sessions, 4 rounds, 62 drawings - and fitted six models of it. AIC,
-# and again on the 21 drawings with at least six answers so that a per-drawing
-# rate is not fitting singletons exactly:
+# rate. POC 39 pooled every answer this project has collected and asked, by
+# five-fold cross-validation, which model predicts the NEXT answer best. Mean
+# held-out log-loss per answer, 259 answers over 4 rounds and 61 drawings:
 #
-#                        all 311            well-sampled 225
-#     none               423.8              294.2
-#     distance           414.8              281.9     <- what shipped
-#     excursion          402.0              258.7
-#     distance+excursion 403.9              -         (WORSE than excursion
-#                                                      alone: same logL to two
-#                                                      decimals, one more
-#                                                      parameter. Distance adds
-#                                                      NOTHING once you know
-#                                                      how far the route strays)
-#     drawing            305.8              190.5
-#     drawing+excursion  281.3              187.9     <- best
+#                         all 259     the 16 seen 6+ times
+#     none                 0.6598       0.5767
+#     distance             0.6560       0.5720     <- what shipped
+#     excursion            0.6589       0.5753
+#     distance+excursion   0.6553       -
+#     drawing              0.5049       0.4328     <- best
+#     drawing+excursion    0.5052       0.4330
 #
-# Which drawing it is beats any distance by 70 AIC. That is POC 32's
-# permutation result again, arriving from a different direction: recognition is
-# a property of the picture, and a curve over a distance is a worse description
-# of the data than a lookup table of what people actually said.
+# NEITHER DISTANCE NOR EXCURSION IS WORTH ANYTHING. All of them sit within
+# 0.005 of knowing nothing at all. Which drawing it is cuts the loss by 23%.
+# That is POC 32's permutation result arriving from another direction:
+# recognition is a property of the picture, and a curve over any distance is a
+# worse description of the data than a table of what people said.
 #
-# So the lookup table is what ships. `OBSERVED` is named/shown/mean excursion
-# per drawing, straight out of results/poc39_recalibrate.json. Excursion stays
-# as the within-shape adjustment because it earns its parameter even on top of
-# the drawing (AIC 190.5 -> 187.9), at -49.7 log-odds per unit: +0.01 of
-# excursion multiplies the odds of being named by 0.61.
+# TWO THINGS HAD TO BE FIXED BEFORE THAT COMPARISON MEANT ANYTHING, and the
+# first version of this file shipped without either:
 #
-# AND A SHAPE WITH NO ROW GETS NO NUMBER. The old code handed an unmeasured
-# shape the pooled threshold and hedged the wording; this returns None and the
-# caller says nobody has looked at it yet. An average over a set this
-# heterogeneous is not a weaker estimate, it is a different shape's answer.
+#   THE POOL WAS KEYED BY NAME AND FIVE SHAPES WERE REDRAWN under theirs. The
+#   gear got its centre bore between round 33 and round 37 - the rider asked
+#   for it - so "gear" was two different pictures, pooled. That reported the
+#   current gear as 4 named of 13 when three of three raters named it. Same for
+#   the house (a door), the cup, the butterfly and the leaf. An answer now only
+#   counts if the shape's minimum distance then equals its minimum now, which
+#   is computed from the outline and so fingerprints the drawing.
+#
+#   HALF THE DRAWINGS WERE NAMED BY EVERYONE OR BY NOBODY, so a per-drawing
+#   model separates the data perfectly and its coefficients run to infinity.
+#   The first cut returned betas in the thousands and an excursion slope of
+#   -49.7 that looked like a real effect. Under a ridge penalty the slope is
+#   0.0 and the excursion term adds nothing. That number is withdrawn.
+#
+# So the table is all that ships. No curve, no adjustment for this particular
+# route, and no number at all for a shape nobody has rated - the old code
+# handed it the pooled threshold, and an average over a set this heterogeneous
+# is not a weaker estimate, it is another shape's answer.
 # ---------------------------------------------------------------------------
 
-# name: (named, shown, the mean excursion those answers were collected at)
+# name: (named, shown, the mean excursion those answers were collected at).
+# The excursion is kept for `as_good_as_rated`, which is a search heuristic and
+# not a claim about recognition - see there.
 OBSERVED = {
     "bat": (8, 9, 0.037),
     "cat": (3, 13, 0.055),
     "christmas_tree": (11, 11, 0.046),
     "crescent": (3, 6, 0.079),
-    "cup": (6, 13, 0.094),
-    "e_bicycle": (0, 2, 0.148),
+    "cup": (2, 3, 0.060),
     "e_butterfly": (2, 2, 0.054),
     "e_cactus": (2, 2, 0.091),
     "e_crab": (2, 2, 0.054),
@@ -152,11 +159,10 @@ OBSERVED = {
     "e_turtle": (0, 2, 0.037),
     "e_whale": (0, 2, 0.037),
     "fish": (12, 13, 0.043),
-    "gear": (4, 13, 0.071),
+    "gear": (3, 3, 0.076),
     "ghost": (6, 9, 0.082),
-    "gingerbread": (0, 6, 0.082),
     "heart": (11, 11, 0.056),
-    "house": (7, 13, 0.068),
+    "house": (3, 3, 0.055),
     "music_note": (15, 15, 0.063),
     "plane": (15, 15, 0.049),
     "star5": (11, 11, 0.053),
@@ -165,8 +171,6 @@ OBSERVED = {
     "triangle": (6, 6, 0.047),
     "witch_hat": (2, 6, 0.044),
 }
-EXCURSION_SLOPE = -49.7
-ADJUSTMENT_CAP = 1.0   # log-odds; see `rate`
 # Rounds 32 onward offered fifteen or so subjects plus "cannot tell", so a
 # blind guess lands about 7% of the time. The 0.20 above is POC 29's, from a
 # five-option task, and the two must not be mixed.
@@ -180,7 +184,7 @@ def observed(shape: str) -> tuple[int, int] | None:
 
 
 def wilson(named: int, shown: int, z: float = 1.96) -> tuple[float, float]:
-    """The interval to quote beside a rate from fifteen answers."""
+    """The interval to quote beside a rate from a handful of answers."""
     if shown == 0:
         return (0.0, 1.0)
     p, d = named / shown, 1 + z * z / shown
@@ -189,70 +193,60 @@ def wilson(named: int, shown: int, z: float = 1.96) -> tuple[float, float]:
     return (max(0.0, centre - half), min(1.0, centre + half))
 
 
-def rate(shape: str, excursion: float | None = None) -> float | None:
-    """Expected share of people who name THIS route, or None if never rated.
+def rate(shape: str) -> float | None:
+    """Expected share of people who name this shape, or None if never rated.
 
-    The base is the observed rate with a half added to each count, so 15/15
-    does not come back as certainty and 0/6 does not come back as impossible -
-    neither is what fifteen or six answers support. `excursion` then moves it
-    for this particular fit, from the reference the answers were collected at.
+    Half is added to each count, so 15/15 does not come back as certainty and
+    0/6 does not come back as impossibility - neither is what fifteen or six
+    answers support. Nothing about the particular route enters: POC 39 found
+    every route-level measure worth less than 0.005 of log-loss against knowing
+    nothing, so a per-route adjustment would be decoration.
     """
     row = OBSERVED.get(shape)
     if row is None:
         return None
-    named, shown, reference = row
-    p = (named + 0.5) / (shown + 1.0)
-    if excursion is not None:
-        # Clamped, because the slope is pooled across every drawing and the
-        # adjustment is an extrapolation away from where this shape's answers
-        # were collected. Unclamped, a cat fitted 0.025 tighter than the ones
-        # people saw comes out at 54% on the strength of 3 answers in 13 - a
-        # claim nothing in the data supports. One log-odd is the most this is
-        # allowed to move a measured rate.
-        shift = max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP,
-                                         EXCURSION_SLOPE * (excursion - reference)))
-        odds = p / (1 - p) * math.exp(shift)
-        p = odds / (1 + odds)
-    return max(GUESS, min(1.0, p))
+    named, shown, _ = row
+    return max(GUESS, (named + 0.5) / (shown + 1.0))
 
 
-def verdict(shape: str, excursion: float | None = None) -> tuple[str, str]:
-    """A name for how this came out and a sentence saying so, in rater counts.
+def verdict(shape: str) -> tuple[str, str]:
+    """A name for how well this shape reads, and a sentence saying so.
 
-    The counts are in the sentence on purpose. "約 92%" from eleven answers and
-    "約 92%" from a curve fitted to something else read identically and are not
-    the same claim; "11 個人裡有 11 個認得出來" cannot be mistaken for either.
+    The counts are in the sentence on purpose. 「約 92%」 from eleven answers
+    and 「約 92%」 from a curve fitted to something else read identically and
+    are not the same claim; 「11 個人裡有 11 個認得出來」 cannot be mistaken
+    for either.
     """
     row = OBSERVED.get(shape)
     if row is None:
         return ("unrated", "還沒有人看過這個圖案，不知道認不認得出來")
     named, shown, _ = row
-    p = rate(shape, excursion) or GUESS
-    # Two different numbers, and they can legitimately differ - the counts are
-    # this SHAPE's record, the verdict is this ROUTE. Say which is which, or
-    # "大概一半的人認得出來（13 個人裡有 3 個認出來）" reads as a contradiction.
+    p = rate(shape) or GUESS
     seen = f"這個圖案給 {shown} 個人看過，{named} 個認出來"
     if p >= 0.80:
-        return ("good", f"這條應該認得出來（{seen}）")
+        return ("good", f"多數人認得出來（{seen}）")
     if p >= 0.50:
-        return ("marginal", f"這條大概一半的人認得出來（{seen}）")
+        return ("marginal", f"大概一半的人認得出來（{seen}）")
     if p >= 0.25:
-        return ("poor", f"這條多數人認不出來（{seen}）")
-    return ("unrecognisable", f"這條認不出來（{seen}），換個城市或把距離拉長")
+        return ("poor", f"多數人認不出來（{seen}）")
+    return ("unrecognisable", f"幾乎沒有人認得出來（{seen}）")
 
 
 def as_good_as_rated(shape: str, excursion: float) -> bool:
     """Is this route at least as tight as the ones people were shown?
 
-    The search used to stop early at a fixed recognition rate, which worked
-    when the rate came from a curve that could reach 1.0. A measured rate
-    cannot: fifteen out of fifteen answers, smoothed, is 0.97, and no shape
-    with thirteen answers gets near it however well the route comes out. A
-    fixed bar on that scale is not a quality test, it is a test of how many
-    people have seen the shape.
+    A SEARCH HEURISTIC, NOT A RECOGNITION CLAIM. POC 39 found excursion no
+    better than knowing nothing at predicting whether a person names a route,
+    so this does not say the route will read - it says the search has found
+    something no worse than what was put in front of raters, and can stop.
+    That is all a stopping rule needs to do, and it took a 25 km gear from 20
+    seconds to 6.
 
-    So the bar is the shape's own record instead: stop when this route strays
-    no further than the average of the routes that earned the shape its rate.
+    It replaced a fixed recognition rate of 0.97, which a measured rate cannot
+    reach: fifteen out of fifteen answers, smoothed, is 0.97, and no shape with
+    thirteen answers gets near it however well the route comes out. That bar
+    was testing how many people had seen the shape, not the route.
+
     A shape nobody has rated has no record to match and never stops early,
     which is the right way round - an unknown shape is the one worth spending
     the whole search on.

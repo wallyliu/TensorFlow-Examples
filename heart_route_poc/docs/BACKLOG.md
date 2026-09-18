@@ -1409,3 +1409,78 @@ would have put both straight back on the page. A retirement for being named by
 nobody is about the SUBJECT; one for losing to the traced version is not, and
 the elephant and the crab must keep their traced drawings. `NAMED_BY_NOBODY` is
 the set the server excludes, not `RETIRED`.
+
+
+## 45. Two corrections to 44, and what POC 38 finally said
+
+### The recognition table was wrong an hour after it shipped
+
+POC 39's first cut had two defects and both of them flattered it.
+
+THE POOL WAS KEYED BY NAME AND FIVE SHAPES HAD BEEN REDRAWN under theirs. The
+gear got its centre bore between round 33 and round 37 - the rider asked for it
+- so "gear" was two different pictures pooled into one row, and the service
+reported the current gear as 4 named of 13 when three of three raters named it.
+The house (a door), the cup (a thicker handle), the butterfly and the leaf were
+the same. `min_distance_km` is computed from the outline, so it fingerprints
+the drawing: an answer now counts only if the shape's floor then equals its
+floor now. 52 of 311 answers were about a picture that no longer exists.
+
+HALF THE DRAWINGS WERE NAMED BY EVERYONE OR BY NOBODY, so the per-drawing model
+separates the data perfectly and its coefficients ran to infinity - betas in
+the thousands, under an AIC comparison built on a likelihood that can be driven
+to zero. A ridge penalty makes every model estimable, and five-fold
+cross-validation asks the question the product actually has: how well is the
+NEXT answer predicted. Mean held-out log-loss per answer, 259 answers:
+
+        none                 0.6598      the 16 drawings seen 6+ times: 0.5767
+        distance             0.6560                                     0.5720
+        excursion            0.6589                                     0.5753
+        distance+excursion   0.6553                                     -
+        drawing              0.5049                                     0.4328
+        drawing+excursion    0.5052                                     0.4330
+
+NEITHER DISTANCE NOR EXCURSION IS WORTH ANYTHING - all within 0.005 of knowing
+nothing. The drawing cuts the loss by 23%. The -49.7 log-odds excursion slope
+reported in 44 is WITHDRAWN: under the penalty it is 0.0, and the per-route
+adjustment is gone from `recognition.rate`.
+
+`as_good_as_rated` stays, but as what it is: a stopping rule, not a claim that
+the route will read. It still took a 25 km gear from 20 seconds to 6.
+
+The gingerbread man is retired, 0/6, on the rule the leaf and the snowman went
+on. Twelve hand-drawn shapes; 33 on the page; six never rated.
+
+### POC 38 finished, and per-point weighting works exactly as designed
+
+36 fits across four container reclamations (the resume was worth writing).
+Averages over six shapes, one placement each:
+
+        arm       salient   filler    exc    dist
+        base         29.7     31.1   0.061   0.114     k = 10
+        wide         32.0     33.7   0.058   0.111     k = 18, nothing else
+        radius       32.0     33.7   0.058   0.111     per-point radius
+        full         29.8     33.6   0.059   0.116     + per-point cost
+        tight        28.3     33.7   0.060   0.121     75 m on salient points
+        sharp        26.5     34.5   0.060   0.128     contrast 8
+
+THE MECHANISM IS REAL AND MONOTONE. `sharp` takes the identity-bearing quarter
+of the contour from 32.0 m to 26.5 m and pays for it exactly where the design
+said it would - filler 33.7 -> 34.5, shape distance 0.111 -> 0.128. On the gear
+it is 42 m -> 24 m. The idea works.
+
+AND TWO THINGS IT KILLED ALONG THE WAY. `radius` came out IDENTICAL to `wide`
+on all six shapes: a candidate set is the k nearest junctions WITHIN the
+radius, so widening past the k-th nearest changes nothing, and 150 m over a
+280 m grid never reaches the tight end. BACKLOG 40's "the radius is the lever"
+is wrong. What moved those routes was k going from 10 to 18 - and it moves them
+the WRONG WAY: k = 18 takes the gear's salient quarter from 35 m to 42 m while
+improving filler, excursion and distance, because more candidates let the DP
+push error onto the arcs that carry the identity, where it is cheap.
+
+IT STILL DOES NOT SHIP, and the reason is POC 39 rather than anything here.
+Weighting spends search effort moving the route WITHIN a shape, and every
+route-level quantity just measured worse than knowing nothing at predicting
+whether a person names the result. Turning it on would need a rater round to
+prove the 5.5 m is visible, and on the evidence the round would come back null.
+Shelved with the measurement, not with a shrug.

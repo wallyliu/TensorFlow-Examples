@@ -86,6 +86,11 @@ def load() -> list:
                                     task.read_text(), re.S).group(1))
         meta = {i["id"]: i for i in data["items"]}
         options = len(data["options"])
+        # The floor is derived from the OUTLINE, so it fingerprints which
+        # drawing a round showed. See `current_drawing_only`.
+        floors = {r["shape"]: r.get("floor_km")
+                  for r in json.loads(
+                      (RESULTS / f"poc{n}_stimuli.json").read_text())}
         for f in sorted(answers_dir.rglob("*.json")):
             doc = json.loads(f.read_text())
             for a in doc.get("answers", []):
@@ -101,11 +106,49 @@ def load() -> list:
                     "excursion": item.get("excursion"),
                     "route_km": item.get("route_km"),
                     "options": options,
+                    "floor_km": floors.get(item.get("drawing", item["shape"])),
                     "correct": bool(a["correct"]),
                     "blank": a["chosen"] == "__none__",
                     "xy": item["xy"],
                 })
     return rows
+
+
+def current_drawing_only(rows: list) -> tuple[list, dict]:
+    """Drop answers about a version of a shape that no longer exists.
+
+    THE POOL IS KEYED BY NAME AND FIVE SHAPES WERE REDRAWN under theirs. The
+    gear got its centre bore between round 33 and round 37 - the rider asked
+    for it - so "gear" in the pool is two different pictures, and pooling them
+    reports the current one as 4 named out of 13 when three of three raters
+    named it in round four. Same for the house (a door), the cup (a thicker
+    handle), the butterfly and the leaf.
+
+    `min_distance_km` is computed from the outline, so it fingerprints the
+    drawing: an answer counts only if the shape's floor then equals its floor
+    now. Everything is Taipei at the same street scale, so the floors are
+    comparable across rounds.
+    """
+    import routeshape.feasibility as rf
+    import routeshape.street_scale as ss
+
+    scale = ss.scale_for(25.04, 121.54, "bike", rf.MODES["bike"]["street_scale_m"])
+    now: dict = {}
+    for r in rows:
+        name = r["drawing"]
+        if name not in now:
+            try:
+                now[name] = round(rf.min_distance_km(name, "bike", scale), 1)
+            except Exception:                        # noqa: BLE001
+                now[name] = None
+    keep, dropped = [], {}
+    for r in rows:
+        floor, current = r["floor_km"], now[r["drawing"]]
+        if floor is None or current is None or abs(floor - current) < 0.05:
+            keep.append(r)
+        else:
+            dropped.setdefault(r["drawing"], set()).add((floor, current))
+    return keep, dropped
 
 
 def fill_excursion(rows: list) -> tuple[int, float]:
@@ -132,26 +175,63 @@ def fill_excursion(rows: list) -> tuple[int, float]:
     return filled, float(np.mean(check)) if check else float("nan")
 
 
-def logistic_fit(y: np.ndarray, X: np.ndarray, floor: np.ndarray):
-    """Logistic regression with a per-row chance floor, by direct likelihood.
+RIDGE = 1.0
+
+
+def predict(beta, X, floor):
+    return floor + (1 - floor) / (1 + np.exp(-np.clip(X @ beta, -40, 40)))
+
+
+def logistic_fit(y: np.ndarray, X: np.ndarray, floor: np.ndarray,
+                 ridge: float = RIDGE):
+    """Penalised logistic regression with a per-row chance floor.
 
     The floor matters: a rater picking blind from fifteen options is right 7% of
     the time, and a model that can drive the predicted rate to zero will spend
     its parameters fitting that impossible region.
+
+    THE PENALTY IS NOT OPTIONAL HERE. Half the drawings were named by everyone
+    or by nobody, so a per-drawing model separates the data perfectly and its
+    coefficients run off to infinity - the first cut of this returned betas in
+    the thousands and an AIC that looked decisive because of it. A likelihood
+    that can be driven to zero makes every comparison built on it meaningless.
+    A small ridge keeps every model estimable and comparable.
     """
-    def neg_ll(beta):
-        p = floor + (1 - floor) / (1 + np.exp(-np.clip(X @ beta, -40, 40)))
-        p = np.clip(p, 1e-9, 1 - 1e-9)
-        return -float(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)))
+    def objective(beta):
+        p = np.clip(predict(beta, X, floor), 1e-9, 1 - 1e-9)
+        ll = float(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)))
+        return -ll + ridge * float(np.dot(beta, beta))
 
     best = None
     for seed in (0.0, 1.0, -1.0):
-        start = np.full(X.shape[1], seed)
-        res = minimize(neg_ll, start, method="Nelder-Mead",
-                       options={"maxiter": 20000, "xatol": 1e-8, "fatol": 1e-8})
+        res = minimize(objective, np.full(X.shape[1], seed), method="L-BFGS-B")
         if best is None or res.fun < best.fun:
             best = res
-    return best.x, -best.fun
+    p = np.clip(predict(best.x, X, floor), 1e-9, 1 - 1e-9)
+    ll = float(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)))
+    return best.x, ll
+
+
+def cross_validated(y, X, floor, folds: int = 5, seed: int = 0) -> float:
+    """Mean held-out log-loss per answer.
+
+    AIC counts parameters; this asks the question the product actually has -
+    given the answers so far, how well is the NEXT answer predicted. With
+    sixty-one drawings and 259 answers those are not the same question, and
+    only the second one is worth shipping on.
+    """
+    rng = np.random.default_rng(seed)
+    order = rng.permutation(len(y))
+    loss, n = 0.0, 0
+    for f in range(folds):
+        test = order[f::folds]
+        train = np.setdiff1d(order, test)
+        beta, _ = logistic_fit(y[train], X[train], floor[train])
+        p = np.clip(predict(beta, X[test], floor[test]), 1e-9, 1 - 1e-9)
+        loss += -float(np.sum(y[test] * np.log(p)
+                              + (1 - y[test]) * np.log(1 - p)))
+        n += len(test)
+    return loss / n
 
 
 def main() -> None:
@@ -160,6 +240,13 @@ def main() -> None:
     if not rows:
         print("no answers found")
         return
+    rows, dropped = current_drawing_only(rows)
+    if dropped:
+        print("answers dropped - the shape has been redrawn since:")
+        for name, pairs in sorted(dropped.items()):
+            was = ", ".join(f"{a} km" for a, _ in sorted(pairs))
+            print(f"  {name:16s} was {was}, now {sorted(pairs)[0][1]} km")
+        print()
     filled, agreement = fill_excursion(rows)
     rows = [r for r in rows if r["excursion"] is not None]
     y = np.array([float(r["correct"]) for r in rows])
@@ -189,20 +276,20 @@ def main() -> None:
         "drawing+excursion": np.column_stack([onehot, exc]),
     }
     out = {}
-    print(f"{'model':20s} {'params':>6s} {'logL':>9s} {'AIC':>9s} {'dAIC':>7s}")
+    print(f"{'model':20s} {'params':>6s} {'logL':>9s} {'AIC':>9s} "
+          f"{'cv logloss':>11s}")
     fits = {}
     for name, X in models.items():
         beta, ll = logistic_fit(y, X, floor)
-        aic = 2 * X.shape[1] - 2 * ll
-        fits[name] = {"logL": ll, "aic": aic, "params": X.shape[1],
+        fits[name] = {"logL": ll, "aic": 2 * X.shape[1] - 2 * ll,
+                      "params": X.shape[1], "cv": cross_validated(y, X, floor),
                       "beta": [round(float(b), 4) for b in beta]}
-    best_aic = min(f["aic"] for f in fits.values())
     for name, f in fits.items():
         print(f"{name:20s} {f['params']:6d} {f['logL']:9.2f} {f['aic']:9.2f} "
-              f"{f['aic'] - best_aic:7.2f}")
+              f"{f['cv']:11.4f}")
         out[name] = f
-    winner = min(fits, key=lambda k: fits[k]["aic"])
-    print(f"\nbest by AIC: {winner}")
+    winner = min(fits, key=lambda k: fits[k]["cv"])
+    print(f"\nbest by held-out log-loss: {winner}")
 
     # A per-drawing rate has one parameter per drawing and half the drawings
     # here were seen once or twice, where it fits them EXACTLY. AIC charges for
@@ -232,18 +319,17 @@ def main() -> None:
         beta, ll = logistic_fit(y[keep], X, floor[keep])
         sub_fits[name] = {"logL": ll, "aic": 2 * X.shape[1] - 2 * ll,
                           "params": X.shape[1],
+                          "cv": cross_validated(y[keep], X, floor[keep]),
                           "beta": [round(float(b), 4) for b in beta]}
-    sub_best = min(f["aic"] for f in sub_fits.values())
     for name, f in sub_fits.items():
         print(f"  {name:20s} {f['params']:4d} {f['logL']:9.2f} {f['aic']:9.2f} "
-              f"{f['aic'] - sub_best:7.2f}")
+              f"{f['cv']:11.4f}")
     out["well_sampled"] = sub_fits
     out["well_sampled_drawings"] = kept_names
 
-    # What the excursion slope means in the only units anybody can act on.
     slope = fits["drawing+excursion"]["beta"][-1]
-    print(f"\nexcursion slope within a drawing: {slope:.1f} in log-odds per 1.0"
-          f" of excursion, so +0.01 multiplies the odds of being named by "
+    print(f"\nexcursion slope within a drawing: {slope:.1f} log-odds per 1.0,"
+          f" so +0.01 multiplies the odds of being named by "
           f"{math.exp(slope * 0.01):.2f}")
 
     # Whatever the curve says, this is the table the page could show instead.
