@@ -100,18 +100,20 @@ def band(shape: str, distance: float) -> tuple[str, str]:
 # Everything from `CHANCE` down to `band` maps shape_distance to a recognition
 # rate. POC 39 pooled every answer this project has collected and asked, by
 # five-fold cross-validation, which model predicts the NEXT answer best. Mean
-# held-out log-loss per answer, 259 answers over 4 rounds and 61 drawings:
+# held-out log-loss per answer, 297 answers over 5 rounds and 67 drawings:
 #
-#                         all 259     the 16 seen 6+ times
-#     none                 0.6598       0.5767
-#     distance             0.6560       0.5720     <- what shipped
-#     excursion            0.6589       0.5753
-#     distance+excursion   0.6553       -
-#     drawing              0.5049       0.4328     <- best
-#     drawing+excursion    0.5052       0.4330
+#     none                 0.6614
+#     distance             0.6577     <- what shipped
+#     excursion            0.6606
+#     distance+excursion   0.6571
+#     drawing              0.4949     <- best
+#     drawing+excursion    0.4952
 #
 # NEITHER DISTANCE NOR EXCURSION IS WORTH ANYTHING. All of them sit within
-# 0.005 of knowing nothing at all. Which drawing it is cuts the loss by 23%.
+# 0.005 of knowing nothing at all. Which drawing it is cuts the loss by 25%.
+# POC 40 put the resolution floor - how much of a drawing lives below the scale
+# a street network can hold - through the same test, and it landed EXACTLY on
+# the null. See legibility.py.
 # That is POC 32's permutation result arriving from another direction:
 # recognition is a property of the picture, and a curve over any distance is a
 # worse description of the data than a table of what people said.
