@@ -157,7 +157,11 @@ def outline(emoji: str, tolerance: float = TOLERANCE,
 PACK = {
     "elephant": ("🐘", "大象"), "giraffe": ("🦒", "長頸鹿"),
     "penguin": ("🐧", "企鵝"), "turtle": ("🐢", "烏龜"),
-    "crab": ("🦀", "螃蟹"), "sauropod": ("🦕", "恐龍"),
+    # 雷龍 and not 恐龍: the hand-drawn trex is already 恐龍, and two options
+    # reading the same word is a question a rater cannot answer. Round five
+    # shipped with both for one build because this rename lived in the server
+    # instead of here, where every consumer sees it.
+    "crab": ("🦀", "螃蟹"), "sauropod": ("🦕", "雷龍"),
     "whale": ("🐳", "鯨魚"), "mushroom": ("🍄", "蘑菇"),
     "maple": ("🍁", "楓葉"), "cactus": ("🌵", "仙人掌"),
     "apple": ("🍎", "蘋果"), "butterfly": ("🦋", "蝴蝶"),

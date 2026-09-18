@@ -97,9 +97,6 @@ LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
           "triangle": "三角形", "trex": "恐龍"}
 LABELS.update(shape_pack.LABELS)
 LABELS.update({"e_" + name: emoji_pack.LABELS[name] for name in EMOJI_ONLY})
-# Two cards reading 恐龍 is a card the rider cannot choose between. 🦕 and the
-# hand-drawn trex are different animals; say which.
-LABELS["e_sauropod"] = "雷龍"
 # POC 17 fitted six candidates per shape and found the coarse scan's rank
 # uncorrelated with the final result (Spearman -0.024 over thirty candidates).
 # The pre-ranking says which placements are routable, not which are good, so the
