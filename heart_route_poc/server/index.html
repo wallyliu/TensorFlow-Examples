@@ -507,7 +507,8 @@
           + "<dt>輪廓點</dt><dd>" + r.points + "</dd>"
           + "<dt>偏離最大值</dt><dd>" + r.excursion + "</dd>"
           + "<dt>形狀誤差</dt><dd>" + r.shape_distance + "</dd>"
-          + "<dt>計算耗時</dt><dd>" + r.seconds + " s</dd>";
+          + "<dt>計算耗時</dt><dd>"
+          + (r.cached ? "之前算過了" : r.seconds + " s") + "</dd>";
         $("download").href = r.gpx_url;
         $("result-card").hidden = false;
       })

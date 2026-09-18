@@ -1675,3 +1675,43 @@ WHAT WOULD MAKE IT A FAIR TEST and not another round of my own taste: the same
 instrument as POC 37 - the same subjects, one arm per rater, blind. The honest
 prior is poor, because POC 39 says no property of the route predicts naming and
 this is a claim about the drawing, which is the one place the data says to look.
+
+
+## 49. The search is deterministic and was being run twice
+
+Asking for the same route twice returned a byte-identical answer and spent the
+full search arriving at it again: 24.5 km, shape distance 0.166, rotation 60,
+6.6 seconds - twice. The coarse scan ranks a fixed grid, `select_candidates`
+takes the top few and the Viterbi has no random component, so there was never
+anything to recompute. A fish at 30 km spends 53 seconds on it.
+
+`build_route` is now cached on `(shape, target_km, mode, lat, lon)`, with
+latitude and longitude rounded to four places - about 11 m, and a placement
+grid stepped in hundreds of metres cannot tell two points that close apart.
+Repeat requests come back in milliseconds carrying the same route id, so the
+GPX link they point at is the same file rather than a second copy of it.
+
+`force` was already accepted by the endpoint and ignored - a leftover from a
+gate POC 29 removed. It now means what its name says: skip the cache and
+replace the entry. Since the search is deterministic it returns the same route,
+so it is a tool for after a code change, not something the page needs a button
+for.
+
+TWO THINGS THE CACHE HAD TO NOT BREAK, both checked:
+
+  The reply is a COPY, so a caller mutating it cannot poison the entry, and
+  `seconds` is overwritten with what THIS request cost. Reporting the original
+  53 seconds for a reply that took a millisecond would be a lie in the one
+  field whose whole job is to say how long the work took. The page prints
+  「之前算過了」 rather than 0.0 s.
+
+  The cache never expires, and that is safe only because `ROUTES` - which holds
+  the GPX each answer links to - also lives for the life of the process. A
+  cache outliving its GPX would hand out a download link that 404s. Verified:
+  a cached id still downloads 67 KB.
+
+WHAT THIS IS NOT. It does not make a FIRST request faster, and the rider's own
+suggestion - serve a nearby distance from a precomputed set - is still open.
+That one needs a product decision first: `width_m` comes from `target_km`, so
+answering a 28 km request with a 30 km route means the rider rides 30. Worth
+doing, and worth saying on the page when it happens.

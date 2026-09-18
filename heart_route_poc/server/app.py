@@ -189,6 +189,30 @@ ROUTES: dict[str, dict] = {}
 _networks: dict[tuple, dict] = {}
 _lock = threading.Lock()
 
+# THE SEARCH IS DETERMINISTIC, so asking for the same route twice is pure
+# waste. The coarse scan ranks a fixed grid, `select_candidates` takes the top
+# few, and the Viterbi has no random component: the same request came back
+# byte-identical twice in a row - 24.5 km, distance 0.166, rotation 60 - having
+# spent 6.6 seconds arriving at it the second time. A fish at 30 km spends 53.
+#
+# Keyed on everything the answer depends on. Latitude and longitude are rounded
+# to four places, about 11 m, because the page sends a city's coordinates and a
+# rider's own position never repeats exactly anyway; a difference smaller than
+# that cannot move a placement grid stepped in hundreds of metres.
+#
+# It never expires. The entries are a few hundred KB each, the shape library is
+# 26 and the place list is 14, so the whole reachable space at the four preset
+# distances is about 1,500 routes - and `ROUTES`, which holds the GPX each one
+# points at, already lives for the life of the process. A cache that outlives
+# its GPX would hand out a download link that 404s; this one cannot.
+_ROUTE_CACHE: dict[tuple, dict] = {}
+
+
+def _cache_key(shape: str, target_km: float, mode: str,
+               lat: float, lon: float) -> tuple:
+    return (shape, round(float(target_km), 1), mode,
+            round(float(lat), 4), round(float(lon), 4))
+
 
 def network(lat: float, lon: float, mode: str,
             half_size_m: float = NETWORK_HALF_SIZE_M) -> dict:
@@ -407,7 +431,34 @@ def plan(shape: str, target_km: float, mode: str,
 
 def build_route(shape: str, target_km: float, mode: str,
                 lat: float, lon: float, force: bool = False) -> dict:
-    """Search the city for the best placement, fit a route, keep the GPX."""
+    """Search the city for the best placement, fit a route, keep the GPX.
+
+    Cached on the request, because the search is deterministic - see
+    `_ROUTE_CACHE`. `force` skips the cache and replaces the entry; it was
+    already accepted and ignored by this endpoint, and this is what it meant.
+    """
+    key = _cache_key(shape, target_km, mode, lat, lon)
+    if not force:
+        with _lock:
+            hit = _ROUTE_CACHE.get(key)
+        if hit is not None:
+            # A copy, so a caller mutating the answer cannot poison the cache,
+            # and with the timing told straight: `seconds` is what THIS request
+            # cost. Reporting the original 53 seconds for a reply that took a
+            # millisecond would be a lie in the one field that exists to say
+            # how long the work took.
+            return dict(hit, seconds=0.0, cached=True)
+
+    answer = _build_route_uncached(shape, target_km, mode, lat, lon, force)
+    if answer.get("status") == "ok":
+        with _lock:
+            _ROUTE_CACHE[key] = answer
+    return dict(answer, cached=False)
+
+
+def _build_route_uncached(shape: str, target_km: float, mode: str,
+                          lat: float, lon: float, force: bool = False) -> dict:
+    """The search itself. Everything below this line is unchanged."""
     # MEASURE FIRST, then size. The street scale decides how wide the shape is
     # drawn, and the width decides how big a network to load - so measuring
     # after loading gets the order backwards. It did: a first visit to a new
