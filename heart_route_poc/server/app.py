@@ -81,7 +81,16 @@ shape_pack.install()
 # street grid, so it survives in the outline and is ground off in the route.
 # It stays in the library for experiments and off the page until a rater round
 # says otherwise.
-EMOJI_ONLY = [name for name in emoji_pack.PACK if name not in shape_pack.PACK]
+# NAMED_BY_NOBODY counts too, and the distinction matters. Retiring the leaf
+# and the snowman took them out of PACK, which would have promoted `e_leaf` and
+# `e_snowman` to "subjects nobody drew by hand" and put them straight back on
+# the page - two subjects three raters failed to name in EVERY arm, the Noto
+# one included. That retirement is about the SUBJECT. The other kind is not:
+# the elephant and the crab were retired because the TRACED version beat what
+# I drew, and the traced version is exactly what belongs here.
+EMOJI_ONLY = [name for name in emoji_pack.PACK
+              if name not in shape_pack.PACK
+              and name not in shape_pack.NAMED_BY_NOBODY]
 emoji_pack.install(names=EMOJI_ONLY)
 
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
@@ -98,7 +107,8 @@ LABELS["e_sauropod"] = "雷龍"
 # five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
 # linear time, and that is the whole trade.
 N_CANDIDATES = 6
-# Good enough to stop fitting more placements. Expressed as a recognition rate
+# Superseded by recognition.as_good_as_rated - kept because POC 30's fits quote
+# it. Expressed as a recognition rate
 # rather than a shape distance so it means the same thing for every shape.
 EARLY_STOP_RECOGNITION = 0.97
 # How much wider than the shape the network is built. 1.0 gives half a shape
@@ -345,8 +355,17 @@ def places() -> list[dict]:
 # 0.120 to 0.321 across the five shapes.
 
 
-def quality_for(distance: float, shape: str = "") -> tuple[str, str]:
-    return rc.band(shape, distance)
+def quality_for(shape: str, excursion: float | None) -> tuple[str, str]:
+    """How this route came out, in the counts of people who named the shape.
+
+    Took `distance` until POC 39, which pooled 311 judgements and found that a
+    curve over shape_distance fits them worse than a lookup table of what
+    raters said (AIC 281.9 against 190.5), and that distance adds nothing at
+    all once excursion is known. So the answer is now the shape's measured
+    rate, adjusted for this route's excursion - and "no answer" for a shape
+    nobody has rated, rather than a pooled average borrowed from other shapes.
+    """
+    return rc.verdict(shape, excursion)
 
 
 def plan(shape: str, target_km: float, mode: str,
@@ -477,10 +496,14 @@ def build_route(shape: str, target_km: float, mode: str,
         # when one happens to come out well, and a hard case still uses all
         # six. The bar is the per-shape recognition curve from POC 29, so a
         # triangle has to come out tighter than a star to qualify.
+        # Stop when the route is at least as tight as the ones raters were
+        # shown for this shape - see recognition.as_good_as_rated. A fixed bar
+        # on a measured rate would only be testing how many people have seen
+        # the shape, because a rate from thirteen answers cannot reach 0.97
+        # however good the route is.
         if (fit["wander"] <= WANDER_LIMIT
                 and fit["excursion"] <= EXCURSION_LIMIT
-                and rc.recognition_rate(shape, float(fit["distance"]))
-                >= EARLY_STOP_RECOGNITION):
+                and rc.as_good_as_rated(shape, float(fit["excursion"]))):
             break
 
     if not fitted:
@@ -519,10 +542,12 @@ def build_route(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
-            "quality": quality_for(float(best["distance"]), shape)[0],
-            "quality_message": quality_for(float(best["distance"]), shape)[1],
-            "recognition": round(rc.recognition_rate(shape, float(best["distance"])), 2),
-            "recognition_measured": rc.measured(shape),
+            "quality": quality_for(shape, float(best["excursion"]))[0],
+            "quality_message": quality_for(shape, float(best["excursion"]))[1],
+            "recognition": (None if rc.rate(shape, float(best["excursion"])) is None
+                            else round(rc.rate(shape, float(best["excursion"])), 2)),
+            "recognition_measured": rc.observed(shape) is not None,
+            "recognition_seen": rc.observed(shape),
             "wander": round(float(best["wander"]), 3),
             "wander_limit": WANDER_LIMIT,
             "excursion": round(float(best["excursion"]), 3),
@@ -586,7 +611,8 @@ class Handler(BaseHTTPRequestHandler):
                  # carry the pooled threshold, which POC 29 showed is an
                  # average over a 2.7x spread - so the page can say which
                  # number it is quoting rather than implying they are alike.
-                 "recognition_measured": rc.measured(s)}
+                 "recognition_measured": rc.observed(s) is not None,
+                 "recognition_seen": rc.observed(s)}
                 for s in sorted(SHAPES, key=rf.n_min)]})
         elif path == "/api/places":
             self._json(200, {"places": places()})

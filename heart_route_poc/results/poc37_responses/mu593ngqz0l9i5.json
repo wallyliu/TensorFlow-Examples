@@ -1,0 +1,249 @@
+{
+  "answers": [
+    {
+      "at": 1789632703005,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.1808,
+      "item": "o_christmas_tree_8",
+      "route_km": 89.9,
+      "shape": "聖誕樹"
+    },
+    {
+      "at": 1789632704427,
+      "chosen": "貓",
+      "correct": true,
+      "distance": 0.0785,
+      "item": "cat_3",
+      "route_km": 24.7,
+      "shape": "貓"
+    },
+    {
+      "at": 1789632705674,
+      "chosen": "五角星",
+      "correct": true,
+      "distance": 0.0542,
+      "item": "star5_37",
+      "route_km": 22.8,
+      "shape": "五角星"
+    },
+    {
+      "at": 1789632707218,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0731,
+      "item": "e_snowman_34",
+      "route_km": 26,
+      "shape": "雪人"
+    },
+    {
+      "at": 1789632709012,
+      "chosen": "貓",
+      "correct": true,
+      "distance": 0.0977,
+      "item": "o_cat_5",
+      "route_km": 25.8,
+      "shape": "貓"
+    },
+    {
+      "at": 1789632711644,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.3751,
+      "item": "o_cup_11",
+      "route_km": 98.5,
+      "shape": "咖啡杯"
+    },
+    {
+      "at": 1789632713010,
+      "chosen": "魚",
+      "correct": true,
+      "distance": 0.0613,
+      "item": "e_fish_13",
+      "route_km": 21.3,
+      "shape": "魚"
+    },
+    {
+      "at": 1789632715875,
+      "chosen": "咖啡杯",
+      "correct": true,
+      "distance": 0.0763,
+      "item": "cup_9",
+      "route_km": 23.3,
+      "shape": "咖啡杯"
+    },
+    {
+      "at": 1789632721142,
+      "chosen": "房子",
+      "correct": true,
+      "distance": 0.0789,
+      "item": "e_house_22",
+      "route_km": 22.8,
+      "shape": "房子"
+    },
+    {
+      "at": 1789632723849,
+      "chosen": "聖誕樹",
+      "correct": true,
+      "distance": 0.0843,
+      "item": "christmas_tree_6",
+      "route_km": 26.5,
+      "shape": "聖誕樹"
+    },
+    {
+      "at": 1789632727449,
+      "chosen": "飛機",
+      "correct": true,
+      "distance": 0.1093,
+      "item": "plane_30",
+      "route_km": 25.5,
+      "shape": "飛機"
+    },
+    {
+      "at": 1789632728788,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0599,
+      "item": "o_leaf_26",
+      "route_km": 23.9,
+      "shape": "葉子"
+    },
+    {
+      "at": 1789632731229,
+      "chosen": "鬼",
+      "correct": true,
+      "distance": 0.0903,
+      "item": "ghost_18",
+      "route_km": 33.7,
+      "shape": "鬼"
+    },
+    {
+      "at": 1789632732791,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.0671,
+      "item": "snowman_33",
+      "route_km": 26.6,
+      "shape": "雪人"
+    },
+    {
+      "at": 1789632734597,
+      "chosen": "房子",
+      "correct": true,
+      "distance": 0.1058,
+      "item": "house_21",
+      "route_km": 25.3,
+      "shape": "房子"
+    },
+    {
+      "at": 1789632738834,
+      "chosen": "齒輪",
+      "correct": true,
+      "distance": 0.0924,
+      "item": "e_gear_16",
+      "route_km": 25.1,
+      "shape": "齒輪"
+    },
+    {
+      "at": 1789632740529,
+      "chosen": "音符",
+      "correct": true,
+      "distance": 0.0613,
+      "item": "music_note_27",
+      "route_km": 25.5,
+      "shape": "音符"
+    },
+    {
+      "at": 1789632744601,
+      "chosen": "鬼",
+      "correct": true,
+      "distance": 0.2085,
+      "item": "o_ghost_20",
+      "route_km": 54.4,
+      "shape": "鬼"
+    },
+    {
+      "at": 1789632747994,
+      "chosen": "蝙蝠",
+      "correct": true,
+      "distance": 0.0817,
+      "item": "bat_0",
+      "route_km": 20.5,
+      "shape": "蝙蝠"
+    },
+    {
+      "at": 1789632750631,
+      "chosen": "恐龍",
+      "correct": true,
+      "distance": 0.147,
+      "item": "trex_38",
+      "route_km": 39.8,
+      "shape": "恐龍"
+    },
+    {
+      "at": 1789632752560,
+      "chosen": "音符",
+      "correct": true,
+      "distance": 0.1028,
+      "item": "e_music_note_28",
+      "route_km": 24.8,
+      "shape": "音符"
+    },
+    {
+      "at": 1789632756259,
+      "chosen": "飛機",
+      "correct": true,
+      "distance": 0.0686,
+      "item": "o_plane_32",
+      "route_km": 25.9,
+      "shape": "飛機"
+    },
+    {
+      "at": 1789632758058,
+      "chosen": "魚",
+      "correct": true,
+      "distance": 0.06,
+      "item": "fish_12",
+      "route_km": 23.2,
+      "shape": "魚"
+    },
+    {
+      "at": 1789632759709,
+      "chosen": "蝙蝠",
+      "correct": true,
+      "distance": 0.0913,
+      "item": "e_bat_1",
+      "route_km": 26.4,
+      "shape": "蝙蝠"
+    },
+    {
+      "at": 1789632761393,
+      "chosen": "齒輪",
+      "correct": true,
+      "distance": 0.1244,
+      "item": "gear_15",
+      "route_km": 26.9,
+      "shape": "齒輪"
+    },
+    {
+      "at": 1789632762668,
+      "chosen": "__none__",
+      "correct": false,
+      "distance": 0.2454,
+      "item": "leaf_24",
+      "route_km": 23.6,
+      "shape": "葉子"
+    },
+    {
+      "at": 1789632765551,
+      "chosen": "愛心",
+      "correct": true,
+      "distance": 0.0463,
+      "item": "heart_36",
+      "route_km": 24.2,
+      "shape": "愛心"
+    }
+  ],
+  "finished": "2026-09-17T08:12:45.553Z",
+  "session": "mu593ngqz0l9i5"
+}

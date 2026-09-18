@@ -193,6 +193,8 @@
         <div class="preview" id="preview"><div id="svg"></div></div>
       </div>
       <div>
+        <p class="verdict" id="quality"></p>
+        <p class="caveat" id="fallback" hidden></p>
         <dl id="stats"></dl>
         <a class="download" id="download" href="#" download>下載 GPX</a>
         <p class="note" style="margin-top:18px">GPX 同時含有一條 route（給導航用，已簡化到轉彎點）
@@ -474,11 +476,36 @@
         }
         $("status").textContent = "";
         drawPreview(r);
+        // The service has always computed a verdict and the page has never
+        // shown it, so the one number a rider actually wants - will anybody
+        // know what this is - only ever existed in the JSON.
+        $("quality").textContent = r.quality_message || "";
+        $("quality").className = "verdict "
+          + (r.quality === "good" ? "ok"
+             : (r.quality === "unrated" ? "" : "bad"));
+        // And when no placement met the limits the service still returns its
+        // best one. That fallback is deliberate - a route that wanders beats
+        // no route - but saying nothing about it is not.
+        var missed = [];
+        if (r.wander > r.wander_limit) {
+          missed.push("路線比圖案長 " + Math.round(r.wander * 100)
+                      + "%（上限 " + Math.round(r.wander_limit * 100) + "%）");
+        }
+        if (r.excursion > r.excursion_limit) {
+          missed.push("有一段偏離圖案 " + (r.excursion * 100).toFixed(1)
+                      + "% 寬（上限 " + (r.excursion_limit * 100).toFixed(0) + "%）");
+        }
+        $("fallback").hidden = missed.length === 0;
+        $("fallback").textContent = missed.length
+          ? "這是試過的位置裡最好的一個，但它沒有通過檢查：" + missed.join("，")
+            + "。換個城市或改一下距離可能會更好。"
+          : "";
         $("stats").innerHTML =
           "<dt>圖案</dt><dd>" + r.label + "</dd>"
           + "<dt>實際距離</dt><dd>" + r.route_km + " km</dd>"
           + "<dt>畫多寬</dt><dd>" + (r.width_m / 1000).toFixed(1) + " km</dd>"
           + "<dt>輪廓點</dt><dd>" + r.points + "</dd>"
+          + "<dt>偏離最大值</dt><dd>" + r.excursion + "</dd>"
           + "<dt>形狀誤差</dt><dd>" + r.shape_distance + "</dd>"
           + "<dt>計算耗時</dt><dd>" + r.seconds + " s</dd>";
         $("download").href = r.gpx_url;

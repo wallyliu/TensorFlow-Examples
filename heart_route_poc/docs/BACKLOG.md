@@ -1340,3 +1340,72 @@ nothing a rider would notice.
 LEAF AND SNOWMAN ARE RETIRED. 0/6 each, across all three drawings and all three
 raters - not "the traced one is better", nobody named any version. Same
 evidence the crown went on. The pack is thirteen.
+
+
+## 44. The recognition curve was fitted to the wrong thing; a lookup table beats it
+
+`recognition.py` mapped `shape_distance` to a recognition rate and the service
+reported the result as 「應該認得出來」. POC 39 pooled every judgement this
+project has - 311 answers, 10 rater-sessions, 4 rounds, 62 drawings - and
+fitted six models of it. AIC, and again on the 21 drawings with at least six
+answers so a per-drawing rate is not fitting singletons exactly:
+
+                            all 311     well-sampled 225
+        none                  423.8        294.2
+        distance              414.8        281.9     <- what shipped
+        excursion             402.0        258.7
+        distance + excursion  403.9        -
+        drawing               305.8        190.5
+        drawing + excursion   281.3        187.9     <- best
+
+Three readings, in order of how much they cost:
+
+  DISTANCE ADDS NOTHING once excursion is known. Same log-likelihood to two
+  decimals, one more parameter, so `both` is strictly worse than `excursion`.
+  The quantity the entire search minimises is not the quantity that decides
+  whether a person can name the result.
+
+  WHICH DRAWING IT IS BEATS ANY DISTANCE BY ~70 AIC. That is POC 32's
+  permutation result arriving from another direction: a curve over a distance
+  is a worse description of the data than a lookup table of what people said.
+
+  EXCURSION STILL EARNS ITS PLACE on top of the drawing, 190.5 -> 187.9, at
+  -49.7 log-odds per unit. +0.01 of excursion multiplies the odds of being
+  named by 0.61 - within a shape, where the route strays matters.
+
+SO THE LOOKUP TABLE SHIPS. `recognition.OBSERVED` is named/shown/mean-excursion
+per drawing, and `rate()` smooths it (add a half, so 15/15 is not certainty and
+0/6 is not impossibility) and adjusts for this route's excursion, clamped to
+one log-odd because the slope is pooled and the adjustment is an extrapolation.
+`verdict()` says it in counts - 「這個圖案給 13 個人看過，4 個認出來」- because
+「約 92%」 from eleven answers and 「約 92%」 from a curve fitted to something
+else read identically and are not the same claim.
+
+A SHAPE WITH NO ROW NOW GETS NO NUMBER. The old code handed it the pooled
+threshold; an average over a set this heterogeneous is not a weaker estimate,
+it is another shape's answer. Five of the 34 on the page are unrated
+(e_anchor, e_apple, e_guitar, e_rocket, e_sauropod) and say so.
+
+TWO THINGS FELL OUT OF IT.
+
+  The early stop was a fixed 0.97 recognition rate, which a measured rate
+  cannot reach: 15/15 smoothed is 0.97 and thirteen answers never get near it
+  however good the route. That was a test of how many people had seen the
+  shape, not of the route. It is now `as_good_as_rated` - stop when this route
+  strays no further than the routes that earned the shape its rate - and an
+  unrated shape never stops early, which is the right way round.
+
+  The page never showed the verdict AT ALL. The service has computed it since
+  POC 29 and index.html never rendered it, so the one number a rider wants
+  lived only in the JSON. It is now on the result card, and so is the fallback:
+  when no placement met the limits the service still returns its best, which is
+  deliberate and was silent. A 25 km gear now says 「這條多數人認不出來（這個
+  圖案給 13 個人看過，4 個認出來）」 in red, which is true and was previously
+  reported as 「應該認得出來」.
+
+ALSO FIXED, and it would have been live: retiring the leaf and the snowman from
+PACK promoted `e_leaf` and `e_snowman` to "subjects nobody drew by hand", which
+would have put both straight back on the page. A retirement for being named by
+nobody is about the SUBJECT; one for losing to the traced version is not, and
+the elephant and the crab must keep their traced drawings. `NAMED_BY_NOBODY` is
+the set the server excludes, not `RETIRED`.

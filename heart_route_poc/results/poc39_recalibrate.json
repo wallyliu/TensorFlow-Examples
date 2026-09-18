@@ -1,0 +1,666 @@
+{
+ "models": {
+  "none": {
+   "logL": -210.89444233914608,
+   "aic": 423.78888467829216,
+   "params": 1,
+   "beta": [
+    0.2394
+   ]
+  },
+  "distance": {
+   "logL": -205.40138966739102,
+   "aic": 414.80277933478203,
+   "params": 2,
+   "beta": [
+    0.9149,
+    -5.8842
+   ]
+  },
+  "excursion": {
+   "logL": -198.98273231092355,
+   "aic": 401.9654646218471,
+   "params": 2,
+   "beta": [
+    1.5101,
+    -19.8185
+   ]
+  },
+  "both": {
+   "logL": -198.96775405074507,
+   "aic": 403.93550810149014,
+   "params": 3,
+   "beta": [
+    1.5185,
+    -0.4121,
+    -19.2086
+   ]
+  },
+  "drawing": {
+   "logL": -90.9010160743964,
+   "aic": 305.8020321487928,
+   "params": 62,
+   "beta": [
+    2.0159,
+    0.2309,
+    -186.1035,
+    -137.8408,
+    1257.7368,
+    -358.2919,
+    -0.1001,
+    -130.7131,
+    -0.3102,
+    265.5185,
+    -98.78,
+    181.2539,
+    371.4749,
+    35.5369,
+    107.7449,
+    279.0485,
+    -34.075,
+    -151.5047,
+    23.5436,
+    187.0197,
+    -235.1185,
+    47.3869,
+    -65.9137,
+    23.8064,
+    20.7664,
+    278.5688,
+    73.4988,
+    261.9467,
+    -79.8793,
+    -263.1842,
+    -47.8885,
+    -123.8174,
+    2.4192,
+    -1.0551,
+    0.6036,
+    -95.2139,
+    -0.1252,
+    322.9658,
+    0.0393,
+    -1585.284,
+    -110.7343,
+    -366.0532,
+    61.0734,
+    341.714,
+    36.3709,
+    -288.4332,
+    -214.4329,
+    -0.1431,
+    342.2506,
+    -165.1982,
+    -43.7977,
+    -155.5208,
+    -227.7436,
+    220.7419,
+    -120.9603,
+    -250.2958,
+    362.2218,
+    -0.1169,
+    179.5671,
+    346.0092,
+    -220.6859,
+    -0.8473
+   ]
+  },
+  "drawing+excursion": {
+   "logL": -77.65228734157719,
+   "aic": 281.3045746831544,
+   "params": 63,
+   "beta": [
+    3.9346,
+    4.0964,
+    1.2217,
+    -5.1466,
+    32.826,
+    -28.9259,
+    3.86,
+    -22.1134,
+    4.3466,
+    7.228,
+    -19.9608,
+    13.514,
+    27.4015,
+    10.9712,
+    36.4684,
+    11.4305,
+    -10.887,
+    -34.7926,
+    28.2567,
+    62.2429,
+    11.9621,
+    12.2797,
+    -16.1034,
+    29.142,
+    81.0928,
+    41.5143,
+    -139.6588,
+    37.9369,
+    -11.121,
+    -4.2772,
+    -9.4891,
+    -56.4006,
+    4.5672,
+    2.4082,
+    5.0504,
+    -32.1993,
+    1.8373,
+    24.088,
+    3.4435,
+    -67.923,
+    -35.9483,
+    -17.1811,
+    37.602,
+    13.2702,
+    10.2403,
+    -26.1188,
+    -34.6988,
+    1.465,
+    61.9567,
+    -17.9787,
+    -33.8525,
+    2.4177,
+    -18.9104,
+    33.8143,
+    -27.7588,
+    -5.6754,
+    15.439,
+    4.5827,
+    12.3029,
+    16.377,
+    -41.5411,
+    1.2822,
+    -49.7139
+   ]
+  },
+  "well_sampled": {
+   "none": {
+    "logL": -146.09609676068402,
+    "aic": 294.19219352136804,
+    "params": 1,
+    "beta": [
+     0.5023
+    ]
+   },
+   "distance": {
+    "logL": -138.960530622723,
+    "aic": 281.921061245446,
+    "params": 2,
+    "beta": [
+     1.449,
+     -8.142
+    ]
+   },
+   "excursion": {
+    "logL": -127.34134523513477,
+    "aic": 258.68269047026956,
+    "params": 2,
+    "beta": [
+     2.6573,
+     -32.3006
+    ]
+   },
+   "drawing": {
+    "logL": -74.24319279585866,
+    "aic": 190.48638559171732,
+    "params": 21,
+    "beta": [
+     2.0159,
+     0.2309,
+     -1.5449,
+     71.8837,
+     -0.1001,
+     -0.3102,
+     2.4192,
+     -1.0551,
+     0.6036,
+     -221.2954,
+     25.6807,
+     0.0393,
+     -2.2727,
+     541.7711,
+     20.884,
+     -1518.1246,
+     555.3396,
+     -0.1169,
+     363.8818,
+     494.877,
+     -0.8473
+    ]
+   },
+   "drawing+excursion": {
+    "logL": -71.9390041791827,
+    "aic": 187.8780083583654,
+    "params": 22,
+    "beta": [
+     3.6417,
+     3.5252,
+     0.8264,
+     18.7108,
+     -57.9386,
+     3.6678,
+     4.2611,
+     1.9118,
+     4.3762,
+     -37.8929,
+     31.7151,
+     2.9605,
+     -45.522,
+     30.8672,
+     26.662,
+     -60.6238,
+     44.4511,
+     3.8819,
+     42.3215,
+     41.9799,
+     0.977,
+     -42.4697
+    ]
+   }
+  },
+  "well_sampled_drawings": [
+   "bat",
+   "butterfly",
+   "cat",
+   "christmas_tree",
+   "crescent",
+   "cup",
+   "fish",
+   "gear",
+   "ghost",
+   "gingerbread",
+   "heart",
+   "house",
+   "leaf",
+   "music_note",
+   "plane",
+   "snowman",
+   "star5",
+   "taiwan",
+   "trex",
+   "triangle",
+   "witch_hat"
+  ]
+ },
+ "winner": "drawing+excursion",
+ "per_drawing": {
+  "bat": {
+   "named": 8,
+   "shown": 9,
+   "distance": 0.096,
+   "excursion": 0.037
+  },
+  "butterfly": {
+   "named": 7,
+   "shown": 12,
+   "distance": 0.138,
+   "excursion": 0.077
+  },
+  "cat": {
+   "named": 3,
+   "shown": 13,
+   "distance": 0.077,
+   "excursion": 0.055
+  },
+  "cat_head": {
+   "named": 0,
+   "shown": 4,
+   "distance": 0.154,
+   "excursion": 0.136
+  },
+  "christmas_tree": {
+   "named": 11,
+   "shown": 11,
+   "distance": 0.105,
+   "excursion": 0.046
+  },
+  "crab": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.132,
+   "excursion": 0.068
+  },
+  "crescent": {
+   "named": 3,
+   "shown": 6,
+   "distance": 0.166,
+   "excursion": 0.079
+  },
+  "crown": {
+   "named": 0,
+   "shown": 4,
+   "distance": 0.121,
+   "excursion": 0.068
+  },
+  "cup": {
+   "named": 6,
+   "shown": 13,
+   "distance": 0.096,
+   "excursion": 0.094
+  },
+  "e_bat": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.091,
+   "excursion": 0.035
+  },
+  "e_bicycle": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.193,
+   "excursion": 0.148
+  },
+  "e_butterfly": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.118,
+   "excursion": 0.054
+  },
+  "e_cactus": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.3,
+   "excursion": 0.091
+  },
+  "e_cat": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.128,
+   "excursion": 0.075
+  },
+  "e_christmas_tree": {
+   "named": 1,
+   "shown": 1,
+   "distance": 0.072,
+   "excursion": 0.044
+  },
+  "e_crab": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.165,
+   "excursion": 0.054
+  },
+  "e_cup": {
+   "named": 0,
+   "shown": 1,
+   "distance": 0.115,
+   "excursion": 0.052
+  },
+  "e_elephant": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.072,
+   "excursion": 0.043
+  },
+  "e_fish": {
+   "named": 1,
+   "shown": 1,
+   "distance": 0.061,
+   "excursion": 0.034
+  },
+  "e_gear": {
+   "named": 3,
+   "shown": 3,
+   "distance": 0.092,
+   "excursion": 0.05
+  },
+  "e_giraffe": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.102,
+   "excursion": 0.058
+  },
+  "e_house": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.079,
+   "excursion": 0.047
+  },
+  "e_leaf": {
+   "named": 0,
+   "shown": 1,
+   "distance": 0.033,
+   "excursion": 0.027
+  },
+  "e_maple": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.069,
+   "excursion": 0.032
+  },
+  "e_mushroom": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.051,
+   "excursion": 0.063
+  },
+  "e_music_note": {
+   "named": 3,
+   "shown": 3,
+   "distance": 0.103,
+   "excursion": 0.066
+  },
+  "e_penguin": {
+   "named": 2,
+   "shown": 2,
+   "distance": 0.065,
+   "excursion": 0.057
+  },
+  "e_plane": {
+   "named": 1,
+   "shown": 1,
+   "distance": 0.085,
+   "excursion": 0.032
+  },
+  "e_snowman": {
+   "named": 0,
+   "shown": 1,
+   "distance": 0.073,
+   "excursion": 0.056
+  },
+  "e_turtle": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.053,
+   "excursion": 0.037
+  },
+  "e_whale": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.058,
+   "excursion": 0.037
+  },
+  "elephant": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.066,
+   "excursion": 0.031
+  },
+  "fish": {
+   "named": 12,
+   "shown": 13,
+   "distance": 0.086,
+   "excursion": 0.043
+  },
+  "gear": {
+   "named": 4,
+   "shown": 13,
+   "distance": 0.12,
+   "excursion": 0.071
+  },
+  "ghost": {
+   "named": 6,
+   "shown": 9,
+   "distance": 0.168,
+   "excursion": 0.082
+  },
+  "gingerbread": {
+   "named": 0,
+   "shown": 6,
+   "distance": 0.178,
+   "excursion": 0.082
+  },
+  "giraffe": {
+   "named": 1,
+   "shown": 2,
+   "distance": 0.058,
+   "excursion": 0.04
+  },
+  "heart": {
+   "named": 11,
+   "shown": 11,
+   "distance": 0.074,
+   "excursion": 0.056
+  },
+  "house": {
+   "named": 7,
+   "shown": 13,
+   "distance": 0.098,
+   "excursion": 0.068
+  },
+  "leaf": {
+   "named": 2,
+   "shown": 13,
+   "distance": 0.137,
+   "excursion": 0.102
+  },
+  "lightning": {
+   "named": 0,
+   "shown": 4,
+   "distance": 0.126,
+   "excursion": 0.061
+  },
+  "maple": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.062,
+   "excursion": 0.042
+  },
+  "music_note": {
+   "named": 15,
+   "shown": 15,
+   "distance": 0.101,
+   "excursion": 0.063
+  },
+  "o_bat": {
+   "named": 1,
+   "shown": 1,
+   "distance": 0.077,
+   "excursion": 0.033
+  },
+  "o_cat": {
+   "named": 1,
+   "shown": 1,
+   "distance": 0.098,
+   "excursion": 0.04
+  },
+  "o_christmas_tree": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.181,
+   "excursion": 0.071
+  },
+  "o_cup": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.375,
+   "excursion": 0.077
+  },
+  "o_fish": {
+   "named": 1,
+   "shown": 2,
+   "distance": 0.09,
+   "excursion": 0.032
+  },
+  "o_ghost": {
+   "named": 3,
+   "shown": 3,
+   "distance": 0.208,
+   "excursion": 0.13
+  },
+  "o_house": {
+   "named": 0,
+   "shown": 1,
+   "distance": 0.196,
+   "excursion": 0.061
+  },
+  "o_leaf": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.06,
+   "excursion": 0.041
+  },
+  "o_plane": {
+   "named": 1,
+   "shown": 2,
+   "distance": 0.069,
+   "excursion": 0.052
+  },
+  "o_snowman": {
+   "named": 0,
+   "shown": 2,
+   "distance": 0.071,
+   "excursion": 0.036
+  },
+  "plane": {
+   "named": 15,
+   "shown": 15,
+   "distance": 0.112,
+   "excursion": 0.049
+  },
+  "rabbit": {
+   "named": 0,
+   "shown": 4,
+   "distance": 0.09,
+   "excursion": 0.046
+  },
+  "snowman": {
+   "named": 0,
+   "shown": 9,
+   "distance": 0.107,
+   "excursion": 0.062
+  },
+  "star5": {
+   "named": 11,
+   "shown": 11,
+   "distance": 0.08,
+   "excursion": 0.053
+  },
+  "taiwan": {
+   "named": 5,
+   "shown": 10,
+   "distance": 0.161,
+   "excursion": 0.092
+  },
+  "trex": {
+   "named": 11,
+   "shown": 11,
+   "distance": 0.168,
+   "excursion": 0.061
+  },
+  "triangle": {
+   "named": 6,
+   "shown": 6,
+   "distance": 0.09,
+   "excursion": 0.047
+  },
+  "umbrella": {
+   "named": 0,
+   "shown": 4,
+   "distance": 0.132,
+   "excursion": 0.072
+  },
+  "witch_hat": {
+   "named": 2,
+   "shown": 6,
+   "distance": 0.083,
+   "excursion": 0.044
+  }
+ },
+ "answers": 311,
+ "sessions": 10,
+ "excursion_recomputed": 186,
+ "excursion_agreement": 0.005881546704095525
+}
