@@ -6,9 +6,20 @@ terminal. This is the same pipeline behind three endpoints, so a page can ask
 for a route and get a .gpx back.
 
 Standard library only - no framework to install. That is a deliberate choice
-for something a person has to be able to run in one command, not a limitation:
-the work per request is 2-4 seconds of numpy and networkx, so the web layer is
-never the bottleneck and a framework would only add a setup step.
+for something a person has to be able to run in one command, and it still holds
+for the reason it always did: the web layer is nowhere near the bottleneck.
+
+WHAT THE BOTTLENECK ACTUALLY COSTS, measured at the 30 km default in Taipei:
+8 s for the gear, 19 s for the plane, 53 s for the fish. This docstring said
+"2-4 seconds" for a long time after that stopped being true - that was measured
+when the default was 10 km and a shape was forty contour points. Distance buys
+contour points, contour points buy candidate sets, and the Viterbi is quadratic
+in the candidates per point.
+
+Part of the spread was a bug rather than the work: the search stopped early at
+a fixed recognition rate of 0.97, which a MEASURED rate cannot reach, so every
+shape used all six placements. `recognition.as_good_as_rated` replaced it and
+took the 25 km gear from 20 s to 6.
 
 What actually costs time is the street network. Downloading one city takes
 minutes and it is the same network for every request in that city, so it is
