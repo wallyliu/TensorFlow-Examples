@@ -217,9 +217,9 @@ _store: "store.Store | None" = None
 
 
 def _cache_key(shape: str, target_km: float, mode: str,
-               lat: float, lon: float) -> tuple:
+               lat: float, lon: float, variant: int = 0) -> tuple:
     return (shape, round(float(target_km), 1), mode,
-            round(float(lat), 4), round(float(lon), 4))
+            round(float(lat), 4), round(float(lon), 4), int(variant))
 
 
 def network(lat: float, lon: float, mode: str,
@@ -504,15 +504,21 @@ def plan(shape: str, target_km: float, mode: str,
                             if p.range_km else None)}
 
 
-def build_route(shape: str, target_km: float, mode: str,
-                lat: float, lon: float, force: bool = False) -> dict:
+def build_route(shape: str, target_km: float, mode: str, lat: float, lon: float,
+                force: bool = False, variant: int = 0) -> dict:
     """Search the city for the best placement, fit a route, keep the GPX.
 
     Cached on the request, because the search is deterministic - see
-    `_ROUTE_CACHE`. `force` skips the cache and replaces the entry; it was
-    already accepted and ignored by this endpoint, and this is what it meant.
+    `_ROUTE_CACHE`. `force` skips the cache and replaces the entry.
+
+    `variant` is the answer to 「這個不像，換一個」. Recomputing cannot help with
+    that: the search has no random component, so asking again returns the same
+    route to the byte. What a rider actually wants is a DIFFERENT PLACE - the
+    same shape somewhere else in the city - and the search already fits several
+    and keeps the best. Variant 1 is the second best, 2 the third, and the count
+    comes back as `variants` so the page knows when it has run out.
     """
-    key = _cache_key(shape, target_km, mode, lat, lon)
+    key = _cache_key(shape, target_km, mode, lat, lon, variant)
     if not force:
         with _lock:
             hit = _ROUTE_CACHE.get(key)
@@ -524,7 +530,8 @@ def build_route(shape: str, target_km: float, mode: str,
             # how long the work took.
             return dict(_rehydrate(hit, mode), seconds=0.0, cached=True)
 
-    answer = _build_route_uncached(shape, target_km, mode, lat, lon, force)
+    answer = _build_route_uncached(shape, target_km, mode, lat, lon, force,
+                                   variant)
     if answer.get("status") == "ok":
         with _lock:
             _ROUTE_CACHE[key] = answer
@@ -565,8 +572,9 @@ def _rehydrate(answer: dict, mode: str) -> dict:
     return answer
 
 
-def _build_route_uncached(shape: str, target_km: float, mode: str,
-                          lat: float, lon: float, force: bool = False) -> dict:
+def _build_route_uncached(shape: str, target_km: float, mode: str, lat: float,
+                          lon: float, force: bool = False,
+                          variant: int = 0) -> dict:
     """The search itself. Everything below this line is unchanged."""
     # MEASURE FIRST, then size. The street scale decides how wide the shape is
     # drawn, and the width decides how big a network to load - so measuring
@@ -627,6 +635,7 @@ def _build_route_uncached(shape: str, target_km: float, mode: str,
 
     dense_template = resample_by_arclength(shape, 4000)
     fitted = []
+    stopped_early = False
     for row in select_candidates(scored, N_CANDIDATES, MIN_SEPARATION_M):
         try:
             fit = refine(net["graph"], shape, np.array([row["x"], row["y"]]),
@@ -668,9 +677,14 @@ def _build_route_uncached(shape: str, target_km: float, mode: str,
         # on a measured rate would only be testing how many people have seen
         # the shape, because a rate from thirteen answers cannot reach 0.97
         # however good the route is.
-        if (fit["wander"] <= WANDER_LIMIT
+        # ONLY WHEN THE FIRST ANSWER IS THE ONE WANTED. A rider asking for
+        # another placement needs the search to have found some, and stopping
+        # at the first good one leaves nothing to offer.
+        if (variant == 0
+                and fit["wander"] <= WANDER_LIMIT
                 and fit["excursion"] <= EXCURSION_LIMIT
                 and rc.as_good_as_rated(shape, float(fit["excursion"]))):
+            stopped_early = True
             break
 
     if not fitted:
@@ -684,7 +698,38 @@ def _build_route_uncached(shape: str, target_km: float, mode: str,
                   or [f for f in fitted if f["excursion"] <= EXCURSION_LIMIT]
                   or [f for f in fitted if f["wander"] <= WANDER_LIMIT]
                   or fitted)
-    best = min(admissible, key=lambda f: f["distance"])
+    # DEDUPLICATED BY THE ROUTE, and then AGAINST WHAT THIS RIDER HAS ALREADY
+    # BEEN SHOWN. Two things go wrong otherwise, and both make 「換一個」 a
+    # button that does nothing:
+    #
+    #   `select_candidates` keeps its centres MIN_SEPARATION_M apart, but two
+    #   centres that far apart can still snap onto the same junctions and fit
+    #   the same route twice.
+    #
+    #   Variant 0 stops early after one good placement and variant 1 searches
+    #   all six, so the two runs rank different sets. The gear's second-best
+    #   out of six was exactly the one the early stop had already returned.
+    #
+    # So rank, drop repeats, then drop anything already handed back for a lower
+    # variant of this same request - which the cache is holding.
+    ranked, seen = [], set()
+    for fit in sorted(admissible, key=lambda f: f["distance"]):
+        fit["mark"] = str(hash(np.round(fit["route_xy"], 1).tobytes()))
+        if fit["mark"] in seen:
+            continue
+        seen.add(fit["mark"])
+        ranked.append(fit)
+
+    already = set()
+    for earlier in range(variant):
+        prior = _ROUTE_CACHE.get(
+            _cache_key(shape, target_km, mode, lat, lon, earlier))
+        if prior and prior.get("mark"):
+            already.add(prior["mark"])
+    unseen = [f for f in ranked if f["mark"] not in already]
+    exhausted = not unseen
+    fresh = unseen or ranked
+    best = fresh[0]
 
     dense = resample_by_arclength(shape, 4000)
     upright = place_shape(np.vstack([dense, dense[:1]]),
@@ -709,6 +754,20 @@ def _build_route_uncached(shape: str, target_km: float, mode: str,
             # walk over streets approximating the template, not the template,
             # so its own orientation drifts from the request.
             "rotation_deg": round(float(best["rotation"]), 1),
+            "variant": variant, "variants": len(ranked), "mark": best["mark"],
+            # How many DIFFERENT routes are still on offer after this one, so
+            # the page can stop offering 「換一個」 rather than handing back a
+            # route the rider has already rejected.
+            # AN UPPER BOUND WHEN THE SEARCH STOPPED EARLY. Variant 0 quits at
+            # the first placement good enough, so it genuinely does not know
+            # how many others exist - and reporting the 0 it can see hides the
+            # button from every rider who got a good first answer, which is
+            # most of them. The count the page shows is what is left to TRY,
+            # and running out is reported honestly when it happens.
+            "more": (0 if exhausted else
+                     (N_CANDIDATES - len(fitted) if stopped_early
+                      else max(0, len(fresh) - 1))),
+            "exhausted": exhausted, "stopped_early": stopped_early,
             # Where to reload the network from when this comes back off disk
             # without its street background.
             "_lat": lat, "_lon": lon,
@@ -871,7 +930,8 @@ class Handler(BaseHTTPRequestHandler):
                     shape, target_km, mode,
                     float(body.get("lat", SEARCH_LAT)),
                     float(body.get("lon", SEARCH_LON)),
-                    bool(body.get("force", False))))
+                    bool(body.get("force", False)),
+                    max(0, min(int(body.get("variant", 0)), N_CANDIDATES - 1))))
             else:
                 self._json(404, {"error": "no such endpoint"})
         except Exception:

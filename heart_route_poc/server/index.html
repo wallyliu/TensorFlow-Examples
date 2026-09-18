@@ -212,6 +212,8 @@
       </div>
       <div>
         <p class="verdict" id="quality"></p>
+        <button class="ghost" id="another" type="button" hidden
+                style="margin-bottom:10px">換一個位置</button>
         <p class="caveat" id="fallback" hidden></p>
         <dl id="stats"></dl>
         <a class="download" id="download" href="#" download>下載 GPX</a>
@@ -225,7 +227,7 @@
 <script>
 (function () {
   var state = { mode: "bike", km: 30, shape: null, text: null, emoji: null,
-                shapes: [] };
+                variant: 0, shapes: [] };
   state.view = "map";
   state.last = null;
   state.upright = true;
@@ -571,6 +573,7 @@
     // it under. That name lives in the server's memory, so a restart between
     // searching and pressing the button would turn it into "unknown shape";
     // the character always resolves.
+    if (state.variant) body.variant = state.variant;
     if (state.text) body.text = state.text;
     else if (state.emoji) body.emoji = state.emoji;
     else body.shape = state.shape;
@@ -588,6 +591,15 @@
         // The service has always computed a verdict and the page has never
         // shown it, so the one number a rider actually wants - will anybody
         // know what this is - only ever existed in the JSON.
+        // 「換一個」 and not 「重新產生」: the search has no random component,
+        // so asking for the same thing again returns the same route to the
+        // byte. What a rider who says 「不像」 wants is the same shape drawn
+        // somewhere else, and the server keeps the runners-up for exactly that.
+        $("another").hidden = !r.more;
+        // The count is an upper bound when the search stopped early, so it is
+        // written as 「最多」 rather than promising routes that may not exist.
+        $("another").textContent = r.stopped_early
+          ? "換一個位置" : "換一個位置（還有 " + (r.more || 0) + " 個）";
         $("quality").textContent = r.quality_message || "";
         $("quality").className = "verdict "
           + (r.quality === "good" ? "ok"
@@ -691,7 +703,11 @@
     renderShapes();
     if (state.text || $("text").value.trim()) checkText();
   });
-  $("go").addEventListener("click", go);
+  $("go").addEventListener("click", function () { state.variant = 0; go(); });
+  $("another").addEventListener("click", function () {
+    state.variant = (state.variant || 0) + 1;
+    go();
+  });
   // The distance readout is only touched when the slider moves, so on first
   // paint it showed whatever number the markup was written with - 10.0, while
   // the slider, the state and the "too short" warnings all said 30. Read it

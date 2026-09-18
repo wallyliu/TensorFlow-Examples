@@ -1794,3 +1794,39 @@ STILL NOT DONE, and it is the rider's original suggestion: serving a NEARBY
 distance from a precomputed one. That needs a product decision first, because
 `width_m` comes from `target_km` - answering a 28 km request with a 30 km route
 means the rider rides 30, and the page would have to say so.
+
+
+## 52. 「換一個位置」, and two bugs that made it a button that did nothing
+
+A rider who looks at a route and says 「不像」 needs something to press, and
+「重新產生」 cannot be it: the search has no random component, so the same
+request returns the same route to the byte. What they actually want is the same
+shape drawn SOMEWHERE ELSE, and the search already fits several placements and
+keeps the best - so the runners-up are the feature.
+
+`variant` is that. It joins the cache key, so each placement is stored and
+re-served like any other route, and `more` says how many are left.
+
+TWO BUGS, BOTH FOUND BY LOOKING AT THE COORDINATES RATHER THAN THE SUMMARY.
+Variant 1 of the gear came back 24.5 km at distance 0.166 - exactly variant 0 -
+twice over, for two different reasons:
+
+  TWO PLACEMENTS CAN FIT THE SAME ROUTE. `select_candidates` keeps its centres
+  MIN_SEPARATION_M apart, but centres that far apart still snap onto the same
+  junctions. Deduplicated on the route now, not on the placement.
+
+  THE TWO RUNS RANKED DIFFERENT SETS. Variant 0 stops early at the first good
+  placement; variant 1 searches all six. The gear's second-best out of six was
+  the one the early stop had already returned. So a variant now also excludes
+  whatever the lower variants of the same request handed back, which the cache
+  is holding anyway.
+
+AND THE COUNT HAD TO BE HONEST ABOUT NOT KNOWING. Variant 0 stops early, so it
+cannot say how many alternatives exist - and reporting the 0 it can see hid the
+button from every rider whose first answer was good, which is most of them. It
+reports the candidates not yet tried, and the page drops the number in that
+case rather than promising routes that may not exist:
+
+    first       換一個位置
+    after one   換一個位置（還有 1 個）
+    after two   hidden - there were three, all seen

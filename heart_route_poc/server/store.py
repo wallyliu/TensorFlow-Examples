@@ -109,8 +109,12 @@ class Store:
                 stale.append(key)
                 continue
             parts = key.split("|")
-            out[(parts[0], float(parts[1]), parts[2],
-                 float(parts[3]), float(parts[4]))] = json.loads(answer)
+            if len(parts) != 6:          # written before variants existed
+                dropped += 1
+                stale.append(key)
+                continue
+            out[(parts[0], float(parts[1]), parts[2], float(parts[3]),
+                 float(parts[4]), int(parts[5]))] = json.loads(answer)
         if stale:
             with _lock:
                 self._db.executemany("DELETE FROM routes WHERE key = ?",
