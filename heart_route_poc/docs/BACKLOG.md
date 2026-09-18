@@ -1715,3 +1715,40 @@ suggestion - serve a nearby distance from a precomputed set - is still open.
 That one needs a product decision first: `width_m` comes from `target_km`, so
 answering a 28 km request with a 30 km route means the rider rides 30. Worth
 doing, and worth saying on the page when it happens.
+
+
+## 50. Type a word, get a shape - 1,266 of them, offline
+
+The shape list was 26 drawings, and a rider who wanted a castle had no way to
+ask for one. `shapes.emoji`'s tracer was never tied to its PACK - it takes any
+character the font has a glyph for - so what was missing was only the step from
+a typed word to that character.
+
+THE WORDS COME FROM UNICODE'S OWN CLDR ANNOTATIONS, Traditional Chinese and
+English, not from a table I wrote. That is the difference between a feature and
+a demo: a hand-written list of a hundred nouns covers whatever I happened to
+think of. 狗 finds 🐕 before 🐶 and 🌭; 恐龍 finds 🦖 and 🦕; a pasted emoji
+outranks every word match.
+
+THE INDEX IS BUILT, NOT FETCHED. Every candidate has to survive the whole
+pipeline at build time - the font has the glyph, the tracer produces a curve,
+`describe.check` passes it, `feasibility` can size it - and only then does it
+get a row. 1,266 in, 27 refused, 216 KB committed. A rider typing 狗 cannot
+reach a crash and does not need the network.
+
+TWO PATHS, AND THIS IS THE OTHER ONE. `/api/describe` asks a model to invent an
+outline; it needs credentials and returns a drawing nothing has checked. This
+searches pictures that already passed. They are complementary and the model one
+is left alone.
+
+WHAT THE UI HAD TO SAY, and the reason this is not just a bigger dropdown: the
+26 built-ins carry rater counts and these carry none. Every hit says 「還沒有人
+看過」 on its own card, and the route comes back 「還沒有人看過這個圖案，不知道
+認不認得出來」. POC 39 found the drawing is the only thing that predicts naming,
+so widening what can be ASKED for is not widening what is known to work, and
+the page must not let the two look alike.
+
+The request sends the EMOJI, not the `q_1F3F0` the search registered it under.
+That name lives in the server's memory; a restart between searching and pressing
+the button would turn it into "unknown shape", while the character always
+resolves. 🏰 at 25 km: 24.5 km, distance 0.098, excursion 0.072, 40 seconds.

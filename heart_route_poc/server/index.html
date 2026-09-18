@@ -170,6 +170,17 @@
   </div>
 
   <div class="card">
+    <p class="eyebrow" style="margin-bottom:12px">找不到想要的？打一個東西上去</p>
+    <div class="textrow">
+      <input type="text" id="query" maxlength="20" placeholder="狗、城堡、披薩、火車…"
+             autocomplete="off" spellcheck="false">
+      <button class="primary" id="use-query" type="button">找</button>
+    </div>
+    <p class="verdict" id="query-note"></p>
+    <div class="shapes" id="hits" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
     <p class="eyebrow" style="margin-bottom:12px">或者，打一個字上去</p>
     <div class="textrow">
       <input type="text" id="text" maxlength="12" placeholder="LOVE、TAIPEI、GO…"
@@ -213,7 +224,8 @@
 
 <script>
 (function () {
-  var state = { mode: "bike", km: 30, shape: null, text: null, shapes: [] };
+  var state = { mode: "bike", km: 30, shape: null, text: null, emoji: null,
+                shapes: [] };
   state.view = "map";
   state.last = null;
   state.upright = true;
@@ -342,6 +354,65 @@
          + '<path d="' + d + 'Z"/></svg>';
   }
 
+  // --- typed words -------------------------------------------------------
+  // The built-in list is 26 drawings that went through rater rounds; this
+  // reaches 1,266 that did not. So a hit says so on its own card rather than
+  // borrowing the confidence of the shelf it is sitting on.
+  var hits = [];
+
+  function renderHits() {
+    var box = $("hits");
+    box.innerHTML = "";
+    hits.forEach(function (h) {
+      var ok = h.min_km <= state.km;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "shape";
+      b.disabled = !ok;
+      b.setAttribute("aria-pressed", String(state.emoji === h.emoji));
+      b.innerHTML = "<span class=\"thumb\">" + thumbSvg(h.outline) + "</span>"
+        + "<span><b>" + h.emoji + " " + h.label + "</b><small>"
+        + (ok ? "最少 " + h.min_km + " km · 還沒有人看過"
+              : "距離不夠 · 至少要 " + h.min_km + " km") + "</small></span>";
+      b.addEventListener("click", function () {
+        state.emoji = h.emoji;
+        state.shape = h.name;
+        state.text = null;
+        $("verdict").textContent = "";
+        $("text-caveat").hidden = true;
+        renderShapes();
+        renderHits();
+        $("go").disabled = false;
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function runQuery() {
+    var q = $("query").value.trim();
+    if (!q) { hits = []; renderHits(); $("query-note").textContent = ""; return; }
+    $("query-note").textContent = "找…";
+    $("query-note").className = "verdict";
+    api("/api/search", { query: q, mode: state.mode,
+                         lat: state.place.lat, lon: state.place.lon })
+      .then(function (r) {
+        hits = r.hits || [];
+        renderHits();
+        if (!hits.length) {
+          $("query-note").textContent = "找不到「" + q + "」。試試別的說法，"
+            + "或直接貼一個 emoji 上來。";
+          $("query-note").className = "verdict bad";
+        } else {
+          $("query-note").textContent = "這些都畫得出來，但都還沒有人實測過認不認得出來。";
+          $("query-note").className = "verdict";
+        }
+      })
+      .catch(function (e) {
+        $("query-note").textContent = "連不上伺服器：" + e.message;
+        $("query-note").className = "verdict bad";
+      });
+  }
+
   function renderShapes() {
     var box = $("shapes");
     box.innerHTML = "";
@@ -364,6 +435,8 @@
       b.addEventListener("click", function () {
         state.shape = s.name;
         state.text = null;
+        state.emoji = null;
+        renderHits();
         $("verdict").textContent = "";
         $("text-caveat").hidden = true;
         renderShapes();
@@ -488,7 +561,13 @@
     $("status").className = "status";
     var body = { target_km: state.km, mode: state.mode,
                  lat: state.place.lat, lon: state.place.lon };
-    if (state.text) body.text = state.text; else body.shape = state.shape;
+    // An emoji is sent AS an emoji, not as the q_1F415 the search registered
+    // it under. That name lives in the server's memory, so a restart between
+    // searching and pressing the button would turn it into "unknown shape";
+    // the character always resolves.
+    if (state.text) body.text = state.text;
+    else if (state.emoji) body.emoji = state.emoji;
+    else body.shape = state.shape;
     api("/api/route", body)
       .then(function (r) {
         $("go").disabled = false;
@@ -560,6 +639,7 @@
           return;
         }
         state.text = text;
+    state.emoji = null;
         state.shape = null;
         renderShapes();
         $("text-caveat").hidden = false;
@@ -580,6 +660,10 @@
   }
 
   $("use-text").addEventListener("click", checkText);
+  $("use-query").addEventListener("click", runQuery);
+  $("query").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") runQuery();
+  });
   $("text").addEventListener("keydown", function (e) {
     if (e.key === "Enter") checkText();
   });

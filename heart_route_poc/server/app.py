@@ -72,6 +72,7 @@ from routeshape.export import to_gpx                                  # noqa: E4
 from routeshape.shapes.library import SHAPES, register                       # noqa: E402
 import routeshape.shapes.pack as shape_pack                                                # noqa: E402
 import routeshape.shapes.emoji as emoji_pack                                              # noqa: E402
+import routeshape.shapes.emoji_index as emoji_index                                      # noqa: E402
 import routeshape.describe as describe_shape                                            # noqa: E402
 
 # The wider library. Registered at import so /api/shapes lists them and the
@@ -351,6 +352,37 @@ def describe(body: dict) -> dict:
     return {**result, "shape": name,
             "min_km": round(rf.min_distance_km(name, mode, scale), 1),
             "recognition_measured": False}
+
+
+def search(query: str, mode: str, lat: float, lon: float,
+           limit: int = emoji_index.MAX_HITS) -> dict:
+    """Typed words to shapes, out of every emoji the font can draw.
+
+    A SECOND, OFFLINE PATH, deliberately not the one in `describe`. That one
+    asks a model to invent an outline, which needs credentials and produces a
+    drawing nobody has checked; this one searches 1,266 pictures that already
+    passed the tracer, `describe.check` and `feasibility` at build time. A
+    rider typing 狗 gets an answer in milliseconds and cannot reach a crash.
+
+    The minimum distance is recomputed here rather than read from the index,
+    because the index was built on Taipei's street scale and a rider in Keelung
+    is asking about Keelung's.
+    """
+    scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
+    hits = []
+    for row in emoji_index.find(query, limit):
+        name = emoji_index.register(row["c"])
+        if name is None:                      # traced at build time, not now
+            continue
+        LABELS.setdefault(name, row["n"])
+        hits.append({"name": name, "emoji": row["c"], "label": row["n"],
+                     "n_min": rf.n_min(name),
+                     "min_km": round(rf.min_distance_km(name, mode, scale), 1),
+                     "outline": outline_for(name),
+                     "recognition_measured": rc.observed(name) is not None,
+                     "recognition_seen": rc.observed(name)})
+    return {"query": query, "mode": mode, "street_scale_m": round(scale),
+            "hits": hits}
 
 
 def places() -> list[dict]:
@@ -743,7 +775,28 @@ class Handler(BaseHTTPRequestHandler):
             self._json(400, {"error": "target_km must be a number"})
             return
 
+        # A rider can ask for a shape by the emoji itself. Resolving it here
+        # means /api/plan and /api/route need no branch of their own - by the
+        # time they run it is an ordinary registered shape.
+        if body.get("emoji"):
+            resolved = emoji_index.register(str(body["emoji"])[:8])
+            if resolved is None:
+                self._json(200, {"status": "error",
+                                 "message": "這個 emoji 畫不出來"})
+                return
+            LABELS.setdefault(resolved, emoji_index.label(str(body["emoji"])[:8]))
+            body["shape"] = resolved
+            shape = resolved
+
         try:
+            if path == "/api/search":
+                self._json(200, search(
+                    str(body.get("query", ""))[:40],
+                    body.get("mode", rf.DEFAULT_MODE),
+                    float(body.get("lat", SEARCH_LAT)),
+                    float(body.get("lon", SEARCH_LON))))
+                return
+
             if path == "/api/describe":
                 self._json(200, describe(body))
                 return
