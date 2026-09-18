@@ -767,31 +767,53 @@ RETIRED = {
     "rabbit": rabbit, "cat_head": cat_head,
     **BEATEN_BY_TRACING,
     **NAMED_BY_NOBODY,
+    "cat": cat, "witch_hat": witch_hat,
 }
 
 PACK = {
     "taiwan": taiwan, "fish": fish,
-    "music_note": music_note, "house": house, "cup": cup, "cat": cat,
+    "music_note": music_note, "house": house, "cup": cup,
     "gear": gear, "plane": plane, "christmas_tree": christmas_tree,
-    "ghost": ghost, "bat": bat, "witch_hat": witch_hat,
+    "ghost": ghost, "bat": bat,
 }
 
 LABELS = {
     "taiwan": "台灣", "fish": "魚",
-    "music_note": "音符", "house": "房子", "cup": "咖啡杯", "cat": "貓",
+    "music_note": "音符", "house": "房子", "cup": "咖啡杯",
     "gear": "齒輪", "plane": "飛機",
     "christmas_tree": "聖誕樹",
-    "ghost": "鬼", "bat": "蝙蝠", "witch_hat": "女巫帽",
+    "ghost": "鬼", "bat": "蝙蝠",
 }
 RETIRED_LABELS = {
     "crown": "皇冠", "lightning": "閃電", "umbrella": "雨傘",
     "rabbit": "兔子", "cat_head": "貓頭", "butterfly": "蝴蝶",
     "crab": "螃蟹", "giraffe": "長頸鹿", "maple": "楓葉", "elephant": "大象",
     "leaf": "葉子", "snowman": "雪人", "gingerbread": "薑餅人",
+    "cat": "貓", "witch_hat": "女巫帽",
 }
-# `elephant` is in both BEATEN_BY_TRACING and NAMED_BY_NOBODY, and the second
-# is what the server reads: a subject nobody can name must not come back
+# `elephant` is in both BEATEN_BY_TRACING and NAMED_BY_NOBODY, and the server
+# reads WITHDRAWN_SUBJECTS below: a subject nobody can name must not come back
 # through its traced twin.
+
+# SUBJECTS THE PAGE NO LONGER OFFERS, whatever the drawing. Two reasons, kept
+# apart because only the first is a closed question.
+#
+#   NAMED BY NOBODY over at least six showings - leaf, snowman, gingerbread,
+#   elephant. There is no version of these that works.
+#
+#   NAMED BY FEWER THAN HALF, which is a product call rather than a rule. A
+#   rider who picks one of these gets a route nobody will read, and an honest
+#   label on the card does not change that - it only means the disappointment
+#   was disclosed in advance. The cat is the painful one: three redraws, 3/13.
+#
+#     cat 3/13   witch_hat 2/6   turtle 0/5   bicycle 0/3   whale 1/5
+#     apple 1/3
+#
+# The turtle and the bicycle are ALSO short of the six-showing rule. They leave
+# under the second reason, not the first, and the sets stay separate so that
+# stays visible.
+BELOW_HALF = {"cat", "witch_hat", "turtle", "bicycle", "whale", "apple"}
+WITHDRAWN_SUBJECTS = set(NAMED_BY_NOBODY) | BELOW_HALF
 
 
 def install() -> list:

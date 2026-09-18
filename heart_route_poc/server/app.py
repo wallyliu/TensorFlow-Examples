@@ -81,16 +81,16 @@ shape_pack.install()
 # street grid, so it survives in the outline and is ground off in the route.
 # It stays in the library for experiments and off the page until a rater round
 # says otherwise.
-# NAMED_BY_NOBODY counts too, and the distinction matters. Retiring the leaf
-# and the snowman took them out of PACK, which would have promoted `e_leaf` and
-# `e_snowman` to "subjects nobody drew by hand" and put them straight back on
-# the page - two subjects three raters failed to name in EVERY arm, the Noto
-# one included. That retirement is about the SUBJECT. The other kind is not:
-# the elephant and the crab were retired because the TRACED version beat what
+# WITHDRAWN_SUBJECTS counts too, and the distinction matters. Taking a shape
+# out of PACK would otherwise promote its traced twin to "a subject nobody drew
+# by hand" and put the subject straight back on the page - `e_leaf` and
+# `e_snowman` would have returned that way, and three raters failed to name
+# them in EVERY arm. A withdrawal is about the SUBJECT. Losing to tracing is
+# not: the crab and the giraffe left PACK because the traced version BEAT what
 # I drew, and the traced version is exactly what belongs here.
 EMOJI_ONLY = [name for name in emoji_pack.PACK
               if name not in shape_pack.PACK
-              and name not in shape_pack.NAMED_BY_NOBODY]
+              and name not in shape_pack.WITHDRAWN_SUBJECTS]
 emoji_pack.install(names=EMOJI_ONLY)
 
 LABELS = {"heart": "愛心", "star5": "五角星", "crescent": "月亮",
@@ -104,10 +104,6 @@ LABELS.update({"e_" + name: emoji_pack.LABELS[name] for name in EMOJI_ONLY})
 # five shapes above the 0.10 a person can see; best-of-6 leaves none. It costs
 # linear time, and that is the whole trade.
 N_CANDIDATES = 6
-# Superseded by recognition.as_good_as_rated - kept because POC 30's fits quote
-# it. Expressed as a recognition rate
-# rather than a shape distance so it means the same thing for every shape.
-EARLY_STOP_RECOGNITION = 0.97
 # How much wider than the shape the network is built. 1.0 gives half a shape
 # width of slack on every side.
 PLACEMENT_SLACK = 1.0

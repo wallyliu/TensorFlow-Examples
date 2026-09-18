@@ -142,17 +142,17 @@ def band(shape: str, distance: float) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 # name: (named, shown, the mean excursion those answers were collected at).
+# Only the shapes the page still offers. A withdrawn subject's row is not kept
+# here - `shapes.pack.WITHDRAWN_SUBJECTS` is why it went, and the answers stay
+# in results/poc39_recalibrate.json, which is the record.
 # The excursion is kept for `as_good_as_rated`, which is a search heuristic and
 # not a claim about recognition - see there.
 OBSERVED = {
     "bat": (8, 9, 0.037),
-    "cat": (3, 13, 0.055),
     "christmas_tree": (11, 11, 0.046),
     "crescent": (3, 6, 0.079),
     "cup": (2, 3, 0.060),
     "e_anchor": (3, 3, 0.061),
-    "e_apple": (1, 3, 0.051),
-    "e_bicycle": (0, 3, 0.070),
     "e_butterfly": (5, 5, 0.054),
     "e_cactus": (5, 5, 0.091),
     "e_crab": (5, 5, 0.054),
@@ -163,8 +163,6 @@ OBSERVED = {
     "e_penguin": (5, 5, 0.057),
     "e_rocket": (2, 3, 0.028),
     "e_sauropod": (2, 3, 0.028),
-    "e_turtle": (0, 5, 0.037),
-    "e_whale": (1, 5, 0.037),
     "fish": (12, 13, 0.043),
     "gear": (3, 3, 0.076),
     "ghost": (6, 9, 0.082),
@@ -176,7 +174,6 @@ OBSERVED = {
     "taiwan": (5, 10, 0.092),
     "trex": (14, 14, 0.062),
     "triangle": (6, 6, 0.047),
-    "witch_hat": (2, 6, 0.044),
 }
 # Rounds 32 onward offered fifteen or so subjects plus "cannot tell", so a
 # blind guess lands about 7% of the time. The 0.20 above is POC 29's, from a

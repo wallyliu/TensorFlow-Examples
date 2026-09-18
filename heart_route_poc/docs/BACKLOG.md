@@ -1628,3 +1628,50 @@ are for. The rider has said there are no more raters, so they stay at 0/5 and
 failing, and the page does not pretend it is.
 
 32 shapes.
+
+
+## 48. Withdrawn on a product call, dead code out, and a hypothesis worth a round
+
+### Six subjects leave the page
+
+    cat 3/13   witch_hat 2/6   turtle 0/5   bicycle 0/3   whale 1/5   apple 1/3
+
+Named by fewer than half the people who saw them. This is a product call and
+not the retirement rule: the turtle and the bicycle are short of six showings,
+and the honest label on the card was already there. The label does not help -
+it only means the disappointment was disclosed before the ride rather than
+after it.
+
+The cat is the one that stings. Three redraws across this project, a rater who
+read the first one as Pikachu, a body-and-tail rebuild, and 3 of 13.
+
+`pack.WITHDRAWN_SUBJECTS` is what the server reads now, and it is the union of
+NAMED_BY_NOBODY (the rule) and BELOW_HALF (the call). The two sets stay
+separate so which one a subject left under is still visible. 26 shapes.
+
+### Dead code
+
+`EARLY_STOP_RECOGNITION` had not been read since `as_good_as_rated` replaced
+it. The distance curve above it in recognition.py stays, because POC 30's fits
+quote it and rewriting history is worse than a labelled fossil.
+
+### The rider's hypothesis about OpenMoji, and how to test it
+
+Why OpenMoji lost 5-0 has been unexplained since POC 40 withdrew my "too fine
+for the street grid" story. The rider's reading: OpenMoji is drawn in COLOUR,
+and a route is a LINE, so its geometry is built for something we cannot use.
+
+That is testable and cheap, because OpenMoji ships both:
+
+    color/svg/1F418.svg   4368 bytes, 2 fills, 5 strokes
+    black/svg/1F418.svg   1880 bytes, 0 fills, 5 strokes
+
+The black variant is PURE STROKE - no filled regions at all. If the hypothesis
+is right, tracing `black/` should beat tracing `color/`, because the drawing is
+already the thing a route can be. `shapes.openmoji` needs only its SOURCE url
+changed and its filled-path branch made optional to try it.
+
+WHAT WOULD MAKE IT A FAIR TEST and not another round of my own taste: the same
+instrument as POC 37 - the same subjects, one arm per rater, blind. The honest
+prior is poor, because POC 39 says no property of the route predicts naming and
+this is a claim about the drawing, which is the one place the data says to look.
