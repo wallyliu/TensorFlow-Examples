@@ -1484,3 +1484,52 @@ route-level quantity just measured worse than knowing nothing at predicting
 whether a person names the result. Turning it on would need a rater round to
 prove the 5.5 m is visible, and on the evidence the round would come back null.
 Shelved with the measurement, not with a shrug.
+
+
+## 46. The resolution floor does not predict anything, and it takes a story with it
+
+I proposed this one as the single thing worth building: a scale-space measure
+of how much of a drawing lives below the resolution a street network can hold.
+`legibility.resolution_error` resamples the template at one point per street
+and reports the worst gap as a fraction of width - a FLOOR on excursion that
+needs no network and no fitting, computable before anything is ridden.
+
+It predicts nothing.
+
+    per answer, mean held-out log-loss   none        0.6598
+                                         distance    0.6560
+                                         excursion   0.6589
+                                         resolution  0.6598   <- exactly the null
+                                         drawing     0.5049
+
+    per drawing, 28 seen 3+ times        Spearman +0.057, p = 0.772
+
+The table says why at a glance. The snowman, named by nobody in nine showings,
+has one of the LOWEST floors (0.0125); the plane, named by all fifteen, has one
+of the highest (0.0247). The heart (11/11) and the cat's head (0/4) sit two
+rows apart at the bottom. What the measure actually ranks is how wiggly an
+outline is, and wiggliness has nothing to do with whether a person can name the
+subject.
+
+AND IT WITHDRAWS THE MECHANISM I HAD BEEN ASSERTING SINCE BACKLOG 43. The story
+for OpenMoji's three losses was "the interior detail is finer than the street
+grid, so it survives in the outline and is ground off in the route". The floors
+say otherwise:
+
+    house    0.0269   3/3          o_house   0.0282   0/1
+    plane    0.0247  15/15         o_plane   0.0283   1/2
+
+Indistinguishable. Whatever beat the OpenMoji drawings, it was not resolution.
+That explanation is withdrawn; the observation (they lost, p = 0.016) stands
+and is now unexplained.
+
+THE USEFUL PART IS THE ABSOLUTE NUMBERS. Every drawing in the library floors
+between 0.009 and 0.041 of its width, against an excursion limit of 0.08. At
+the sizes people actually ride, THE STREET NETWORK IS NOT THE BOTTLENECK - it
+can resolve everything we draw, twice over. That is consistent with POC 39
+finding the drawing worth 23% of log-loss and every route-level measure worth
+nothing: the limit on being recognised is the picture, not the map.
+
+The module is kept. `vanishing` still says which arc of a drawing the scale
+cannot hold, which is the right diagnostic for the day a shape IS too fine for
+a city - Taipei at 25 km is simply not that day.

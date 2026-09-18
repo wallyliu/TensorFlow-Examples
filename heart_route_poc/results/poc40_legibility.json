@@ -1,0 +1,462 @@
+{
+ "models": {
+  "none": {
+   "cv": 0.6597630609003982
+  },
+  "distance": {
+   "cv": 0.6559503589803958
+  },
+  "excursion": {
+   "cv": 0.65891697232986
+  },
+  "resolution": {
+   "cv": 0.6597669891160028
+  },
+  "resolution+excursion": {
+   "cv": 0.6589208743733491
+  },
+  "drawing": {
+   "cv": 0.5049080863196547
+  },
+  "drawing+resolution": {
+   "cv": 0.5048989258744211
+  }
+ },
+ "per_drawing": {
+  "bat": {
+   "named": 8,
+   "shown": 9,
+   "resolution": 0.016,
+   "width_m": 5882,
+   "excursion": 0.0372
+  },
+  "butterfly": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0233,
+   "width_m": 4797,
+   "excursion": 0.0494
+  },
+  "cat": {
+   "named": 3,
+   "shown": 13,
+   "resolution": 0.0202,
+   "width_m": 3694,
+   "excursion": 0.055
+  },
+  "cat_head": {
+   "named": 0,
+   "shown": 4,
+   "resolution": 0.0094,
+   "width_m": 3862,
+   "excursion": 0.1363
+  },
+  "christmas_tree": {
+   "named": 11,
+   "shown": 11,
+   "resolution": 0.0164,
+   "width_m": 4668,
+   "excursion": 0.0464
+  },
+  "crab": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0152,
+   "width_m": 4441,
+   "excursion": 0.0679
+  },
+  "crescent": {
+   "named": 3,
+   "shown": 6,
+   "resolution": 0.0282,
+   "width_m": 3271,
+   "excursion": 0.0789
+  },
+  "crown": {
+   "named": 0,
+   "shown": 4,
+   "resolution": 0.0406,
+   "width_m": 3073,
+   "excursion": 0.0678
+  },
+  "cup": {
+   "named": 2,
+   "shown": 3,
+   "resolution": 0.0228,
+   "width_m": 4515,
+   "excursion": 0.0598
+  },
+  "e_bat": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0227,
+   "width_m": 5036,
+   "excursion": 0.0353
+  },
+  "e_butterfly": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0264,
+   "width_m": 4826,
+   "excursion": 0.0541
+  },
+  "e_cactus": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0134,
+   "width_m": 6843,
+   "excursion": 0.0907
+  },
+  "e_cat": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0105,
+   "width_m": 8652,
+   "excursion": 0.0755
+  },
+  "e_christmas_tree": {
+   "named": 1,
+   "shown": 1,
+   "resolution": 0.023,
+   "width_m": 3854,
+   "excursion": 0.0441
+  },
+  "e_crab": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0186,
+   "width_m": 6163,
+   "excursion": 0.0541
+  },
+  "e_cup": {
+   "named": 0,
+   "shown": 1,
+   "resolution": 0.0216,
+   "width_m": 4806,
+   "excursion": 0.0518
+  },
+  "e_elephant": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0306,
+   "width_m": 3867,
+   "excursion": 0.0426
+  },
+  "e_fish": {
+   "named": 1,
+   "shown": 1,
+   "resolution": 0.0207,
+   "width_m": 5386,
+   "excursion": 0.034
+  },
+  "e_gear": {
+   "named": 3,
+   "shown": 3,
+   "resolution": 0.0247,
+   "width_m": 3513,
+   "excursion": 0.0503
+  },
+  "e_giraffe": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0212,
+   "width_m": 3620,
+   "excursion": 0.0577
+  },
+  "e_house": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0231,
+   "width_m": 4710,
+   "excursion": 0.0474
+  },
+  "e_leaf": {
+   "named": 0,
+   "shown": 1,
+   "resolution": 0.0103,
+   "width_m": 5890,
+   "excursion": 0.027
+  },
+  "e_maple": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0247,
+   "width_m": 4500,
+   "excursion": 0.0321
+  },
+  "e_mushroom": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0118,
+   "width_m": 5085,
+   "excursion": 0.0629
+  },
+  "e_music_note": {
+   "named": 3,
+   "shown": 3,
+   "resolution": 0.016,
+   "width_m": 3353,
+   "excursion": 0.0663
+  },
+  "e_penguin": {
+   "named": 2,
+   "shown": 2,
+   "resolution": 0.0197,
+   "width_m": 3885,
+   "excursion": 0.0567
+  },
+  "e_plane": {
+   "named": 1,
+   "shown": 1,
+   "resolution": 0.0262,
+   "width_m": 4653,
+   "excursion": 0.0322
+  },
+  "e_snowman": {
+   "named": 0,
+   "shown": 1,
+   "resolution": 0.0151,
+   "width_m": 4145,
+   "excursion": 0.0555
+  },
+  "e_turtle": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0171,
+   "width_m": 5358,
+   "excursion": 0.0374
+  },
+  "e_whale": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0208,
+   "width_m": 4858,
+   "excursion": 0.037
+  },
+  "elephant": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0238,
+   "width_m": 3916,
+   "excursion": 0.031
+  },
+  "fish": {
+   "named": 12,
+   "shown": 13,
+   "resolution": 0.0247,
+   "width_m": 4398,
+   "excursion": 0.0428
+  },
+  "gear": {
+   "named": 3,
+   "shown": 3,
+   "resolution": 0.0261,
+   "width_m": 3548,
+   "excursion": 0.0759
+  },
+  "ghost": {
+   "named": 6,
+   "shown": 9,
+   "resolution": 0.0238,
+   "width_m": 4644,
+   "excursion": 0.0823
+  },
+  "gingerbread": {
+   "named": 0,
+   "shown": 6,
+   "resolution": 0.0156,
+   "width_m": 3316,
+   "excursion": 0.0822
+  },
+  "giraffe": {
+   "named": 1,
+   "shown": 2,
+   "resolution": 0.0216,
+   "width_m": 4024,
+   "excursion": 0.0396
+  },
+  "heart": {
+   "named": 11,
+   "shown": 11,
+   "resolution": 0.0027,
+   "width_m": 4971,
+   "excursion": 0.0558
+  },
+  "house": {
+   "named": 3,
+   "shown": 3,
+   "resolution": 0.0269,
+   "width_m": 4494,
+   "excursion": 0.0553
+  },
+  "leaf": {
+   "named": 0,
+   "shown": 3,
+   "resolution": 0.0265,
+   "width_m": 4169,
+   "excursion": 0.0454
+  },
+  "lightning": {
+   "named": 0,
+   "shown": 4,
+   "resolution": 0.0208,
+   "width_m": 2994,
+   "excursion": 0.0606
+  },
+  "maple": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0262,
+   "width_m": 4381,
+   "excursion": 0.0421
+  },
+  "music_note": {
+   "named": 15,
+   "shown": 15,
+   "resolution": 0.0213,
+   "width_m": 3460,
+   "excursion": 0.063
+  },
+  "o_bat": {
+   "named": 1,
+   "shown": 1,
+   "resolution": 0.0215,
+   "width_m": 5264,
+   "excursion": 0.0331
+  },
+  "o_cat": {
+   "named": 1,
+   "shown": 1,
+   "resolution": 0.0194,
+   "width_m": 5096,
+   "excursion": 0.0396
+  },
+  "o_christmas_tree": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0106,
+   "width_m": 6497,
+   "excursion": 0.0708
+  },
+  "o_cup": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0153,
+   "width_m": 8045,
+   "excursion": 0.0767
+  },
+  "o_fish": {
+   "named": 1,
+   "shown": 2,
+   "resolution": 0.019,
+   "width_m": 6636,
+   "excursion": 0.0321
+  },
+  "o_ghost": {
+   "named": 3,
+   "shown": 3,
+   "resolution": 0.0148,
+   "width_m": 6576,
+   "excursion": 0.1295
+  },
+  "o_house": {
+   "named": 0,
+   "shown": 1,
+   "resolution": 0.0282,
+   "width_m": 3678,
+   "excursion": 0.061
+  },
+  "o_leaf": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.0133,
+   "width_m": 5771,
+   "excursion": 0.041
+  },
+  "o_plane": {
+   "named": 1,
+   "shown": 2,
+   "resolution": 0.0283,
+   "width_m": 3913,
+   "excursion": 0.0519
+  },
+  "o_snowman": {
+   "named": 0,
+   "shown": 2,
+   "resolution": 0.025,
+   "width_m": 2488,
+   "excursion": 0.0357
+  },
+  "plane": {
+   "named": 15,
+   "shown": 15,
+   "resolution": 0.0247,
+   "width_m": 4215,
+   "excursion": 0.0487
+  },
+  "rabbit": {
+   "named": 0,
+   "shown": 4,
+   "resolution": 0.0203,
+   "width_m": 2623,
+   "excursion": 0.0464
+  },
+  "snowman": {
+   "named": 0,
+   "shown": 9,
+   "resolution": 0.0125,
+   "width_m": 2999,
+   "excursion": 0.0622
+  },
+  "star5": {
+   "named": 11,
+   "shown": 11,
+   "resolution": 0.0233,
+   "width_m": 4306,
+   "excursion": 0.0532
+  },
+  "taiwan": {
+   "named": 5,
+   "shown": 10,
+   "resolution": 0.0115,
+   "width_m": 3409,
+   "excursion": 0.0921
+  },
+  "trex": {
+   "named": 11,
+   "shown": 11,
+   "resolution": 0.018,
+   "width_m": 5159,
+   "excursion": 0.0612
+  },
+  "triangle": {
+   "named": 6,
+   "shown": 6,
+   "resolution": 0.0191,
+   "width_m": 4803,
+   "excursion": 0.0466
+  },
+  "umbrella": {
+   "named": 0,
+   "shown": 4,
+   "resolution": 0.0189,
+   "width_m": 5682,
+   "excursion": 0.0721
+  },
+  "witch_hat": {
+   "named": 2,
+   "shown": 6,
+   "resolution": 0.0198,
+   "width_m": 3955,
+   "excursion": 0.0443
+  }
+ },
+ "spearman_resolution": [
+  0.057359359222100254,
+  0.771879082646849
+ ],
+ "spearman_excursion": [
+  -0.15566631356333713,
+  0.4289476488167825
+ ]
+}
