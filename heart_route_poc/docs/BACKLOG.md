@@ -1533,3 +1533,38 @@ nothing: the limit on being recognised is the picture, not the map.
 The module is kept. `vanishing` still says which arc of a drawing the scale
 cannot hold, which is the right diagnostic for the day a shape IS too fine for
 a city - Taipei at 25 km is simply not that day.
+
+
+## 47. Round five: every shape on the page now has a number
+
+Sixteen traced subjects and three anchors, one rater so far. Anchors 3/3, so
+the round is sound. Traced 10/16.
+
+Folded into the pool - 278 answers, 11 rater-sessions, 5 rounds - the model
+comparison is unchanged and slightly sharper:
+
+        none 0.6628   distance 0.6589   excursion 0.6619   drawing 0.5019
+
+THE CACTUS DID IT AGAIN. Named, at shape distance 0.300 and excursion 0.091 -
+over the limit the service enforces. That is the second rater in two rounds
+naming a route both of our metrics call unusable, and it is now 3/3. If one
+observation had to carry the whole argument of the last two days, it is this
+one.
+
+WHERE THE SIXTEEN STAND, pooled over POC 36 and 41:
+
+    3/3   crab  giraffe  penguin  maple  cactus  butterfly
+    2/3   mushroom
+    1/3   whale
+    1/1   anchor  guitar  sauropod
+    0/3   elephant  turtle
+    0/1   apple  rocket  bicycle
+
+The elephant is the one to sit with. It was the shape POC 35 traced to rescue -
+the hand-drawn one was retired for losing to it - and three raters in two
+rounds have now failed to name either version. Tracing did not save that
+subject; it only made the losing version different.
+
+`recognition.OBSERVED` has 33 rows and the page has no unrated shapes left. Six
+of those rows rest on one answer, which is why the wording carries the counts:
+「這個圖案給 1 個人看過，1 個認出來」 cannot be mistaken for a rate.

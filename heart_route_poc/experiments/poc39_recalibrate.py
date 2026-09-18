@@ -58,7 +58,7 @@ from routeshape.metrics import excursion
 from routeshape.paths import RESULTS
 from routeshape.shapes.library import SHAPES, resample_by_arclength
 
-ROUNDS = (32, 33, 36, 37)
+ROUNDS = (32, 33, 36, 37, 41)
 WELL_SAMPLED = 6      # answers before a per-drawing rate is worth fitting
 OUT = RESULTS / "poc39_recalibrate.json"
 
