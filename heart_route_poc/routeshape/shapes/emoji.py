@@ -241,14 +241,24 @@ def install(prefix: str = "e_", names: list | None = None) -> list:
     """
     import routeshape.shapes.library as sl
 
-    installed = []
+    installed, failed = [], []
     for name, (character, _label) in PACK.items():
         if names is not None and name not in names:
             continue
         try:
             sl.register(prefix + name, outline(character))
         except Exception as exc:      # noqa: BLE001 - one bad glyph is not fatal
-            print(f"  {name}: {exc}")
+            failed.append((name, str(exc)))
             continue
         installed.append(prefix + name)
+    if failed:
+        # ONE LINE, NOT ONE PER SHAPE. A missing font fails every glyph for the
+        # same reason, and eleven identical paragraphs buried the one line that
+        # says what to do about it.
+        reasons = {reason for _, reason in failed}
+        if len(reasons) == 1:
+            print(f"  {len(failed)} emoji shapes not installed: {failed[0][1]}")
+        else:
+            for name, reason in failed:
+                print(f"  {name}: {reason}")
     return installed
