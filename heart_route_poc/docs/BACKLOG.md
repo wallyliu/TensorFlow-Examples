@@ -1961,9 +1961,30 @@ SO THE ORDER OF WORK IS: make it fast, then parallelism is nearly free, because
        densified geometry once per network and make `route_to_xy` a
        concatenation instead of a per-call rebuild.
 
-HONEST ARITHMETIC. Step 1-3 takes 9.85 s to about 0.3 and the whole step to
-~2.9 s: 4x, not 33x, because the other 2.6 s does not move. With step 4 as
-well, plausibly 10-15x - 152 minutes of precompute becoming 10 to 15.
+HONEST ARITHMETIC, AND THE FIRST VERSION OF THIS PARAGRAPH WAS WRONG. Steps 1-3
+take that 9.85 s to about 0.3 and the whole STEP to ~2.9 s, and with step 4
+perhaps 0.8 - 10 to 15x on the step. I then wrote that 152 minutes of
+precompute would become 10 to 15, which is the step's ratio applied to the
+whole request. It is not the whole request.
+
+Profiled end to end, one online route (gear, 30 km, 18.7 s under the profiler):
+
+    refine                      14.3 s   77%
+      compute_transition_costs   9.5 s   51%
+        nx dijkstra              6.5 s   35%   <- changed by this work
+        _path_deviation          2.9 s   16%   <- changed by this work
+      build_candidate_sets       4.8 s   25%   <- not touched
+    streets_near                 3.4 s   18%   <- not touched
+
+Dijkstra is 35% of a REQUEST, not 78%. Removing it gives 1.5x; removing the
+deviation cost as well gives about 1.9x. So roughly 2x online and 2x on
+precompute - 152 minutes to about 80, not to 15.
+
+The exception is the long routes. A 100 km shape does not stop early, so all
+six placements run and transition costs take a larger share; that batch should
+see 2.5-3x. And `build_candidate_sets` at 25% is the next thing worth reading
+if speed ever matters more than it does now - though it is already numpy and
+scipy, so there is no cheap win waiting there.
 
 HOW TO KNOW IT IS STILL CORRECT, and this is the part worth the most: the route
 store already holds 76 fitted routes with a fingerprint of the outline each was
