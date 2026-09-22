@@ -14,6 +14,9 @@ python server/app.py          # http://127.0.0.1:8000
 python -m routeshape.region.download --region north --mode bike --near 25.04,121.54
 ```
 
+想知道它實際上怎麼運作 —— 演算法、尺寸怎麼算、快取怎麼分層、時間花在哪 ——
+看 **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**。
+
 ## 這個 repo 怎麼分
 
 | 目錄 | 是什麼 |
@@ -21,7 +24,7 @@ python -m routeshape.region.download --region north --mode bike --near 25.04,121
 | `routeshape/` | **產品**。server 用到的全部在這裡，而且不依賴 `experiments/` 的任何東西。 |
 | `server/` | HTTP 服務（純標準函式庫）和網頁 |
 | `experiments/` | 51 個 POC 腳本。每一個常數都是這裡量出來的，留著是為了可以回頭查證。 |
-| `docs/` | `BACKLOG.md`（還沒解決的事）和各輪 POC 的說明 |
+| `docs/` | **[`ARCHITECTURE.md`](docs/ARCHITECTURE.md)**（solution / architecture / algorithm，想看懂就從這裡開始）、`BACKLOG.md`（還沒解決的事）和各輪 POC 的說明 |
 | `results/` | 實驗產出的圖和量測數據 |
 | `gpx/` | 匯出的路線 |
 
