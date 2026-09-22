@@ -1906,3 +1906,69 @@ A cold server restores all 76 and answers from them immediately:
 
     gear   30 km -> 29.2 km in 0.0 s     trex  50 km -> 43.9 km in 0.0 s
     e_crab 50 km -> infeasible           (its floor is 52.2 km; correct)
+
+
+## 54. The inner loop is networkx, and that is the whole cost
+
+The rider asked why `--precompute` cannot be parallelised, and the answer turned
+out to be that parallelising it is solving the wrong problem.
+
+WHAT ONE ROUTE DOES. `plan` sizes the shape, `coarse_scan` slides it over a grid
+of centres times twelve rotations, `select_candidates` keeps six well-separated
+placements, and each placement then runs the matcher: ten candidate junctions
+per contour point, a Dijkstra from every candidate of step i to reach the
+candidates of step i+1, and a Viterbi over the closed loop. Sixty contour points
+times ten sources times six placements is 3,600 Dijkstras for one route.
+
+MEASURED, one placement's transition costs on a 55,215-node network:
+
+    total                       12.58 s
+      nx.single_source_dijkstra  9.85 s   78%
+      _path_deviation            2.62 s   21%   (route_to_xy 1.75 s of it)
+
+AND THE SAME DIJKSTRAS IN SCIPY:
+
+    networkx, 10 sources, 3 km cutoff   0.22 s   (22 ms each)
+    scipy.sparse.csgraph, all 10 at once 0.01 s   ( 1 ms each)   33x
+    the CSR arrays                       2 MB    (the graph: ~1,500 MB)
+
+WHY FORK AND COPY-ON-WRITE DO NOT SOLVE IT. Sharing a networkx graph between
+processes sounds free and is not: CPython's reference counting WRITES to an
+object's header when you READ it, so a child traversing the graph dirties the
+pages it touches and copy-on-write copies them. A networkx graph is millions of
+small dicts, so a worker ends up with most of the 1.5 GB anyway. `gc.freeze()`
+stops the collector writing but not the refcounts. What genuinely shares is a
+numpy array - one object, one buffer, no refcount traffic per element - which
+is exactly what the CSR form is.
+
+SO THE ORDER OF WORK IS: make it fast, then parallelism is nearly free, because
+`scipy.sparse.csgraph.dijkstra` releases the GIL and threads would do.
+
+    1  Build the CSR once per network, beside the graph in `_networks`. Node id
+       to index, edge lengths as the weights. The graph is a MultiDiGraph, so
+       take the shortest parallel edge per (u, v) and remember WHICH key won -
+       the geometry has to come from the same edge the cost came from. Keep it
+       directed; one-way streets matter to a bicycle.
+
+    2  Batch the step's sources. `dijkstra(csr, indices=[...], limit=cutoff,
+       return_predecessors=True)` does all ten in one C call.
+
+    3  Rebuild the paths from the predecessor matrix. A pure-Python walk back
+       from v to s, but only over a path's own nodes and only for the hundred
+       (u, v) pairs a step has - trivial next to the search it replaces.
+
+    4  THEN `_path_deviation` is 90% of what is left, so precompute each edge's
+       densified geometry once per network and make `route_to_xy` a
+       concatenation instead of a per-call rebuild.
+
+HONEST ARITHMETIC. Step 1-3 takes 9.85 s to about 0.3 and the whole step to
+~2.9 s: 4x, not 33x, because the other 2.6 s does not move. With step 4 as
+well, plausibly 10-15x - 152 minutes of precompute becoming 10 to 15.
+
+HOW TO KNOW IT IS STILL CORRECT, and this is the part worth the most: the route
+store already holds 76 fitted routes with a fingerprint of the outline each was
+fitted to. Re-fit them after the change and every coordinate must match. The
+database written to make the demo fast is a regression suite nobody had to
+build.
+
+Not done. The demo comes first, and this is an offline step that runs once.
