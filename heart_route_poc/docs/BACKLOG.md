@@ -1886,3 +1886,23 @@ resume already makes cheap.
 
 WHAT THIS DOES NOT FIX is the first request on a cold machine, which still
 downloads whatever box the biggest shape needs. That is the network, not us.
+
+### 53a. The whole run, after the fix
+
+    77 fitted, 0 failed, 76 in the database (3.8 MB)
+    3 network downloads, 74 reuses - 105 s, 99 s, 97 s
+    152 minutes of fitting; slowest bat 100 km (303 s)
+
+THREE DOWNLOADS, NOT ONE, and that is correct: a loaded box is reused only by
+requests it CONTAINS, so a shape needing a wider one still pays. Largest-first
+gets that down to the handful of times the widest requirement grows. The rider's
+previous run paid twenty-odd.
+
+The one route not in the database is `e_penguin` at 100 km - 「no route」 rather
+than a failure, and only successes are stored, so it will be retried by any
+future run. BACKLOG 51a already explains why a "no" is not cached.
+
+A cold server restores all 76 and answers from them immediately:
+
+    gear   30 km -> 29.2 km in 0.0 s     trex  50 km -> 43.9 km in 0.0 s
+    e_crab 50 km -> infeasible           (its floor is 52.2 km; correct)
