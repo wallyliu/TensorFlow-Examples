@@ -2111,8 +2111,53 @@ part-way along the route. Correct and slow is the right trade of the two, but
 10 seconds and 8.7 MB for the shapes that are most worth showing is not where
 this should end.
 
-Two levers, neither taken yet. The index above removes the per-edge Python
-work. Separately, 112,073 polylines is more than a map at that zoom can show
-and more than a browser wants to draw: thinning by road class, or by a
-route-distance budget, would cut the payload without the rider seeing the
-difference. That one needs looking at the page before it is believed.
+### Where the 10 seconds actually go
+
+Measured end to end in a real browser (Playwright, Chromium), cached 100 km
+heart, both networks warm:
+
+    fetch (server + transfer)   8,332 ms    85%
+    innerHTML + layout          1,176 ms    12%
+    build the SVG string          235 ms     2%
+    JSON.parse                     73 ms     1%
+
+**The browser is not the problem.** 112,073 `<path>` elements cost 1.4 s
+between them, and the fear that the page was the bottleneck was wrong. Almost
+all of it is `streets_near`, which is 8.82 s of the 9.19 s the server spends.
+
+Inside `streets_near`, over the same 171,430 edges:
+
+    walk and bbox-reject, no transform    3.33 s    42%
+    ...plus transform + build the lists   7.97 s    (so survivors cost 4.64 s, 58%)
+
+111,993 of 171,430 edges survive the bbox test - 65%. So **indexing the
+rejection, which is what this entry proposed, addresses 42% at best.** The
+larger half is the survivors: one `Transformer.transform` call per edge, and
+one Python list comprehension per edge to round the coordinates.
+
+Both halves are per-edge Python where a batch would do:
+
+  - Precompute an (n_edges, 4) bounding-box array per network, once. The filter
+    becomes a numpy comparison and the 3.33 s goes with it.
+  - Concatenate the survivors' coordinates and transform them in ONE pyproj
+    call, then split them back. pyproj's per-call overhead is most of what
+    111,993 calls cost.
+
+NOT YET SPLIT, and it decides how much the second bullet is worth: of that
+4.64 s, how much is pyproj and how much is `[[round(a, 5), round(b, 5)] for
+...]` over 112,000 polylines? If it is mostly the list building, batching the
+transform will disappoint and the answer is to send fewer polylines instead.
+That is a five-minute measurement and it should be the first thing the work
+does - the same measurement, skipped, is what made BACKLOG 54's estimate wrong
+by a factor of six.
+
+A third lever, independent of both: **the box sizes are not quantised.** The 78
+stored routes ask for 48 DISTINCT half-sizes (4500, 4514, 4547, 4629, ...,
+13453), because `_street_half_size_m` returns a route's exact reach. Two
+consequences. On disk each size is its own ~70 s stitch and the 400 MB budget
+evicts the others, so the cache thrashes. In memory `--warm` loads 4,500 and
+13,453, and every route between them falls through to the larger - which is
+exactly the slow path warming both boxes was meant to avoid. Rounding up to
+1 km steps collapses 48 sizes to about 10, makes stitches reusable, and hands a
+route reaching 4.7 km a 5,000 m box (~65,000 edges) instead of a 13,453 m one
+(171,430). Cheapest of the three by a wide margin.
