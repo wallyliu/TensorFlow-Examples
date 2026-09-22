@@ -965,22 +965,29 @@ PRESET_KM = (10.0, 30.0, 50.0, 100.0)
 
 
 def precompute(lat: float = SEARCH_LAT, lon: float = SEARCH_LON,
-               mode: str = "bike") -> None:
-    """Fit everything the page can ask for at the preset distances.
+               mode: str = "bike", distances: tuple = PRESET_KM) -> None:
+    """Fit everything the page can ask for at the given distances.
 
-    Only the presets, not the whole slider: the slider is continuous and the
-    buttons are where the traffic is. A shape whose minimum is above the preset
-    is skipped rather than fitted at a distance nobody can select.
+    Distances rather than the whole slider: the slider is continuous and the
+    buttons are where the traffic is. A shape whose minimum is above the
+    distance is skipped rather than fitted at a length nobody can select.
+
+    `--km` narrows it, because the run is long and unevenly so. Measured over
+    the 77 jobs: 100 km costs 187 s a route and 81 minutes in total, 50 km
+    costs 120 s and 48 minutes, 30 km costs 56 s and 20, 10 km costs 29 s and
+    3. The expensive third is also the one fewest riders press, so being able
+    to fill 30 and 50 first and leave 100 for later is worth a flag.
     """
     scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
-    jobs = [(s, km) for s in sorted(SHAPES) for km in PRESET_KM
+    jobs = [(s, km) for s in sorted(SHAPES) for km in distances
             if rf.min_distance_km(s, mode, scale) <= km]
     # BIGGEST FIRST, so the widest shape downloads the widest box and every
     # smaller job reuses it - see `network`. Fitting in alphabetical order
     # meant a new download every few jobs.
     jobs.sort(key=lambda j: -j[1])
     print(f"{len(jobs)} routes to fit; {len(SHAPES)} shapes over "
-          f"{len(PRESET_KM)} distances, largest first", flush=True)
+          f"{', '.join(f'{k:.0f}' for k in distances)} km, largest first",
+          flush=True)
     done, failed = 0, []
     for shape, km in jobs:
         key = _cache_key(shape, km, mode, lat, lon)
@@ -1020,6 +1027,9 @@ def main() -> None:
     parser.add_argument("--precompute", action="store_true",
                         help="fit every shape at every preset distance for the "
                              "default place, fill the database, and exit")
+    parser.add_argument("--km", default="",
+                        help="comma-separated distances for --precompute, e.g. "
+                             "30,50,80. Default: the page's four presets")
     args = parser.parse_args()
 
     global _store
@@ -1032,7 +1042,12 @@ def main() -> None:
                  if dropped else ""), flush=True)
 
     if args.precompute:
-        precompute()
+        try:
+            distances = (tuple(float(k) for k in args.km.split(",") if k.strip())
+                         or PRESET_KM)
+        except ValueError:
+            parser.error(f"--km wants numbers, got {args.km!r}")
+        precompute(distances=distances)
         return
 
     if args.warm:
