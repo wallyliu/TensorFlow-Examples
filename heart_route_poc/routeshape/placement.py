@@ -55,7 +55,7 @@ from routeshape.matching import (
     N_CANDIDATES,
     SNAP_WEIGHT,
     _densify,
-    run_poc2,
+    fit_route,
 )
 from routeshape.shapes.library import resample_by_arclength
 from routeshape import paths
@@ -243,7 +243,7 @@ def refine_placement(
     )
 
     try:
-        result = run_poc2(
+        result = fit_route(
             graph_proj, heart, reference, k, snap_weight,
             radius_m=260.0, deviation_weight=deviation_weight,
         )

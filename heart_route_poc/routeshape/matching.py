@@ -443,13 +443,13 @@ def evaluate(
 # ---------------------------------------------------------------------------
 # Plotting
 # ---------------------------------------------------------------------------
-def _draw(ax, graph_proj, heart_proj, result, title, route_color):
+def _draw(ax, graph_proj, target_xy, result, title, route_color):
     """Draw one panel: network, ideal contour, chosen nodes, actual route."""
     ox.plot_graph(
         graph_proj, ax=ax, node_size=0, edge_color="#dddddd", edge_linewidth=0.4,
         bgcolor="white", show=False, close=False,
     )
-    ideal_closed = np.vstack([heart_proj, heart_proj[:1]])
+    ideal_closed = np.vstack([target_xy, target_xy[:1]])
     ax.plot(ideal_closed[:, 0], ideal_closed[:, 1], color="#e8443a",
             linewidth=2.0, linestyle="--", label="Ideal heart contour", zorder=3)
 
@@ -463,8 +463,8 @@ def _draw(ax, graph_proj, heart_proj, result, title, route_color):
                edgecolor="black", linewidth=0.4, label="Chosen road nodes", zorder=5)
 
     margin = 350.0
-    ax.set_xlim(heart_proj[:, 0].min() - margin, heart_proj[:, 0].max() + margin)
-    ax.set_ylim(heart_proj[:, 1].min() - margin, heart_proj[:, 1].max() + margin)
+    ax.set_xlim(target_xy[:, 0].min() - margin, target_xy[:, 0].max() + margin)
+    ax.set_ylim(target_xy[:, 1].min() - margin, target_xy[:, 1].max() + margin)
     m = result["metrics"]
     ax.set_title(f"{title}\n{m['route_km']:.2f} km  ·  detour {m['detour_ratio']:.2f}x  ·  "
                  f"chamfer {m['chamfer_m']:.0f} m  ·  {m['backtracked_edges']} backtracked edges",
@@ -472,9 +472,9 @@ def _draw(ax, graph_proj, heart_proj, result, title, route_color):
     ax.legend(loc="upper right", fontsize=8, facecolor="white", framealpha=0.9)
 
 
-def plot_result(graph_proj, heart_proj, result, out_path=OUT_PNG):
+def plot_result(graph_proj, target_xy, result, out_path=OUT_PNG):
     fig, ax = plt.subplots(figsize=(11, 11))
-    _draw(ax, graph_proj, heart_proj, result, "POC 2 - candidate sets + Viterbi DP", "#1a7f37")
+    _draw(ax, graph_proj, target_xy, result, "POC 2 - candidate sets + Viterbi DP", "#1a7f37")
     fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  saved {out_path}")
@@ -501,12 +501,24 @@ def dense_reference(lat, lon, width_m, crs, n=4000) -> np.ndarray:
     return transform_shape_to_map(closed, lat, lon, width_m, crs)
 
 
-def run_poc2(graph_proj, heart_proj, reference_xy, k, snap_weight, radius_m,
-             deviation_weight=DEVIATION_WEIGHT):
-    # radius_m may be per-point; build_candidate_sets broadcasts a scalar.
-    """Candidate sets -> transition costs -> Viterbi -> route."""
+def fit_route(graph_proj, target_xy, reference_xy, k, snap_weight, radius_m,
+              deviation_weight=DEVIATION_WEIGHT):
+    """Fit one closed street route to one placed target contour.
+
+    The whole matcher in three steps - candidate sets, transition costs,
+    Viterbi - and the entry point every caller uses: the service, the placement
+    search and the POC CLIs alike.
+
+    `target_xy` is the contour sampled at the anchor count, already placed in
+    projected metres. `reference_xy` is the SAME shape at the same placement but
+    sampled densely: the anchors say where the route must pass, the dense curve
+    says what it must not stray from, and the two are not interchangeable.
+
+    `radius_m` and `snap_weight` may each be one number or one per contour
+    point; `build_candidate_sets` and `viterbi_closed_loop` broadcast a scalar.
+    """
     candidates, emissions = build_candidate_sets(
-        graph_proj, heart_proj, k=k, radius_m=radius_m
+        graph_proj, target_xy, k=k, radius_m=radius_m
     )
     sizes = [len(c) for c in candidates]
     print(f"  candidates per point: min {min(sizes)}, mean {np.mean(sizes):.1f}, max {max(sizes)}")
@@ -514,7 +526,7 @@ def run_poc2(graph_proj, heart_proj, reference_xy, k, snap_weight, radius_m,
     t0 = time.perf_counter()
     reference_tree = cKDTree(_densify(reference_xy, spacing=5.0))
     transitions = compute_transition_costs(
-        graph_proj, candidates, heart_proj, reference_tree, deviation_weight
+        graph_proj, candidates, target_xy, reference_tree, deviation_weight
     )
     print(f"  transition costs: {sum(len(t) for t in transitions)} pairs "
           f"in {time.perf_counter() - t0:.1f}s")
@@ -557,7 +569,7 @@ def main() -> None:
     heart_poc2 = transform_shape_to_map(
         resample_by_arclength(args.points), args.lat, args.lon, args.width_m, crs
     )
-    result2 = run_poc2(graph_proj, heart_poc2, reference, args.candidates,
+    result2 = fit_route(graph_proj, heart_poc2, reference, args.candidates,
                        args.snap_weight, args.radius_m, args.deviation_weight)
 
     print("\nPlotting")

@@ -31,7 +31,7 @@ import osmnx as ox
 from pyproj import Transformer
 
 from routeshape.network import download_walk_graph
-from routeshape.matching import NoRouteFoundError, run_poc2
+from routeshape.matching import NoRouteFoundError, fit_route
 from routeshape.placement import (
     GRID_STEP_M, MIN_SEPARATION_M, NETWORK_HALF_SIZE_M, SEARCH_LAT, SEARCH_LON,
     build_center_grid, build_street_index, coarse_scan, place_shape,
@@ -74,7 +74,7 @@ def refine(graph, shape, centre_xy, rotation, width_m=WIDTH_M, points=N_POINTS,
         k = 18          # a wider radius is no use if only ten nodes are offered
 
     try:
-        result = run_poc2(graph, target, reference, k, snap,
+        result = fit_route(graph, target, reference, k, snap,
                           radius_m=radius, deviation_weight=10.0)
     except NoRouteFoundError:
         return None

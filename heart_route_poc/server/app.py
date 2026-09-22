@@ -33,6 +33,7 @@ Run:  python server/app.py            # http://127.0.0.1:8000
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -624,6 +625,96 @@ def _rehydrate(answer: dict, mode: str) -> dict:
     return answer
 
 
+def wgs84(route_xy: np.ndarray, crs: str) -> list:
+    """A route in projected metres as the [[lat, lon], ...] the page is sent.
+
+    Rounded to six decimals, about 11 cm - far below anything a rider can see,
+    and the granularity `route_mark` then identifies the route by.
+    """
+    lons, lats = Transformer.from_crs(crs, "EPSG:4326",
+                                      always_xy=True).transform(route_xy[:, 0],
+                                                                route_xy[:, 1])
+    return [[round(a, 6), round(b, 6)] for a, b in zip(lats, lons)]
+
+
+def route_mark(coordinates: list) -> str:
+    """An identity for a route: stable across processes, and RECOMPUTABLE.
+
+    Two separate things were wrong with what this replaces.
+
+    It was `hash()` of the projected geometry. Python salts the hash of bytes
+    with PYTHONHASHSEED, which is random per process, so the same route marked
+    in two runs got two different marks - while the mark was being written to
+    `_routes.db` and compared against a freshly computed one on the next start.
+    Every one of the 76 precomputed routes carried a mark that could never
+    match: after a restart the exclusion in `rank_fits` quietly stopped
+    excluding, and 「換一個」 could hand back the route just rejected. In one
+    process it worked, so nothing showed until the routes came off disk -
+    which, since precompute, is every session.
+
+    Making it a stable digest of the projected geometry would have fixed the
+    next route and left those 76 broken, because nothing stored can reproduce
+    that geometry. Taken off the WGS84 coordinates instead, the mark is a
+    function of what the row already holds, so an old row's mark is computed
+    rather than trusted and there is nothing to migrate.
+    """
+    blob = ";".join(f"{a:.6f},{b:.6f}" for a, b in coordinates)
+    return hashlib.sha1(blob.encode()).hexdigest()[:16]
+
+
+def admissible_fits(fitted: list) -> list:
+    """The fits worth offering, by the constraints in order of how much they cost.
+
+    Lexicographic, not weighted: meet the wander condition first, then pick the
+    closest shape among those that do. Falling back to the whole list rather
+    than refusing - a route that wanders is still better than no route.
+    """
+    return ([f for f in fitted if f["wander"] <= WANDER_LIMIT
+             and f["excursion"] <= EXCURSION_LIMIT]
+            or [f for f in fitted if f["excursion"] <= EXCURSION_LIMIT]
+            or [f for f in fitted if f["wander"] <= WANDER_LIMIT]
+            or fitted)
+
+
+def rank_fits(fitted: list, shape: str, target_km: float, mode: str,
+              lat: float, lon: float, variant: int) -> tuple[list, list]:
+    """Best first, DE-DUPLICATED BY THE ROUTE and then against what this rider
+    has already been shown.
+
+    Returns (every distinct fit, the ones not yet handed back). Two things go
+    wrong without this, and both make 「換一個」 a button that does nothing:
+
+      `select_candidates` keeps its centres MIN_SEPARATION_M apart, but two
+      centres that far apart can still snap onto the same junctions and fit the
+      same route twice.
+
+      Variant 0 stops early after one good placement and variant 1 searches all
+      six, so the two runs rank different sets. The gear's second-best out of
+      six was exactly the one the early stop had already returned.
+
+    The mark is the route's own geometry rounded to a decimetre, so two fits
+    count as one when they are the same ride - not when they merely started
+    from nearby centres.
+    """
+    ranked, seen = [], set()
+    for fit in sorted(admissible_fits(fitted), key=lambda f: f["distance"]):
+        fit["mark"] = route_mark(fit["coordinates"])
+        if fit["mark"] in seen:
+            continue
+        seen.add(fit["mark"])
+        ranked.append(fit)
+
+    # What lower variants of this same request already returned - the cache is
+    # holding them, so there is nothing to recompute.
+    already = set()
+    for earlier in range(variant):
+        prior = _ROUTE_CACHE.get(
+            _cache_key(shape, target_km, mode, lat, lon, earlier))
+        if prior and prior.get("coordinates"):
+            already.add(route_mark(prior["coordinates"]))
+    return ranked, [f for f in ranked if f["mark"] not in already]
+
+
 def _build_route_uncached(shape: str, target_km: float, mode: str, lat: float,
                           lon: float, force: bool = False,
                           variant: int = 0) -> dict:
@@ -742,45 +833,13 @@ def _build_route_uncached(shape: str, target_km: float, mode: str, lat: float,
     if not fitted:
         return {"status": "no route", **verdict}
 
-    # Lexicographic, not weighted: meet the wander condition first, then pick the
-    # closest shape among those that do. Falling back to the whole list rather
-    # than refusing - a route that wanders is still better than no route.
-    admissible = ([f for f in fitted if f["wander"] <= WANDER_LIMIT
-                   and f["excursion"] <= EXCURSION_LIMIT]
-                  or [f for f in fitted if f["excursion"] <= EXCURSION_LIMIT]
-                  or [f for f in fitted if f["wander"] <= WANDER_LIMIT]
-                  or fitted)
-    # DEDUPLICATED BY THE ROUTE, and then AGAINST WHAT THIS RIDER HAS ALREADY
-    # BEEN SHOWN. Two things go wrong otherwise, and both make 「換一個」 a
-    # button that does nothing:
-    #
-    #   `select_candidates` keeps its centres MIN_SEPARATION_M apart, but two
-    #   centres that far apart can still snap onto the same junctions and fit
-    #   the same route twice.
-    #
-    #   Variant 0 stops early after one good placement and variant 1 searches
-    #   all six, so the two runs rank different sets. The gear's second-best
-    #   out of six was exactly the one the early stop had already returned.
-    #
-    # So rank, drop repeats, then drop anything already handed back for a lower
-    # variant of this same request - which the cache is holding.
-    ranked, seen = [], set()
-    for fit in sorted(admissible, key=lambda f: f["distance"]):
-        fit["mark"] = str(hash(np.round(fit["route_xy"], 1).tobytes()))
-        if fit["mark"] in seen:
-            continue
-        seen.add(fit["mark"])
-        ranked.append(fit)
-
-    already = set()
-    for earlier in range(variant):
-        prior = _ROUTE_CACHE.get(
-            _cache_key(shape, target_km, mode, lat, lon, earlier))
-        if prior and prior.get("mark"):
-            already.add(prior["mark"])
-    unseen = [f for f in ranked if f["mark"] not in already]
-    exhausted = not unseen
-    fresh = unseen or ranked
+    # Every fit in the lat/lon the page and the store both speak, so a route's
+    # identity is a function of what gets written down - see `route_mark`.
+    for candidate in fitted:
+        candidate["coordinates"] = wgs84(candidate["route_xy"], net["crs"])
+    ranked, fresh = rank_fits(fitted, shape, target_km, mode, lat, lon, variant)
+    exhausted = not fresh
+    fresh = fresh or ranked
     best = fresh[0]
 
     dense = resample_by_arclength(shape, 4000)
@@ -796,8 +855,6 @@ def _build_route_uncached(shape: str, target_km: float, mode: str, lat: float,
                       f"{LABELS.get(shape, shape)}路線", description),
         "shape": shape,
     }
-    to_wgs = Transformer.from_crs(net["crs"], "EPSG:4326", always_xy=True)
-    lons, lats = to_wgs.transform(best["route_xy"][:, 0], best["route_xy"][:, 1])
     return {"status": "ok", **verdict, "id": route_id,
             # Two different angles, and only the second one is any use for
             # drawing. `rotation_deg` is what the search ASKED for.
@@ -839,8 +896,7 @@ def _build_route_uncached(shape: str, target_km: float, mode: str, lat: float,
             "route_km": round(km, 1),
             "shape_distance": round(best["distance"], 3),
             "seconds": round(time.time() - t0, 1),
-            "coordinates": [[round(a, 6), round(b, 6)]
-                            for a, b in zip(lats, lons)],
+            "coordinates": best["coordinates"],
             "streets": streets_near(net, best["route_xy"]),
             "gpx_url": f"/api/route/{route_id}.gpx"}
 

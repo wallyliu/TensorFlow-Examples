@@ -47,7 +47,7 @@ from scipy.spatial import cKDTree
 import routeshape.feasibility as rf
 import routeshape.shapes.pack as pack
 import routeshape.street_scale as ss
-from routeshape.matching import NoRouteFoundError, _densify, run_poc2
+from routeshape.matching import NoRouteFoundError, _densify, fit_route
 from routeshape.metrics import excursion, shape_distance
 from routeshape.paths import RESULTS
 from routeshape.placement import (GRID_STEP_M, MIN_SEPARATION_M, build_center_grid,
@@ -170,7 +170,7 @@ def main() -> None:
             snap, radius, k = arm_settings(arm, shape, points)
             t1 = time.time()
             try:
-                fit = run_poc2(graph, contour, reference, k, snap,
+                fit = fit_route(graph, contour, reference, k, snap,
                                radius_m=radius, deviation_weight=10.0)
             except NoRouteFoundError:
                 print(f"  {arm:7s} no route")

@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from routeshape.matching import (NoRouteFoundError, build_candidate_sets,
                                  compute_transition_costs, route_to_xy,
-                                 run_poc2, viterbi_closed_loop)
+                                 fit_route, viterbi_closed_loop)
 from routeshape.metrics import shape_distance
 from tests.gridfixture import centre_of, circle, grid, square
 
@@ -209,7 +209,7 @@ class EndToEnd(unittest.TestCase):
         g = grid(24, SPACING)
         target = square(1200.0, (1200.0, 1200.0), 40)
         reference = square(1200.0, (1200.0, 1200.0), 4000)
-        out = run_poc2(g, target, reference, k=6, snap_weight=1.0,
+        out = fit_route(g, target, reference, k=6, snap_weight=1.0,
                        radius_m=260.0, deviation_weight=10.0)
         m = out["metrics"]
 
@@ -225,7 +225,7 @@ class EndToEnd(unittest.TestCase):
         centre = centre_of(g)
         target = circle(600.0, centre, 40)
         reference = circle(600.0, centre, 4000)
-        out = run_poc2(g, target, reference, k=6, snap_weight=1.0,
+        out = fit_route(g, target, reference, k=6, snap_weight=1.0,
                        radius_m=260.0, deviation_weight=10.0)
         distance = shape_distance(out["route_xy"], reference)
         self.assertGreater(distance, 0.0)
@@ -241,7 +241,7 @@ class EndToEnd(unittest.TestCase):
         target = square(1200.0, (1200.0, 1200.0), 40)
         reference = square(1200.0, (1200.0, 1200.0), 4000)
         with self.assertRaises(NoRouteFoundError):
-            run_poc2(g, target, reference, k=6, snap_weight=1.0,
+            fit_route(g, target, reference, k=6, snap_weight=1.0,
                      radius_m=260.0, deviation_weight=10.0)
 
 

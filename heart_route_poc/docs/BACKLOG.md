@@ -2025,3 +2025,40 @@ Two changes:
 `--warm` now loads the box the widest stored route needs rather than the
 default one, so the cost is one load at startup instead of a stall on the first
 100 km click.
+
+## 56. The route mark was a salted hash, so every stored one was dead
+
+Found by refactoring, not by looking. `_build_route_uncached` was 218 lines, so
+the ranking and de-duplication were pulled out into `rank_fits`. To prove the
+extraction changed nothing, four real routes were fitted before and after and
+the answers hashed. Every hash differed - while every number in them was
+identical.
+
+The difference was `mark`, and the cause is that it was
+`str(hash(route_xy.tobytes()))`. **Python salts the hash of bytes with
+PYTHONHASHSEED, which is random per process.** The mark is written to
+`_routes.db` and compared, on the next start, against a freshly computed one.
+All 76 precomputed routes carried a mark that could never match anything.
+
+So the exclusion in `rank_fits` - the thing that stops 「換一個」 handing back
+the route just rejected - silently stopped excluding after every restart. It
+worked in the process that computed the route and nowhere else, which since
+precompute is every session a rider sees. BACKLOG 51 fixed this bug once
+already, in a different form; this is the same button failing again, for a
+reason no page inspection could have shown.
+
+Two fixes were possible and only one of them is a fix. A stable digest of the
+projected geometry corrects the next route and leaves those 76 broken, because
+nothing in a stored row can reproduce projected metres. The mark is therefore
+taken off the **WGS84 coordinates**, which is what the row already holds: an
+old row's mark is now computed from the row rather than trusted, so there is
+nothing to migrate and the existing database heals on load.
+
+`rank_fits` and `admissible_fits` are testable without a map now, which the
+ranking never was. 18 tests, one of which spawns three processes and asserts
+the same route marks the same in all of them - it fails against the old
+implementation with three different marks.
+
+The refactor itself was proved inert: same route_km, same shape distance, same
+everything but the mark, on four fits across two shapes, two distances and two
+variants.

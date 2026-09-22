@@ -21,7 +21,7 @@
   │
   ├─ 4  粗掃描            coarse_scan()                      幾萬個(中心,旋轉)，秒級
   ├─ 5  挑候選            select_candidates()                非極大值抑制 → 6 個放置點
-  ├─ 6  精配              refine() → Viterbi 地圖匹配         ★ 核心演算法，每個候選一次
+  ├─ 6  精配              refine() → fit_route()             ★ Viterbi 地圖匹配，每個候選一次
   ├─ 7  排序與去重        wander/excursion 門檻 → shape_distance
   │
   └─ 8  輸出              GPX + WGS84 座標 + 街道背景 + 辨識度說明
@@ -348,9 +348,15 @@ _routes.db      SQLite   同上，但存活過重啟
 搜尋沒有隨機成分，重算會回傳一模一樣的路線。使用者要的是**不同的地方**，而搜尋本來
 就配了好幾個。variant 1 是第二好的。
 
-去重要做兩次：先**按路線本身**（兩個相距 700 m 的中心仍可能貼到同一組路口），
-再**排除已經給過這位使用者的**（variant 0 提早停止、variant 1 搜完六個，兩次排序的
-集合不同，齒輪的「六個裡第二好」正好就是提早停止已經給過的那一個）。
+去重要做兩次（`rank_fits`）：先**按路線本身**（兩個相距 700 m 的中心仍可能貼到
+同一組路口），再**排除已經給過這位使用者的**（variant 0 提早停止、variant 1 搜完
+六個，兩次排序的集合不同，齒輪的「六個裡第二好」正好就是提早停止已經給過的那一個）。
+
+路線的身分 `route_mark()` 取自**存下來的 WGS84 座標**，不是投影後的幾何，也不是
+`hash()`。兩個理由，都是踩過的坑：`hash()` 對 bytes 的結果每個 process 都不一樣
+（PYTHONHASHSEED），而這個值會寫進資料庫再跨 process 比對；而取自投影幾何的話，
+已經存在資料庫裡的 76 條路線無法重算自己的 mark。取自座標則是「從這一列自己算出來」，
+不需要 migration。見 BACKLOG 56。
 
 ### `--precompute`
 把 26 個圖案 × 4 個預設距離（10/30/50/100 km）全部填進資料庫。**大的先跑**，
@@ -404,7 +410,8 @@ BACKLOG 54 記了改進計畫（改用 `scipy.sparse.csgraph.dijkstra` 批次處
 ```
 routeshape/
   matching.py        ★ Viterbi 地圖匹配（§2）
-  placement.py       ★ 兩階段放置搜尋（§3）
+  placement.py       ★ 放置搜尋：粗掃描 coarse_scan、非極大值抑制、精配（§3）
+  search.py            把 placement 和 matching 接起來的 refine()
   feasibility.py     ★ 公里數 → 尺寸（§4）
   street_scale.py      方向性街道尺度，每個地點量一次
   metrics.py           shape_distance / excursion / thinness / turning
@@ -432,7 +439,52 @@ experiments/         POC 1–41，每一個結論的原始程式
 
 ---
 
-## 11. 讀這份文件的人最該記住的三件事
+## 11. 測試
+
+```bash
+python -m unittest discover -s tests -t .      # 全部，約 5 秒
+python -m unittest tests.test_matching -v      # 單一模組
+```
+
+標準函式庫的 `unittest`，沒有 pytest，因為整套測試必須在一份乾淨的 checkout 上
+跑得起來，不需要裝任何產品本身不需要的東西。
+
+**沒有任何一個測試碰網路。** `tests/gridfixture.py` 在記憶體裡建一個曼哈頓格狀路網，
+這比下載一座城市**更快也更嚴格**：在規則格網上，兩個路口之間的最短路徑長度就是
+曼哈頓距離，所以測試可以斷言一個算術答案，而不是「上次程式回傳了什麼」。
+
+承重的那個案例：**四個角都落在格點上的正方形有一個完美解，而匹配器找得到它** ——
+繞路 1.0003、零折返、shape distance 剛好 0.0。BACKLOG 54 的 matcher 重寫就拿這三個
+數字當 oracle。
+
+| 檔案 | 蓋到什麼 |
+|---|---|
+| `test_metrics.py` | `shape_distance` 的五種不變性、`excursion`、`wander`、`alignment_angle` |
+| `test_matching.py` | 候選集、transition 成本（格網上是純算術）、Viterbi、端到端 oracle、河流阻斷 |
+| `test_feasibility.py` | 尺寸的來回一致性、樓地板、`plan` 的拒絕 |
+| `test_shapes.py` | 全部圖案的共同契約、弧長取樣、多輪廓合併的長度恆等式 |
+| `test_placement.py` | 放置變換、街道索引、粗掃描評分、非極大值抑制 |
+| `test_ranking.py` | 排序與去重（「換一個」壞過兩次的那段） |
+| `test_store.py` | 存取來回、指紋失效、withdrawn/重畫的圖案 |
+| `test_network_cache.py` | 「更大的框可以用」在磁碟上那一半 |
+| `test_server.py` | 快取鍵、街景框大小、文字圖案釘正、`/api/describe` |
+
+測試斷言的是**性質**而不是存下來的數字，因為這個專案出過的錯從來不是 crash ——
+指標拿旋轉過的參考去比所以看不見旋轉、store 用名字當鍵而五個圖案在同名下被重畫、
+街景用常數決定大小。每一個都產生了一個看起來很合理的數字。
+
+寫這套測試的時候，**修正了四個我自己的錯誤假設**（不是程式的 bug）：`alignment_angle`
+回答的是「要把路線轉回去多少度」所以符號是負的；`resample_closed` 給的是等**弧長**
+因此過彎處的弦長不等；`multi_contour.merge` 回傳的是三元組；`outline_for` 是以**平均**
+置中而不是 bounding box。
+
+順便找到一個真的 bug：`/api/describe` 的**成功路徑**會 NameError（`re` 沒 import）。
+它從來沒被看到過，因為沒有憑證時 `propose` 會先丟例外、服務回報 unavailable，
+在那三行之前就 return 了。
+
+---
+
+## 12. 讀這份文件的人最該記住的三件事
 
 1. **核心是 map matching，不是畫圖。** 目標曲線被當成一條 GPS 軌跡，用 Viterbi 在
    街道圖上匹配。讓它 shape-aware 的是 transition 裡那個 deviation 項；沒有它，
