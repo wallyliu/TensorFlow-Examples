@@ -1993,3 +1993,35 @@ database written to make the demo fast is a regression suite nobody had to
 build.
 
 Not done. The demo comes first, and this is an offline step that runs once.
+
+## 55. The street background was clipped to 4,500 m on every restored route
+
+A route restored from `_routes.db` has no street background stored with it -
+`streets` is 1,045 KB of the 1,068 KB answer, so it is rebuilt on the way out
+(BACKLOG 48). `_rehydrate` asked `network()` for the default 4,500 m box to
+rebuild it from, whatever the length of the route.
+
+Measured over the 76 rows in the store: a 100 km route reaches 7.0 km from the
+centre and the widest reaches 13.1 km. **43 of 76 stored routes** - every
+50 km and 100 km one - came back with the map ending part-way along the route
+and the rest of the line floating on blank page. In a single process it never
+showed: the fit had already loaded a box the shape's own width and the reuse
+rule in `network` served it. It appears only after a restart, which is exactly
+when the store is what answers - so precomputing made it universal.
+
+Two changes:
+
+- `_street_half_size_m(answer)` sizes the box from the route's own extent plus
+  the `streets_near` pad, so the background covers the route it belongs to.
+  Measured on the 100 km bat: background 5,593 m before, 8,972 m after, route
+  7,031 m.
+- `cached_covering()` gives the on-disk cache the rule the in-memory cache
+  already had - a larger box for the same centre and mode contains this one, so
+  load it instead of downloading. Without it the fix would have been worse than
+  the bug: every restored route asks for a size no cache file is named after
+  (7,431 m, 8,462 m, 10,926 m) and would have downloaded a network to draw a
+  map behind a route already computed.
+
+`--warm` now loads the box the widest stored route needs rather than the
+default one, so the cost is one load at startup instead of a stall on the first
+100 km click.

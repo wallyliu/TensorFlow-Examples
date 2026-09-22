@@ -316,7 +316,11 @@ def rotations_for(shape: str) -> tuple:
     return (0.0,) if is_text(shape) else ROTATIONS_DEG
 
 
-def streets_near(net: dict, xy: np.ndarray, pad_m: float = 400.0) -> list:
+STREET_PAD_M = 400.0        # how far past the route the map keeps drawing
+
+
+def streets_near(net: dict, xy: np.ndarray,
+                 pad_m: float = STREET_PAD_M) -> list:
     """
     Every street around the route, as lat/lon polylines.
 
@@ -561,6 +565,31 @@ def build_route(shape: str, target_km: float, mode: str, lat: float, lon: float,
     return dict(answer, cached=False)
 
 
+def _street_half_size_m(answer: dict) -> float:
+    """The network box a restored route needs behind it, in metres.
+
+    `streets_near` can only draw streets the loaded network holds, and a route
+    restored from the store used to ask for the default 4,500 m box whatever
+    its length. Measured over the 76 rows in `_routes.db`: a 100 km route
+    reaches 7.0 km from the centre and the widest reaches 13.1 km, so 43 of
+    them came back with the map ending part-way along the route and the rest of
+    the line floating on blank page - the exact failure the street background
+    exists to prevent.
+
+    In one process this never showed, because the fit had already loaded a box
+    the shape's width, which the reuse rule in `network` then served. It only
+    appears after a restart, which is precisely when the store is what answers.
+    """
+    pts = np.asarray(answer.get("coordinates", ()), dtype=float)
+    lat0, lon0 = answer.get("_lat"), answer.get("_lon")
+    if not len(pts) or lat0 is None or lon0 is None:
+        return NETWORK_HALF_SIZE_M
+    dy = (pts[:, 0] - lat0) * 111_320.0
+    dx = (pts[:, 1] - lon0) * 111_320.0 * np.cos(np.radians(lat0))
+    reach = float(np.abs(np.concatenate([dx, dy])).max())
+    return max(NETWORK_HALF_SIZE_M, reach + STREET_PAD_M)
+
+
 def _rehydrate(answer: dict, mode: str) -> dict:
     """Put back what the store does not keep.
 
@@ -581,7 +610,8 @@ def _rehydrate(answer: dict, mode: str) -> dict:
                 "shape": answer.get("shape", "")}
     if "streets" not in answer and answer.get("coordinates"):
         try:
-            net = network(answer["_lat"], answer["_lon"], mode) \
+            net = network(answer["_lat"], answer["_lon"], mode,
+                          _street_half_size_m(answer)) \
                 if "_lat" in answer else None
         except Exception:                                # noqa: BLE001
             net = None
@@ -1051,8 +1081,16 @@ def main() -> None:
         return
 
     if args.warm:
-        print("warming the network cache...", flush=True)
-        network(SEARCH_LAT, SEARCH_LON, rf.DEFAULT_MODE)
+        # THE BOX THE STORED ROUTES NEED, not the default one. `network` serves
+        # every smaller request from a larger box already loaded, so warming the
+        # widest one covers all of them - and warming the default 4,500 m box
+        # instead left the first 100 km click to load a network of its own.
+        here = (rf.DEFAULT_MODE, round(SEARCH_LAT, 4), round(SEARCH_LON, 4))
+        needed = [_street_half_size_m(a) for k, a in _ROUTE_CACHE.items()
+                  if (k[2], round(k[3], 4), round(k[4], 4)) == here]
+        half = max(needed) if needed else NETWORK_HALF_SIZE_M
+        print(f"warming the network cache ({half:.0f} m box)...", flush=True)
+        network(SEARCH_LAT, SEARCH_LON, rf.DEFAULT_MODE, half)
 
     # Say what is actually loaded. The emoji font and the word index are both
     # things that can be absent on one machine and present on another, and both

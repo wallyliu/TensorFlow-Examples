@@ -124,6 +124,37 @@ def projected_to_latlon(points_proj: np.ndarray, crs: str) -> np.ndarray:
     return np.column_stack([lat, lon])
 
 
+def cached_covering(lat: float, lon: float, mode: str,
+                    half_size_m: float) -> Path | None:
+    """The smallest cached network file for this place that contains this box.
+
+    The half-size asked for comes from the shape's width, so the sizes are all
+    slightly different - 8460, 9052, 9997, 13453 m - and almost none of them
+    matches a file on disk exactly. The in-memory cache in `server/app.py`
+    already reuses a larger box, with the same reasoning: a square of the same
+    centre and a larger half-side strictly contains this one, so what is read
+    out of it is the same streets and more.
+
+    Without the rule here too, that reuse lasts only as long as the process. A
+    restart re-downloaded a city already sitting on disk, and a restored route
+    asking for a 7,431 m box just to draw its street background downloaded a
+    whole network to do it.
+    """
+    prefix = f"_{mode}_{lat:.4f}_{lon:.4f}_"
+    best: tuple[float, Path] | None = None
+    for suffix in (".graphml", ".osm"):          # graphml reloads far faster
+        for path in CACHE_DIR.glob(f"{prefix}*m{suffix}"):
+            try:
+                size = float(path.stem[len(prefix):-1])
+            except ValueError:
+                continue
+            if size >= half_size_m and (best is None or size < best[0]):
+                best = (size, path)
+        if best is not None:
+            return best[1]
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Step 3 - street network
 # ---------------------------------------------------------------------------
@@ -155,12 +186,14 @@ def download_walk_graph(
     cache_xml = CACHE_DIR / f"{stem}.osm"          # what the fallback tiler writes
     cache_graphml = CACHE_DIR / f"{stem}.graphml"  # what the Overpass path writes
 
-    if cache_graphml.exists():
-        print(f"  using cached network file {cache_graphml.name}")
-        graph = ox.load_graphml(cache_graphml)
-    elif cache_xml.exists():
-        print(f"  using cached network file {cache_xml.name}")
-        graph = ox.graph_from_xml(cache_xml, bidirectional=bidirectional, simplify=True)
+    on_disk = (cache_graphml if cache_graphml.exists() else
+               cache_xml if cache_xml.exists() else
+               cached_covering(center_lat, center_lon, mode, half_size_m))
+    if on_disk is not None:
+        print(f"  using cached network file {on_disk.name}")
+        graph = (ox.load_graphml(on_disk) if on_disk.suffix == ".graphml"
+                 else ox.graph_from_xml(on_disk, bidirectional=bidirectional,
+                                        simplify=True))
     else:
         try:
             # dist is the half-side of a square bbox, matching the fallback.
