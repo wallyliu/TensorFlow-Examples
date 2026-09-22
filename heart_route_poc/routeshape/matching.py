@@ -33,7 +33,6 @@ from collections.abc import Sequence
 
 import argparse
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

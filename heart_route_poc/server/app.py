@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import threading
 from urllib.parse import parse_qs, urlparse
@@ -487,7 +488,7 @@ def quality_for(shape: str) -> tuple[str, str]:
     """How this route came out, in the counts of people who named the shape.
 
     Took `distance` until POC 39, which pooled 311 judgements and found that a
-    a curve over shape_distance predicts a held-out answer no better than
+    curve over shape_distance predicts a held-out answer no better than
     knowing nothing at all (log-loss 0.656 against 0.660), and neither does
     excursion. Which drawing it is cuts the loss to 0.505. So the answer is
     the shape's measured rate and nothing about this particular route - and

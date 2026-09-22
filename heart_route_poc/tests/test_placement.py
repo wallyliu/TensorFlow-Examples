@@ -24,7 +24,6 @@ from routeshape.placement import (MAX_GAP_M, build_center_grid,
                                   build_street_index, place_shape,
                                   select_candidates)
 from routeshape.search import coarse_scan
-from routeshape.shapes.library import resample_by_arclength
 from tests.gridfixture import centre_of, grid
 
 SPACING = 100.0

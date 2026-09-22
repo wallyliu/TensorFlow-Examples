@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import time
 from pathlib import Path
 from xml.sax.saxutils import quoteattr

@@ -38,7 +38,6 @@ Out:  poc15_wiggle.png, poc15_wiggle.json
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

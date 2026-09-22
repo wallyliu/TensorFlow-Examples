@@ -38,7 +38,6 @@ from __future__ import annotations
 
 import argparse
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -56,10 +55,9 @@ from routeshape.matching import (
     N_CANDIDATES,
     SNAP_WEIGHT,
     _densify,
-    evaluate,
-    resample_by_arclength,
     run_poc2,
 )
+from routeshape.shapes.library import resample_by_arclength
 from routeshape import paths
 
 # Search region: a 9 km x 9 km box around central Taipei.
@@ -134,11 +132,17 @@ def build_street_index(graph_proj: nx.MultiDiGraph, spacing: float = STREET_SPAC
     return cKDTree(cloud)
 
 
+PLACEMENT_DTYPE = [("x", float), ("y", float), ("rotation", float),
+                   ("score", float), ("mean", float), ("p95", float),
+                   ("worst", float)]
+
+
 def coarse_scan(
     street_tree: cKDTree,
     centers: np.ndarray,
+    shape: str,
     width_m: float = HEART_WIDTH_M,
-    rotations: tuple[int, ...] = ROTATIONS_DEG,
+    rotations: tuple = ROTATIONS_DEG,
     contour_samples: int = CONTOUR_SAMPLES,
     max_gap_m: float = MAX_GAP_M,
 ) -> np.ndarray:
@@ -156,31 +160,33 @@ def coarse_scan(
     a street are rejected outright: some stretch has no pavement at all, and no
     routing can invent it.
 
+    This is a FILTER, not a ranking of routes. It knows nothing about whether
+    the streets it found connect to each other; stage 2 pays for that answer on
+    a shortlist.
+
     Returns a structured array with one row per (centre, rotation).
     """
-    shape = resample_by_arclength(contour_samples)
-    rows = []
+    contour = resample_by_arclength(shape, contour_samples)
+    blocks = []
 
     for rotation in rotations:
         # The contour is the same for every centre at a given rotation, so
         # build it once and broadcast it across all centres in one query.
-        offsets = place_shape(shape, np.zeros(2), width_m, rotation)
+        offsets = place_shape(contour, np.zeros(2), width_m, rotation)
         query = (centers[:, None, :] + offsets[None, :, :]).reshape(-1, 2)
         dists = street_tree.query(query)[0].reshape(len(centers), contour_samples)
 
-        mean = dists.mean(axis=1)
-        p95 = np.percentile(dists, 95, axis=1)
-        worst = dists.max(axis=1)
-        score = np.where(worst > max_gap_m, np.inf, mean + 0.5 * p95)
+        block = np.empty(len(centers), dtype=PLACEMENT_DTYPE)
+        block["x"], block["y"] = centers[:, 0], centers[:, 1]
+        block["rotation"] = rotation
+        block["mean"] = dists.mean(axis=1)
+        block["p95"] = np.percentile(dists, 95, axis=1)
+        block["worst"] = dists.max(axis=1)
+        block["score"] = np.where(block["worst"] > max_gap_m, np.inf,
+                                  block["mean"] + 0.5 * block["p95"])
+        blocks.append(block)
 
-        for i, center in enumerate(centers):
-            rows.append((center[0], center[1], rotation, score[i], mean[i], p95[i], worst[i]))
-
-    return np.array(
-        rows,
-        dtype=[("x", float), ("y", float), ("rotation", float),
-               ("score", float), ("mean", float), ("p95", float), ("worst", float)],
-    )
+    return np.concatenate(blocks)
 
 
 def select_candidates(
@@ -388,14 +394,15 @@ def main() -> None:
     centers, grid_shape, extent = build_center_grid(region_xy, half_extent, args.grid_step_m)
 
     rotations = tuple(int(r) for r in args.rotations.split(","))
-    scored = coarse_scan(street_tree, centers, args.width_m, rotations=rotations)
+    scored = coarse_scan(street_tree, centers, "heart", args.width_m,
+                         rotations=rotations)
     n_valid = int(np.isfinite(scored["score"]).sum())
     print(f"  scored {len(scored):,} placements ({len(centers):,} centres x "
           f"{len(rotations)} rotations) in {time.perf_counter() - t0:.1f}s")
     print(f"  {n_valid:,} viable, {len(scored) - n_valid:,} rejected for a street-less gap")
 
     shortlist = select_candidates(scored, args.refine)
-    print(f"\n  shortlist (coarse score, lower is better):")
+    print("\n  shortlist (coarse score, lower is better):")
     for rank, row in enumerate(shortlist, start=1):
         lat, lon = to_latlon(np.array([row["x"], row["y"]]), crs)
         print(f"    #{rank}  score {row['score']:5.1f}  mean {row['mean']:5.1f} m  "

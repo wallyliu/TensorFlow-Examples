@@ -166,5 +166,65 @@ class Library(unittest.TestCase):
                 self.assertNotIn("e_" + name, app.SHAPES)
 
 
+class Describe(unittest.TestCase):
+    """Typed description to shape. The back end is stubbed: what is under test
+    is what this service does with a proposal, not what a model proposes.
+
+    The success path had never run. Without credentials `propose` raises, the
+    service reports "unavailable", and the page falls back to the library - so
+    a NameError three lines further on sat there through every manual test of
+    the feature.
+    """
+
+    def setUp(self):
+        self.real = app.describe_shape.propose
+        t = np.linspace(0.0, 2 * np.pi, 120, endpoint=False)
+        self.points = np.column_stack([np.cos(t), np.sin(t) * 0.8])
+
+    def tearDown(self):
+        app.describe_shape.propose = self.real
+        for name in [n for n in app.SHAPES if n.startswith("gen_")]:
+            app.SHAPES.pop(name, None)
+            app.LABELS.pop(name, None)
+
+    def stub(self, **over):
+        answer = {"status": "ok", "name": "Cat Face", "label": "貓",
+                  "points": self.points.tolist()}
+        answer.update(over)
+        app.describe_shape.propose = lambda *a, **k: answer
+
+    def test_an_accepted_proposal_becomes_a_shape_the_search_can_draw(self):
+        self.stub()
+        out = app.describe({"description": "a cat"})
+        self.assertEqual(out["status"], "ok")
+        self.assertIn(out["shape"], app.SHAPES)
+        self.assertGreater(out["min_km"], 0.0)
+        self.assertFalse(out["recognition_measured"])
+
+    def test_the_generated_name_is_safe_to_use_as_a_key(self):
+        self.stub(name="Cat Face!! <script>")
+        name = app.describe({"description": "a cat"})["shape"]
+        self.assertTrue(name.startswith("gen_"))
+        self.assertTrue(all(c.islower() or c.isdigit() or c == "_" for c in name))
+
+    def test_a_rejected_proposal_is_passed_through_untouched(self):
+        self.stub(status="rejected", reason="self-intersecting")
+        out = app.describe({"description": "a cat"})
+        self.assertEqual(out["status"], "rejected")
+        self.assertNotIn("shape", out)
+
+    def test_no_credentials_is_a_state_not_a_crash(self):
+        def raises(*a, **k):
+            raise RuntimeError("no token")
+        app.describe_shape.propose = raises
+        out = app.describe({"description": "a cat"})
+        self.assertEqual(out["status"], "unavailable")
+
+    def test_an_empty_or_oversized_description_is_refused_before_the_model(self):
+        for text in ("", "   ", "x" * 201):
+            with self.subTest(text=text[:12]):
+                self.assertEqual(app.describe({"description": text})["status"], "error")
+
+
 if __name__ == "__main__":
     unittest.main()

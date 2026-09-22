@@ -31,7 +31,6 @@ import json
 import os
 import tempfile
 import threading
-from pathlib import Path
 
 import numpy as np
 from scipy.spatial import cKDTree

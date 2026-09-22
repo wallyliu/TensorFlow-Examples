@@ -223,8 +223,3 @@ def download_network_xml(
     print(f"  wrote {out_path} ({len(ways)} ways, {len(used)} nodes)")
     return out_path
 
-
-def download_walk_xml(center_lat, center_lon, half_size_m, out_path, step_deg=0.008):
-    """Backwards-compatible alias: POCs 1-9 all call this."""
-    return download_network_xml(center_lat, center_lon, half_size_m, out_path,
-                                mode="walk", step_deg=step_deg)

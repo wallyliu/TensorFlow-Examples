@@ -33,8 +33,6 @@ from these outlines.
 
 from __future__ import annotations
 
-import math
-import re
 from pathlib import Path
 
 import numpy as np
@@ -208,7 +206,7 @@ def outline(emoji: str, tolerance: float = TOLERANCE,
             max_vertices: int = MAX_VERTICES, interior: bool = True) -> np.ndarray:
     """One emoji's drawing - silhouette, inner shapes and inner lines - as one
     closed curve, normalised to unit width and centred."""
-    from shapely.geometry import LinearRing, LineString, Point
+    from shapely.geometry import LineString, Point
     from shapely.ops import unary_union
     from routeshape.shapes.multi_contour import merge
 

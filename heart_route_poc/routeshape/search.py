@@ -22,22 +22,20 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 import osmnx as ox
 from pyproj import Transformer
-from scipy.spatial import cKDTree
 
 from routeshape.network import download_walk_graph
-from routeshape.matching import NoRouteFoundError, _densify, evaluate, run_poc2
+from routeshape.matching import NoRouteFoundError, run_poc2
 from routeshape.placement import (
-    GRID_STEP_M, MAX_GAP_M, MIN_SEPARATION_M, NETWORK_HALF_SIZE_M, SEARCH_LAT,
-    SEARCH_LON, build_center_grid, build_street_index, place_shape, select_candidates,
+    GRID_STEP_M, MIN_SEPARATION_M, NETWORK_HALF_SIZE_M, SEARCH_LAT, SEARCH_LON,
+    build_center_grid, build_street_index, coarse_scan, place_shape,
+    select_candidates,
 )
 from routeshape.shapes.library import SHAPES, resample_by_arclength
 from routeshape.metrics import shape_distance
@@ -50,23 +48,6 @@ ROTATIONS_DEG = tuple(range(0, 360, 30))   # searched now: see module docstring
 N_REFINE = 8
 OUT_PNG = paths.RESULTS / "poc6_shapes.png"
 OUT_JSON = paths.RESULTS / "poc6_results.json"
-
-
-def coarse_scan(street_tree, centers, shape, width_m, rotations):
-    """POC 3's stage-1 filter, for any shape. Same score, same rejection rule."""
-    contour = resample_by_arclength(shape, CONTOUR_SAMPLES)
-    rows = []
-    for rotation in rotations:
-        offsets = place_shape(contour, np.zeros(2), width_m, rotation)
-        query = (centers[:, None, :] + offsets[None, :, :]).reshape(-1, 2)
-        dists = street_tree.query(query)[0].reshape(len(centers), CONTOUR_SAMPLES)
-        mean, p95 = dists.mean(axis=1), np.percentile(dists, 95, axis=1)
-        score = np.where(dists.max(axis=1) > MAX_GAP_M, np.inf, mean + 0.5 * p95)
-        for i, centre in enumerate(centers):
-            rows.append((centre[0], centre[1], rotation, score[i], mean[i], p95[i], 0.0))
-    return np.array(rows, dtype=[("x", float), ("y", float), ("rotation", float),
-                                 ("score", float), ("mean", float), ("p95", float),
-                                 ("worst", float)])
 
 
 def refine(graph, shape, centre_xy, rotation, width_m=WIDTH_M, points=N_POINTS,
@@ -168,9 +149,10 @@ def main() -> None:
           f"{'backtrk':>9}{'rot':>7}{'location':>22}")
     print("-" * 78)
     for row in sorted(summary, key=lambda r: r["distance"]):
+        where = f"{row['lat']:.4f}, {row['lon']:.4f}"
         print(f"{row['shape']:<11}{row['distance']:>10.3f}{row['route_km']:>10.2f}"
               f"{row['detour_ratio']:>9.2f}{row['backtracked']:>9}{row['rotation']:>6.0f}°"
-              f"{f'{row[chr(108)+chr(97)+chr(116)]:.4f}, {row[chr(108)+chr(111)+chr(110)]:.4f}':>22}")
+              f"{where:>22}")
 
     fig, axes = plt.subplots(1, len(best_by_shape), figsize=(6.2 * len(best_by_shape), 6.6))
     axes = np.atleast_1d(axes)
