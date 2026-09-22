@@ -2062,3 +2062,57 @@ implementation with three different marks.
 The refactor itself was proved inert: same route_km, same shape distance, same
 everything but the mark, on four fits across two shapes, two distances and two
 variants.
+
+## 57. `streets_near` walks every edge, so the map costs more than the route
+
+Measured serving one stored 30 km heart, whose route reaches 3.6 km from the
+centre:
+
+    4,500 m box    58,396 edges    2.31 s    36,501 polylines
+    13,453 m box  187,037 edges    4.89 s    36,503 polylines
+
+The same map, 2.1x the time. `streets_near` iterates `graph.edges(data=True)`
+and rejects each edge by bounding box in Python, so the cost follows the size
+of the NETWORK rather than the size of the route - and a cached route, which
+does no fitting at all, spends its entire latency here.
+
+Found by warming the widest box the stored routes need (BACKLOG 55) and
+watching a cached click go from instant to 6.8 seconds. The immediate fix is
+to warm the default box as well and let the reuse rule hand each route the
+smallest box that contains it, which puts short routes back on the fast path.
+That is a workaround: a 100 km route still pays 4.89 s for its background, and
+so does any route in a city where the only loaded network is large.
+
+The real fix is an index. Per network, once: an (n_edges, 4) array of edge
+bounding boxes and the edge geometries, so selection is a vectorised numpy
+comparison and only the surviving edges are transformed to WGS84 - the
+per-edge `Transformer` work is the other half of the cost. Same shape of
+change as BACKLOG 54's precomputed edge geometry, and the two share the array.
+
+Worth pairing with 54 rather than doing alone: after 54 removes 35% of a fresh
+request, this is what is left of a cached one.
+
+### What a cached route actually costs, measured over HTTP
+
+With both boxes warm and the route already in the store, so no fitting at all:
+
+    triangle  10 km    1.45 s    0.81 MB     12,675 polylines
+    heart     30 km    2.69 s    2.61 MB     36,501 polylines
+    heart    100 km   10.36 s    8.74 MB    112,073 polylines
+
+All of it is the street background: rebuilding it, serialising it, and sending
+it. `seconds` reports 0.0 for these, which is true of the FITTING and is the
+only part it was ever measuring.
+
+BACKLOG 55 is why the 100 km figure is what it is. Before it, a restored 100 km
+route was served out of the default 4,500 m box, so `streets_near` had far less
+to filter and far less to send - it was faster because the map stopped
+part-way along the route. Correct and slow is the right trade of the two, but
+10 seconds and 8.7 MB for the shapes that are most worth showing is not where
+this should end.
+
+Two levers, neither taken yet. The index above removes the per-edge Python
+work. Separately, 112,073 polylines is more than a map at that zoom can show
+and more than a browser wants to draw: thinning by road class, or by a
+route-distance budget, would cut the payload without the rider seeing the
+difference. That one needs looking at the page before it is believed.

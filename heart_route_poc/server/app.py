@@ -1138,16 +1138,30 @@ def main() -> None:
         return
 
     if args.warm:
-        # THE BOX THE STORED ROUTES NEED, not the default one. `network` serves
-        # every smaller request from a larger box already loaded, so warming the
-        # widest one covers all of them - and warming the default 4,500 m box
-        # instead left the first 100 km click to load a network of its own.
+        # TWO BOXES, SMALLEST FIRST, and both for a measured reason.
+        #
+        # The widest, because that is what the longest stored route needs behind
+        # it and warming the default 4,500 m box alone left the first 100 km
+        # click to load a network of its own.
+        #
+        # The default as well, because `streets_near` walks every edge in
+        # whatever network it is handed. Serving a 30 km heart - which reaches
+        # 3.6 km and needs the 4,500 m box - out of the 13,453 m one produced
+        # the SAME map, 36,503 polylines against 36,501, and took 4.89 s
+        # instead of 2.31 s. The reuse rule in `network` takes the smallest
+        # loaded box that contains the request, so having both means short
+        # routes stop paying for the long ones.
+        #
+        # Smallest first is not cosmetic: loading the wide box first would make
+        # the narrow request reuse it and never load the narrow one at all.
         here = (rf.DEFAULT_MODE, round(SEARCH_LAT, 4), round(SEARCH_LON, 4))
         needed = [_street_half_size_m(a) for k, a in _ROUTE_CACHE.items()
                   if (k[2], round(k[3], 4), round(k[4], 4)) == here]
-        half = max(needed) if needed else NETWORK_HALF_SIZE_M
-        print(f"warming the network cache ({half:.0f} m box)...", flush=True)
-        network(SEARCH_LAT, SEARCH_LON, rf.DEFAULT_MODE, half)
+        boxes = sorted({NETWORK_HALF_SIZE_M, max(needed, default=0.0)} - {0.0})
+        print("warming the network cache ("
+              + ", ".join(f"{b:.0f}" for b in boxes) + " m)...", flush=True)
+        for half in boxes:
+            network(SEARCH_LAT, SEARCH_LON, rf.DEFAULT_MODE, half)
 
     # Say what is actually loaded. The emoji font and the word index are both
     # things that can be absent on one machine and present on another, and both
