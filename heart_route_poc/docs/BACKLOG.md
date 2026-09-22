@@ -1854,3 +1854,35 @@ cannot be placed today may be placeable once the network grows, and a stored
 THE RUN WAS KILLED HALFWAY by a container reclamation, which is the second time
 this session, and it restarted from route 77 of 77 without recomputing the 76
 before it. That is the resume working for the reason it was written.
+
+
+## 53. --precompute spent its time downloading the same city twenty times
+
+The rider ran it and watched it sit. The fits were not the problem:
+
+    loaded bike network ... in 323.5s
+    loaded bike network ... in 181.1s
+    loaded bike network ... in 138.5s
+    loaded bike network ... in 122.5s        ... and so on, twenty-odd times
+
+THE HALF-SIZE COMES FROM THE SHAPE'S WIDTH, so every job asked for a slightly
+different box - 8460, 9052, 9997, 10858, 13106 m - and `_networks` keyed on the
+exact number, so each one was a fresh download of the same city. Then Overpass
+refused a connection, the fallback tiler got a 509 after 208 of 700 tiles, and
+the run died with a traceback 40 jobs short.
+
+TWO FIXES, AND THE FIRST ONE IS FREE. A box already loaded that CONTAINS the
+request will do, because the placement grid's margin comes from the shape's
+half-size and not from the network's - so the same centres are scanned either
+way. The only difference is that a route near the edge of that grid can follow
+a street that used to be outside the downloaded box, which is more of the city
+rather than less. With `--precompute` now fitting largest first, the widest
+shape downloads the widest box and the other 76 jobs reuse it: twenty-odd
+downloads become one, measured at 104.9 s for 78,330 nodes.
+
+And one job's failure is no longer the run's. Each fit is caught, named, and
+the run continues; the failures are listed at the end to retry, which the
+resume already makes cheap.
+
+WHAT THIS DOES NOT FIX is the first request on a cold machine, which still
+downloads whatever box the biggest shape needs. That is the network, not us.

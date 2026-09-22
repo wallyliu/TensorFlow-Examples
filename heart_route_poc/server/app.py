@@ -234,6 +234,27 @@ def network(lat: float, lon: float, mode: str,
     """
     key = (round(lat, 4), round(lon, 4), mode, round(half_size_m))
     with _lock:
+        # A BOX ALREADY LOADED THAT CONTAINS THIS ONE WILL DO. The half-size
+        # comes from the shape's width, so the sizes are all slightly
+        # different - 8460, 9052, 9997, 10858, 13106 m - and each one was a
+        # separate download. A --precompute run spent 5.4 minutes on one of
+        # them, twenty-odd minutes in total on the same city, and then died
+        # when the OSM API started answering 509.
+        #
+        # Reusing a larger box does not change what the search considers: the
+        # placement grid's margin comes from `half_size` (the shape's need),
+        # not from the network's size, so the same centres are scanned. The
+        # only difference is that a route near the edge of that grid can now
+        # follow a street that used to be outside the downloaded box, which is
+        # strictly more of the city and not less.
+        if key not in _networks:
+            bigger = [k for k in _networks
+                      if k[:3] == key[:3] and k[3] >= key[3]]
+            if bigger:
+                reuse = min(bigger, key=lambda k: k[3])
+                print(f"  reusing the {reuse[3]} m network for a "
+                      f"{key[3]} m request", flush=True)
+                return _networks[reuse]
         if key not in _networks:
             t0 = time.time()
             # Prefer the regional cache: it covers anywhere in the region and
@@ -954,20 +975,38 @@ def precompute(lat: float = SEARCH_LAT, lon: float = SEARCH_LON,
     scale = ss.scale_for(lat, lon, mode, rf.MODES[mode]["street_scale_m"])
     jobs = [(s, km) for s in sorted(SHAPES) for km in PRESET_KM
             if rf.min_distance_km(s, mode, scale) <= km]
+    # BIGGEST FIRST, so the widest shape downloads the widest box and every
+    # smaller job reuses it - see `network`. Fitting in alphabetical order
+    # meant a new download every few jobs.
+    jobs.sort(key=lambda j: -j[1])
     print(f"{len(jobs)} routes to fit; {len(SHAPES)} shapes over "
-          f"{len(PRESET_KM)} distances", flush=True)
-    done = 0
+          f"{len(PRESET_KM)} distances, largest first", flush=True)
+    done, failed = 0, []
     for shape, km in jobs:
         key = _cache_key(shape, km, mode, lat, lon)
         if key in _ROUTE_CACHE:
             continue
         t0 = time.time()
-        answer = build_route(shape, km, mode, lat, lon)
+        # ONE JOB'S FAILURE IS NOT THE RUN'S. Overpass refused a connection
+        # mid-run, the fallback tiler hit a 509 after 208 tiles, and the whole
+        # precompute died with a traceback - losing nothing already stored, but
+        # stopping 40 jobs short for a reason that had nothing to do with them.
+        try:
+            answer = build_route(shape, km, mode, lat, lon)
+        except Exception as exc:                          # noqa: BLE001
+            failed.append((shape, km, f"{type(exc).__name__}: {exc}"))
+            print(f"  {shape:16s} {km:5.0f} km -> FAILED "
+                  f"{type(exc).__name__} ({time.time() - t0:.0f}s)", flush=True)
+            continue
         done += 1
         print(f"  {shape:16s} {km:5.0f} km -> {answer.get('status')} "
               f"{answer.get('route_km', '')} ({time.time() - t0:.0f}s)",
               flush=True)
     print(f"{done} fitted, {_store.count() if _store else 0} in the database")
+    if failed:
+        print(f"{len(failed)} failed - run --precompute again to retry them:")
+        for shape, km, why in failed:
+            print(f"  {shape:16s} {km:5.0f} km  {why[:100]}")
 
 
 def main() -> None:
