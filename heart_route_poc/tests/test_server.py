@@ -79,6 +79,32 @@ class StreetBackgroundBox(unittest.TestCase):
         half = app._street_half_size_m(self.route(7000.0))
         self.assertGreaterEqual(half, 7000.0 + app.STREET_PAD_M - 50.0)
 
+    def test_sizes_are_quantised_so_one_box_serves_many_routes(self):
+        """Asked for its exact reach, each route named a size of its own: 48
+        distinct half-sizes for 79 stored routes. The reuse rule then almost
+        never found a loaded box close above the request."""
+        # The pad is added BEFORE rounding, so 6,000 m serves every route
+        # reaching 4,600 to 5,600 m.
+        for reach in (4700.0, 5000.0, 5400.0, 5599.0):
+            with self.subTest(reach=reach):
+                self.assertEqual(app._street_half_size_m(self.route(reach)), 6000.0)
+        self.assertEqual(app._street_half_size_m(self.route(5700.0)), 7000.0)
+
+    def test_every_size_is_the_floor_or_a_whole_step(self):
+        for reach in (100.0, 3000.0, 4100.0, 4200.0, 7700.0, 13000.0):
+            with self.subTest(reach=reach):
+                half = app._street_half_size_m(self.route(reach))
+                self.assertTrue(half == app.NETWORK_HALF_SIZE_M
+                                or half % app.BOX_STEP_M == 0, half)
+
+    def test_quantising_never_shrinks_the_box_below_the_route(self):
+        """Rounding UP, always - a box that does not contain the route is a map
+        with a hole in it, which is the bug BACKLOG 55 was about."""
+        for reach in (4600.0, 5001.0, 6999.0, 9500.0, 13400.0):
+            with self.subTest(reach=reach):
+                half = app._street_half_size_m(self.route(reach))
+                self.assertGreaterEqual(half, reach + app.STREET_PAD_M)
+
     def test_it_grows_with_the_route(self):
         sizes = [app._street_half_size_m(self.route(r))
                  for r in (1000.0, 6000.0, 9000.0, 13000.0)]

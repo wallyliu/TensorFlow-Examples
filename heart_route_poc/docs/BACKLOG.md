@@ -2151,7 +2151,29 @@ That is a five-minute measurement and it should be the first thing the work
 does - the same measurement, skipped, is what made BACKLOG 54's estimate wrong
 by a factor of six.
 
-A third lever, independent of both: **the box sizes are not quantised.** The 78
+### Quantising the box sizes - DONE
+
+`_street_half_size_m` now rounds up to 1 km steps and `--warm` loads the
+default, the median and the widest, rather than only the two extremes. The 79
+stored routes went from 48 distinct half-sizes to 11:
+
+    4500 m  31 routes     5000  5     6000  12     7000  6     8000  9
+    9000 m   5 routes    10000  4    11000   4    12000  1    13000  1
+   14000 m   1 route
+
+**48 of the 79 are now served by a box of 6,000 m or less**, where before every
+one of them fell through to the widest loaded box. Measured on the 30 km heart,
+same map either way: 58,396 edges takes 2.31 s and 187,037 takes 4.89 s.
+
+Quantising alone would have changed nothing, and that is the part worth
+remembering: the reuse rule serves a request from the smallest LOADED box that
+contains it, so unless the warmed set sits on the buckets, a route asking for
+5,000 m still gets handed the 14,000 m network. The two halves only work
+together.
+
+Still outstanding below, and still the larger half.
+
+A fourth lever, independent of both: **the box sizes are not quantised.** The 78
 stored routes ask for 48 DISTINCT half-sizes (4500, 4514, 4547, 4629, ...,
 13453), because `_street_half_size_m` returns a route's exact reach. Two
 consequences. On disk each size is its own ~70 s stitch and the 400 MB budget

@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import sys
 import threading
@@ -319,6 +320,7 @@ def rotations_for(shape: str) -> tuple:
 
 
 STREET_PAD_M = 400.0        # how far past the route the map keeps drawing
+BOX_STEP_M = 1000.0         # network box sizes, rounded up to this
 
 
 def streets_near(net: dict, xy: np.ndarray,
@@ -589,7 +591,18 @@ def _street_half_size_m(answer: dict) -> float:
     dy = (pts[:, 0] - lat0) * 111_320.0
     dx = (pts[:, 1] - lon0) * 111_320.0 * np.cos(np.radians(lat0))
     reach = float(np.abs(np.concatenate([dx, dy])).max())
-    return max(NETWORK_HALF_SIZE_M, reach + STREET_PAD_M)
+    need = reach + STREET_PAD_M
+    if need <= NETWORK_HALF_SIZE_M:
+        return NETWORK_HALF_SIZE_M
+    # ROUNDED UP, so that many routes ask for the SAME box. Asked for its exact
+    # reach, each route named a size of its own: the 79 stored routes wanted 48
+    # distinct half-sizes between 4,500 m and 13,453 m. On disk that is 48
+    # separate stitches against a 400 MB budget, so the cache thrashes; in
+    # memory it means the reuse rule almost never finds a box close above the
+    # request, and every route between the two warmed ones falls through to the
+    # larger. 1 km steps collapse those 48 into 10, of which 6,000 m alone
+    # covers 48 of the 79.
+    return float(math.ceil(need / BOX_STEP_M) * BOX_STEP_M)
 
 
 def _rehydrate(answer: dict, mode: str) -> dict:
@@ -1157,7 +1170,15 @@ def main() -> None:
         here = (rf.DEFAULT_MODE, round(SEARCH_LAT, 4), round(SEARCH_LON, 4))
         needed = [_street_half_size_m(a) for k, a in _ROUTE_CACHE.items()
                   if (k[2], round(k[3], 4), round(k[4], 4)) == here]
-        boxes = sorted({NETWORK_HALF_SIZE_M, max(needed, default=0.0)} - {0.0})
+        # The default, the median and the widest. Quantising the sizes is only
+        # half of it: the reuse rule serves a request from the smallest LOADED
+        # box that contains it, so with only the two extremes warm everything
+        # in between still falls through to the widest. The median puts a box
+        # close above the bulk of them - 48 of 79 stored routes want 6,000 m.
+        needed.sort()
+        boxes = sorted({NETWORK_HALF_SIZE_M,
+                        needed[len(needed) // 2] if needed else NETWORK_HALF_SIZE_M,
+                        needed[-1] if needed else NETWORK_HALF_SIZE_M})
         print("warming the network cache ("
               + ", ".join(f"{b:.0f}" for b in boxes) + " m)...", flush=True)
         for half in boxes:
