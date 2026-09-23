@@ -2162,8 +2162,23 @@ stored routes went from 48 distinct half-sizes to 11:
    14000 m   1 route
 
 **48 of the 79 are now served by a box of 6,000 m or less**, where before every
-one of them fell through to the widest loaded box. Measured on the 30 km heart,
-same map either way: 58,396 edges takes 2.31 s and 187,037 takes 4.89 s.
+one of them fell through to the widest loaded box.
+
+How much that buys depends on how much smaller the box is, and the honest
+answer is less than the first measurement suggested:
+
+    30 km heart    4,500 m box   58,396 edges   2.31 s  |  13,453 m  187,037   4.89 s   2.1x
+    100 km e_crab  6,000 m box   88,639 edges   4.28 s  |  14,000 m  190,190   5.69 s   1.3x
+
+Both produce the identical map - 36,501 and 46,670 polylines respectively,
+whichever box is used - and that is the reason for the gap. **The survivors are
+the same either way.** Every extra edge a larger box carries is rejected, and
+rejection is the cheap half: about 19 microseconds an edge, against the
+41 microseconds each survivor costs to transform and serialise.
+
+So quantising can only ever recover the rejection work, which is 42% of
+`streets_near`. It is worth having - it is nearly free and it stops the stitch
+cache thrashing - but it is not the fix. The 58% below is.
 
 Quantising alone would have changed nothing, and that is the part worth
 remembering: the reuse rule serves a request from the smallest LOADED box that
